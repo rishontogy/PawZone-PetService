@@ -1,0 +1,361 @@
+Update and finalize the existing PawZone Windows desktop application.
+
+This is the FINAL stabilization phase.
+
+Fix all remaining issues, complete all incomplete features, and ensure that EVERY functionality described in the project (.md files) is fully working across all modules.
+
+Do NOT skip any part.
+
+---
+
+# 🛒 1. CART SYSTEM – COMPLETE FIX (CRITICAL)
+
+---
+
+## ❌ Issues:
+
+* Product data not showing
+* Cart not behaving like real shopping cart
+
+---
+
+## ✅ Fix:
+
+### Data Model (MANDATORY)
+
+Each cart item must include:
+
+* product_id
+* product_name
+* image
+* price (number)
+* quantity (number)
+* seller_id
+
+---
+
+### Functional Requirements:
+
+* Add to cart → item appears instantly
+* Multiple items → all visible
+* Quantity change → updates total instantly
+* Cart persists (local storage or DB)
+
+---
+
+### UI Requirements:
+
+* Show:
+
+  * Image
+  * Name
+  * Seller
+  * Price
+  * Quantity selector
+  * Subtotal
+
+---
+
+### Total Calculation:
+
+* subtotal = price × quantity
+* total = sum(subtotals) + platform fee
+
+---
+
+### Cart Badge:
+
+* Show live count on cart icon
+
+---
+
+### Ensure:
+
+* No missing values
+* No empty UI
+* No incorrect totals
+
+---
+
+# 🔐 2. SELLER LISTING SECURITY (MANDATORY)
+
+---
+
+## ❌ Issue:
+
+Sellers can access others’ listings
+
+---
+
+## ✅ Fix:
+
+* Each listing must contain:
+
+  * seller_id
+
+---
+
+### My Listings Page:
+
+* Show ONLY listings where:
+  listing.seller_id === loggedInUser.id
+
+---
+
+### Permissions:
+
+* Seller can edit/delete ONLY own listings
+* Admin can access all
+
+---
+
+### Backend Validation:
+
+* Reject any unauthorized edit/delete
+
+---
+
+# 🚚 3. TRANSPORTER MODULE – FULL VALIDATION & FIX
+
+---
+
+## Ensure ALL transporter features work correctly as per .md files
+
+---
+
+## Route System:
+
+* Unlimited stops allowed
+* Add Stop button must work properly
+* Stops editable
+* Clear route visualization
+
+---
+
+## Route Data:
+
+* Start location
+* Multiple stops
+* End location
+* Start time
+* End time
+
+---
+
+## Order Assignment:
+
+* Orders assigned based on route match
+* Only relevant orders shown
+
+---
+
+## Order Acceptance:
+
+* Accept works properly
+* Must enter:
+
+  * Pickup time
+  * Delivery time
+
+---
+
+## Pickup Process:
+
+* Barcode scan (or simulation) works
+* Pickup video upload works
+* Status updates correctly
+
+---
+
+## Delivery Process:
+
+* Delivery video upload works
+* Status changes to delivered
+* Tracking updates
+
+---
+
+## Contact Visibility:
+
+* Seller sees pickup time + transporter phone
+* Buyer sees delivery time + transporter phone
+
+---
+
+## Delay System:
+
+* Detect delay
+* Notify buyer + admin
+* Update ETA
+
+---
+
+## Ensure:
+
+* No broken buttons
+* No missing steps
+* No incorrect status
+
+---
+
+# 🧠 4. FULL SYSTEM VALIDATION (ALL MODULES)
+
+---
+
+Check and fix ALL operations across:
+
+---
+
+## Buyer Module:
+
+* Browse
+* Cart
+* Order
+* Payment
+* Tracking
+
+---
+
+## Seller Module:
+
+* Add listing
+* Edit listing
+* Order handling
+* Packaging
+* Ready video
+
+---
+
+## Transporter Module:
+
+* Route setup
+* Order handling
+* Pickup
+* Delivery
+
+---
+
+## Admin Module:
+
+* Approvals
+* Alerts
+* Accounting
+* Disputes
+* Refunds
+
+---
+
+# 📊 5. ADMIN ACCOUNTING SYSTEM – COMPLETE CHECK
+
+---
+
+Ensure fully working:
+
+---
+
+## Transactions:
+
+* Buyer payment
+* Platform fee
+* Seller payout
+* Transport payout
+
+---
+
+## Ledger:
+
+* Platform ledger
+* Seller ledger
+* Transporter ledger
+
+---
+
+## Dashboard:
+
+* Daily income
+* Monthly income
+* Transaction history
+
+---
+
+## Ensure:
+
+* All values accurate
+* No mismatch
+
+---
+
+# 🔔 6. NOTIFICATION SYSTEM
+
+---
+
+Ensure all triggers work:
+
+* Seller approval
+* Transporter approval
+* Order updates
+* Payment reminders
+* Delay alerts
+
+---
+
+(In-app + WhatsApp simulation)
+
+---
+
+# 🧪 7. GLOBAL BUG FIX (MANDATORY)
+
+---
+
+Fix ALL:
+
+* Broken UI elements
+* Non-working buttons
+* Missing data
+* Incorrect state updates
+* Navigation issues
+
+---
+
+## Ensure:
+
+* No console errors
+* No crashes
+* No blank pages
+
+---
+
+# 🎨 8. UI CONSISTENCY CHECK
+
+---
+
+Ensure ALL dashboards (Buyer, Seller, Transporter, Admin):
+
+* Same design quality
+* Modern UI
+* Clean layout
+* Proper spacing
+* Smooth navigation
+
+---
+
+# 🎯 FINAL OUTPUT REQUIREMENT
+
+---
+
+After this update:
+
+* Every feature from .md files must be implemented and working
+* No incomplete functionality
+* No broken flows
+* No security issues
+* No incorrect calculations
+* UI must be clean and attractive
+
+---
+
+This is the FINAL version of the application.
+
+Do NOT simplify logic.
+Do NOT skip features.
+Ensure full system integrity and stability.

@@ -2,12 +2,23 @@ import { useParams, useLocation } from "wouter";
 import { useGetOrder, useProcessPayment, useReportIssue } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor, platformFee } from "@/lib/api";
-import { ChevronLeft, Shield, AlertCircle, Package } from "lucide-react";
+import {
+  ChevronLeft, Shield, AlertCircle, Package, CheckCircle,
+  Truck, Clock, MapPin, Phone, Star, User
+} from "lucide-react";
 import { useState } from "react";
+
+const STATUS_STEPS = [
+  { key: "pending_payment", label: "Order Placed", icon: <Package className="w-4 h-4" /> },
+  { key: "paid", label: "Payment Confirmed", icon: <CheckCircle className="w-4 h-4" /> },
+  { key: "ready_for_pickup", label: "Ready for Pickup", icon: <Package className="w-4 h-4" /> },
+  { key: "in_transit", label: "In Transit", icon: <Truck className="w-4 h-4" /> },
+  { key: "delivered", label: "Delivered", icon: <CheckCircle className="w-4 h-4" /> },
+];
+
+const STEP_ORDER = ["pending_payment", "paid", "confirmed", "ready_for_pickup", "assigned", "in_transit", "delivered"];
 
 export function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -17,14 +28,11 @@ export function OrderDetailPage() {
   const [issueDesc, setIssueDesc] = useState("");
   const [showIssue, setShowIssue] = useState(false);
 
-  const { data: order, refetch } = useGetOrder(parseInt(id!), { query: { enabled: !!user } });
+  const { data: order, refetch } = useGetOrder(parseInt(id!), { query: { enabled: !!user } } as any);
 
   const processPayment = useProcessPayment({
     mutation: {
-      onSuccess: () => {
-        toast({ title: "Payment confirmed!" });
-        refetch();
-      },
+      onSuccess: () => { toast({ title: "✅ Payment confirmed!" }); refetch(); },
       onError: (err: any) => {
         toast({ variant: "destructive", title: "Payment failed", description: err?.data?.error });
       },
@@ -42,184 +50,281 @@ export function OrderDetailPage() {
   });
 
   if (!order) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-pulse text-muted-foreground">Loading...</div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
-  // Payment deadline: 3 hours from order creation
-  const payDeadline = new Date(order.createdAt);
+  const o = order as any;
+  const totalAmount = Number(o.totalAmount ?? 0);
+  const subtotalAmount = Number(o.subtotal ?? totalAmount);
+  const platformFeeAmount = Number(o.platformFee ?? 0);
+  const currentStatus = o.status ?? "pending_payment";
+
+  // Payment deadline
+  const payDeadline = new Date(o.createdAt);
   payDeadline.setHours(payDeadline.getHours() + 3);
   const payExpired = new Date() > payDeadline;
   const timeLeft = Math.max(0, payDeadline.getTime() - Date.now());
   const hoursLeft = Math.floor(timeLeft / 3600000);
   const minsLeft = Math.floor((timeLeft % 3600000) / 60000);
 
-  return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-3xl mx-auto">
-        <button
-          onClick={() => setLocation("/buyer/orders")}
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"
-        >
-          <ChevronLeft className="w-4 h-4" /> Back to orders
-        </button>
+  const isPendingPayment = currentStatus === "pending_payment";
+  const canReportIssue = ["paid", "in_transit", "delivered", "confirmed", "ready_for_pickup", "assigned"].includes(currentStatus);
 
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-xl font-bold">Order #{order.orderNumber}</h1>
-            <p className="text-sm text-muted-foreground">
-              Placed on {new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
+  // Progress tracker
+  const currentStepIdx = STEP_ORDER.indexOf(currentStatus);
+  const isDelivered = currentStatus === "delivered";
+  const isCancelled = currentStatus === "cancelled";
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-100 shadow-sm px-6 py-4">
+        <div className="max-w-3xl mx-auto flex items-center gap-4">
+          <button
+            onClick={() => setLocation("/buyer/orders")}
+            className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div className="flex-1">
+            <h1 className="font-bold text-gray-900">Order #{o.orderNumber}</h1>
+            <p className="text-xs text-gray-400">
+              {new Date(o.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
             </p>
           </div>
-          <Badge className={getStatusColor(order.status)}>{order.status.replace(/_/g, " ")}</Badge>
+          <span className={`text-xs px-3 py-1 rounded-full font-medium ${getStatusColor(currentStatus)}`}>
+            {currentStatus.replace(/_/g, " ")}
+          </span>
         </div>
+      </div>
 
-        {/* Payment Section */}
-        {order.status === "pending_payment" && !payExpired && (
-          <Card className="border-amber-200 bg-amber-50 mb-4">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-medium text-amber-800">Payment Required</p>
-                  <p className="text-sm text-amber-700 mt-0.5">
-                    Please complete payment within {hoursLeft}h {minsLeft}m to confirm your order.
-                  </p>
-                  <Button
-                    className="mt-3"
-                    size="sm"
-                    onClick={() => processPayment.mutate({ id: order.id, data: { method: "upi" } })}
-                    disabled={processPayment.isPending}
-                  >
-                    {processPayment.isPending ? "Processing..." : `Pay ${formatPrice(order.totalAmount)}`}
-                  </Button>
-                </div>
+      <div className="max-w-3xl mx-auto px-6 py-6 space-y-4">
+        {/* Payment Banner */}
+        {isPendingPayment && !payExpired && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-bold text-amber-800">Payment Required</p>
+                <p className="text-sm text-amber-700 mt-0.5">
+                  Complete payment within {hoursLeft}h {minsLeft}m to confirm your order.
+                </p>
+                <Button
+                  className="mt-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white"
+                  size="sm"
+                  onClick={() => processPayment.mutate({ id: parseInt(id!), data: { method: "upi", amount: totalAmount } as any })}
+                  disabled={processPayment.isPending}
+                >
+                  {processPayment.isPending ? "Processing..." : `Pay ${formatPrice(totalAmount)}`}
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
-        {order.status === "pending_payment" && payExpired && (
-          <Card className="border-red-200 bg-red-50 mb-4">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-red-700">
-                <AlertCircle className="w-5 h-5" />
-                <p className="font-medium">Payment window expired. Order will be cancelled.</p>
+        {isPendingPayment && payExpired && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <p className="text-sm font-medium text-red-700">Payment window expired. Order will be cancelled.</p>
+          </div>
+        )}
+
+        {/* Order Progress */}
+        {!isCancelled && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <h2 className="font-bold text-gray-900 mb-4">Order Progress</h2>
+            <div className="flex items-center gap-0">
+              {STATUS_STEPS.map((step, idx) => {
+                const stepIdx = STEP_ORDER.indexOf(step.key);
+                const done = currentStepIdx >= stepIdx && !isCancelled;
+                const active = currentStepIdx === stepIdx;
+                const isLast = idx === STATUS_STEPS.length - 1;
+                return (
+                  <div key={step.key} className="flex-1 flex flex-col items-center">
+                    <div className="flex items-center w-full">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all ${
+                        done ? "bg-teal-600 text-white shadow-md" :
+                        active ? "bg-teal-100 text-teal-600 border-2 border-teal-600" :
+                        "bg-gray-100 text-gray-400"
+                      }`}>
+                        {step.icon}
+                      </div>
+                      {!isLast && (
+                        <div className={`flex-1 h-0.5 ${done && currentStepIdx > stepIdx ? "bg-teal-600" : "bg-gray-200"}`} />
+                      )}
+                    </div>
+                    <p className={`text-xs mt-2 text-center leading-tight ${done ? "text-teal-700 font-semibold" : "text-gray-400"}`}>
+                      {step.label}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Transporter Info */}
+        {o.transporterName && (
+          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+            <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+              <Truck className="w-4 h-4" /> Your Transporter
+            </h3>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-blue-700" />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <p className="font-semibold text-blue-900">{o.transporterName}</p>
+                {o.transporterPhone && (
+                  <a href={`tel:${o.transporterPhone}`} className="text-sm text-blue-700 flex items-center gap-1 hover:underline">
+                    <Phone className="w-3 h-3" /> {o.transporterPhone}
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Order Items */}
-        <Card className="mb-4">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Package className="w-4 h-4" /> Order Items
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y">
-              {order.items?.map((item: any) => (
-                <div key={item.id} className="p-4 flex items-center gap-4">
-                  <div className="w-14 h-14 bg-muted rounded-lg overflow-hidden">
-                    {item.photo && <img src={item.photo} alt={item.breed} className="w-full h-full object-cover" />}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">{item.breed}</p>
-                    <p className="text-sm text-muted-foreground">{formatPrice(item.price)} x {item.quantity}</p>
-                    {item.petCode && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <Shield className="w-3 h-3 text-primary" />
-                        <code className="text-xs text-primary">{item.petCode}</code>
-                      </div>
-                    )}
-                  </div>
-                  <p className="font-semibold">{formatPrice((item.price + platformFee(item.price)) * item.quantity)}</p>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-50">
+            <h2 className="font-bold text-gray-900 flex items-center gap-2">
+              <Package className="w-4 h-4 text-teal-600" /> Order Items
+            </h2>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {o.items?.map((item: any) => (
+              <div key={item.id} className="p-4 flex items-center gap-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                  {item.photo ? (
+                    <img src={item.photo} alt={item.breed} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl">🐾</div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-900">{item.breed}</p>
+                  <p className="text-sm text-gray-400">{formatPrice(Number(item.price ?? 0))} × {item.quantity}</p>
+                  {item.petCode && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <Shield className="w-3 h-3 text-teal-600" />
+                      <code className="text-xs text-teal-600 font-mono">{item.petCode}</code>
+                    </div>
+                  )}
+                </div>
+                <p className="font-bold text-gray-900">
+                  {formatPrice((Number(item.price ?? 0) + platformFee(Number(item.price ?? 0))) * Number(item.quantity ?? 1))}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
 
-        {/* Summary */}
-        <Card className="mb-4">
-          <CardContent className="p-4 space-y-2">
+        {/* Order Summary */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <h2 className="font-bold text-gray-900 mb-3">Payment Summary</h2>
+          <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span>{formatPrice(order.subtotal || order.totalAmount)}</span>
+              <span className="text-gray-500">Subtotal</span>
+              <span>{formatPrice(subtotalAmount)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Platform fees</span>
-              <span>{formatPrice(order.platformFee || 0)}</span>
+              <span className="text-gray-500">Platform fees</span>
+              <span>{formatPrice(platformFeeAmount)}</span>
             </div>
-            <div className="border-t pt-2 flex justify-between font-semibold">
-              <span>Total</span>
-              <span className="text-primary">{formatPrice(order.totalAmount)}</span>
+            {Number(o.deliveryFee) > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Delivery fee</span>
+                <span>{formatPrice(Number(o.deliveryFee))}</span>
+              </div>
+            )}
+            <div className="border-t border-gray-100 pt-2 flex justify-between font-bold">
+              <span>Total Paid</span>
+              <span className="text-teal-600 text-lg">{formatPrice(totalAmount)}</span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <span className="text-xs text-gray-400">Payment method</span>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+              o.paymentStatus === "paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+            }`}>
+              {o.paymentStatus === "paid" ? "✓ Paid" : "Pending"}
+            </span>
+          </div>
+        </div>
 
-        {/* Delivery */}
-        {order.deliveryAddress && (
-          <Card className="mb-4">
-            <CardContent className="p-4">
-              <p className="font-medium text-sm mb-1">Delivery Address</p>
-              <p className="text-sm text-muted-foreground">{order.deliveryAddress}</p>
-            </CardContent>
-          </Card>
+        {/* Delivery Address */}
+        {o.deliveryAddress && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <h2 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-teal-600" /> Delivery Address
+            </h2>
+            <p className="text-sm text-gray-600">{o.deliveryAddress}</p>
+            {o.notes && <p className="text-xs text-gray-400 mt-2">Note: {o.notes}</p>}
+          </div>
         )}
 
         {/* Timeline */}
-        {order.timeline && order.timeline.length > 0 && (
-          <Card className="mb-4">
-            <CardHeader className="pb-3"><CardTitle className="text-base">Order Timeline</CardTitle></CardHeader>
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                {order.timeline.map((event: any, i: number) => (
-                  <div key={i} className="flex gap-3">
-                    <div className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium">{event.status.replace(/_/g, " ")}</p>
-                      {event.note && <p className="text-xs text-muted-foreground">{event.note}</p>}
-                      <p className="text-xs text-muted-foreground">{new Date(event.createdAt).toLocaleString()}</p>
-                    </div>
+        {o.timeline && o.timeline.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-teal-600" /> Order Timeline
+            </h2>
+            <div className="space-y-4">
+              {o.timeline.map((event: any, i: number) => (
+                <div key={i} className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <div className={`w-3 h-3 rounded-full flex-shrink-0 mt-1 ${i === 0 ? "bg-teal-600" : "bg-gray-300"}`} />
+                    {i < o.timeline.length - 1 && <div className="w-0.5 flex-1 bg-gray-100 mt-1" />}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="pb-3">
+                    <p className="text-sm font-semibold text-gray-800 capitalize">{event.status?.replace(/_/g, " ")}</p>
+                    {event.note && <p className="text-xs text-gray-500 mt-0.5">{event.note}</p>}
+                    <p className="text-xs text-gray-400 mt-0.5">{new Date(event.createdAt).toLocaleString("en-IN")}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Report Issue */}
-        {["paid", "in_transit", "delivered"].includes(order.status) && (
+        {canReportIssue && (
           <div>
             {!showIssue ? (
-              <Button variant="outline" size="sm" onClick={() => setShowIssue(true)}>
-                Report an Issue
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl text-red-600 border-red-200 hover:bg-red-50"
+                onClick={() => setShowIssue(true)}
+              >
+                <AlertCircle className="w-4 h-4 mr-1.5" /> Report an Issue
               </Button>
             ) : (
-              <Card>
-                <CardContent className="p-4 space-y-3">
-                  <p className="font-medium text-sm">Report Issue</p>
-                  <textarea
-                    className="w-full text-sm border rounded-md p-2 resize-none h-20 focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="Describe the issue with your order..."
-                    value={issueDesc}
-                    onChange={(e) => setIssueDesc(e.target.value)}
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => reportIssue.mutate({ id: order.id, data: { description: issueDesc } })}
-                      disabled={!issueDesc.trim() || reportIssue.isPending}
-                    >
-                      Submit
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setShowIssue(false)}>Cancel</Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-500" /> Report Issue
+                </h3>
+                <textarea
+                  className="w-full text-sm border border-gray-200 rounded-xl p-3 resize-none h-24 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                  placeholder="Describe the issue with your order..."
+                  value={issueDesc}
+                  onChange={(e) => setIssueDesc(e.target.value)}
+                />
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={() => reportIssue.mutate({ id: parseInt(id!), data: { description: issueDesc, issueType: "general" } as any })}
+                    disabled={!issueDesc.trim() || reportIssue.isPending}
+                  >
+                    Submit Report
+                  </Button>
+                  <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setShowIssue(false)}>Cancel</Button>
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -227,3 +332,4 @@ export function OrderDetailPage() {
     </div>
   );
 }
+

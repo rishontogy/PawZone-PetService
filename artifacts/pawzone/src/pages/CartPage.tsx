@@ -2,10 +2,12 @@ import { Link, useLocation } from "wouter";
 import { useGetCart, useRemoveFromCart, useUpdateCartItem, usePlaceOrder } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, platformFee } from "@/lib/api";
-import { Trash2, ShoppingCart, PawPrint, AlertCircle, Plus, Minus, ArrowLeft, Tag } from "lucide-react";
+import {
+  Trash2, ShoppingCart, PawPrint, AlertCircle, Plus, Minus, ArrowLeft,
+  Tag, MapPin, CheckCircle, Clock, Shield
+} from "lucide-react";
 import { useState } from "react";
 
 export function CartPage() {
@@ -15,7 +17,7 @@ export function CartPage() {
   const [deliveryAddress, setDeliveryAddress] = useState(user?.address || "");
   const [notes, setNotes] = useState("");
 
-  const { data: cart, refetch } = useGetCart({ query: { enabled: !!user } });
+  const { data: cart, refetch } = useGetCart({ query: { enabled: !!user } } as any);
 
   const removeItem = useRemoveFromCart({
     mutation: {
@@ -31,7 +33,7 @@ export function CartPage() {
 
   const placeOrder = usePlaceOrder({
     mutation: {
-      onSuccess: (order) => {
+      onSuccess: (order: any) => {
         toast({ title: "🎉 Order placed!", description: `Order #${order.orderNumber} confirmed. Pay within 3 hours.` });
         setLocation("/buyer/orders");
       },
@@ -41,10 +43,11 @@ export function CartPage() {
     },
   });
 
-  const items = cart?.items ?? [];
-  const subtotal = items.reduce((s: number, i: any) => s + Number(i.price ?? 0) * Number(i.quantity ?? 1), 0);
-  const fees = items.reduce((s: number, i: any) => s + platformFee(Number(i.price ?? 0)) * Number(i.quantity ?? 1), 0);
-  const total = subtotal + fees;
+  // Backend returns: { items: [{listingId, listing:{...}, quantity, subtotal, platformFee}], subtotal, platformFee, total, itemCount }
+  const items: any[] = (cart as any)?.items ?? [];
+  const subtotal = Number((cart as any)?.subtotal ?? 0);
+  const fees = Number((cart as any)?.platformFee ?? 0);
+  const total = Number((cart as any)?.total ?? 0) || subtotal + fees;
 
   const hour = new Date().getHours();
   const isNightTime = hour >= 21;
@@ -85,94 +88,108 @@ export function CartPage() {
           </div>
         </div>
 
-        {/* Night warning */}
+        {/* Night warning — informational only, orders still allowed */}
         {isNightTime && (
           <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-sm text-amber-800 mb-6">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold">Late night order</p>
-              <p className="text-amber-700">Orders placed after 9 PM will be processed the next business day.</p>
+              <p className="text-amber-700">Your order is placed now. Seller confirmation starts from 9 AM tomorrow.</p>
             </div>
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Cart items */}
+          {/* Cart Items */}
           <div className="lg:col-span-2 space-y-3">
-            {items.map((item: any) => (
-              <div key={item.listingId} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex gap-4">
-                  {/* Image */}
-                  <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
-                    {item.photo ? (
-                      <img src={item.photo} alt={item.breed} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-3xl">🐾</div>
-                    )}
-                  </div>
+            {items.map((item: any) => {
+              const listing = item.listing ?? {};
+              const price = Number(listing.price ?? 0);
+              const qty = Number(item.quantity ?? 1);
+              const itemSubtotal = Number(item.subtotal ?? price * qty);
+              const itemFee = Number(item.platformFee ?? platformFee(price) * qty);
+              const itemTotal = itemSubtotal + itemFee;
+              const photo = listing.photos?.[0] ?? null;
 
-                  {/* Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-bold text-gray-900">{item.breed}</h3>
-                        <p className="text-sm text-gray-400 capitalize">{item.category}</p>
-                        <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
-                          <Tag className="w-3 h-3" />
-                          {formatPrice(Number(item.price ?? 0))} + ₹{platformFee(Number(item.price ?? 0))} fee
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => removeItem.mutate({ listingId: item.listingId })}
-                        className="w-8 h-8 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center transition-colors flex-shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+              return (
+                <div key={item.listingId} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex gap-4">
+                    {/* Image */}
+                    <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
+                      {photo ? (
+                        <img src={photo} alt={listing.breed} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-3xl">🐾</div>
+                      )}
                     </div>
 
-                    <div className="flex items-center justify-between mt-3">
-                      {/* Quantity */}
-                      <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-1">
+                    {/* Details */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h3 className="font-bold text-gray-900">{listing.breed || "Unknown Pet"}</h3>
+                          <p className="text-sm text-gray-400 capitalize">{listing.category || ""}</p>
+                          {listing.sellerName && (
+                            <p className="text-xs text-gray-400 mt-0.5">Sold by {listing.sellerName}</p>
+                          )}
+                          <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
+                            <Tag className="w-3 h-3" />
+                            {formatPrice(price)} + ₹{platformFee(price)} fee
+                          </div>
+                        </div>
                         <button
-                          className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors"
-                          onClick={() => {
-                            if (item.quantity <= 1) {
-                              removeItem.mutate({ listingId: item.listingId });
-                            } else {
-                              updateItem.mutate({ listingId: item.listingId, data: { quantity: item.quantity - 1 } });
-                            }
-                          }}
+                          onClick={() => removeItem.mutate({ listingId: item.listingId })}
+                          className="w-8 h-8 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center transition-colors flex-shrink-0"
                         >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="w-8 text-center text-sm font-bold text-gray-900">{item.quantity}</span>
-                        <button
-                          className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors"
-                          onClick={() => updateItem.mutate({ listingId: item.listingId, data: { quantity: item.quantity + 1 } })}
-                        >
-                          <Plus className="w-3 h-3" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                      <p className="font-extrabold text-teal-600 text-lg">
-                        {formatPrice((Number(item.price ?? 0) + platformFee(Number(item.price ?? 0))) * Number(item.quantity ?? 1))}
-                      </p>
+
+                      <div className="flex items-center justify-between mt-3">
+                        {/* Quantity */}
+                        <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-1">
+                          <button
+                            className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors"
+                            onClick={() => {
+                              if (qty <= 1) {
+                                removeItem.mutate({ listingId: item.listingId });
+                              } else {
+                                updateItem.mutate({ listingId: item.listingId, data: { quantity: qty - 1 } });
+                              }
+                            }}
+                          >
+                            <Minus className="w-3 h-3" />
+                          </button>
+                          <span className="w-8 text-center text-sm font-bold text-gray-900">{qty}</span>
+                          <button
+                            className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors"
+                            onClick={() => updateItem.mutate({ listingId: item.listingId, data: { quantity: qty + 1 } })}
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-extrabold text-teal-600 text-lg">{formatPrice(itemTotal)}</p>
+                          <p className="text-xs text-gray-400">incl. ₹{platformFee(price) * qty} fee</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-4">
-            {/* Order summary */}
+            {/* Order Summary */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-gray-50">
+              <div className="px-5 py-4 border-b border-gray-50">
                 <h2 className="font-bold text-gray-900">Order Summary</h2>
               </div>
-              <div className="p-4 space-y-3">
+              <div className="p-5 space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Subtotal ({items.length} items)</span>
+                  <span className="text-gray-500">Subtotal ({items.length} pet{items.length !== 1 ? "s" : ""})</span>
                   <span className="font-medium">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -186,11 +203,24 @@ export function CartPage() {
               </div>
             </div>
 
-            {/* Delivery & checkout */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-4">
+            {/* Trust badges */}
+            <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-2">
+              {[
+                { icon: <CheckCircle className="w-4 h-4 text-teal-600" />, text: "Verified pet listings" },
+                { icon: <Shield className="w-4 h-4 text-teal-600" />, text: "Secure payment" },
+                { icon: <Clock className="w-4 h-4 text-teal-600" />, text: "3-hour payment window" },
+              ].map((b, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs text-teal-800">
+                  {b.icon} {b.text}
+                </div>
+              ))}
+            </div>
+
+            {/* Delivery & Checkout */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
               <h2 className="font-bold text-gray-900">Delivery Details</h2>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1.5">Delivery Address *</label>
+                <label className="text-sm font-semibold text-gray-700 block mb-1.5">Delivery Address *</label>
                 <textarea
                   className="w-full text-sm border border-gray-200 rounded-xl p-3 resize-none h-24 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
                   placeholder="Enter your full delivery address..."
@@ -199,10 +229,10 @@ export function CartPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1.5">Special Instructions</label>
+                <label className="text-sm font-semibold text-gray-700 block mb-1.5">Special Instructions</label>
                 <textarea
                   className="w-full text-sm border border-gray-200 rounded-xl p-3 resize-none h-16 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
-                  placeholder="Any special instructions for delivery..."
+                  placeholder="Any special instructions..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
@@ -210,7 +240,7 @@ export function CartPage() {
               <Button
                 className="w-full h-12 rounded-xl text-base font-bold"
                 disabled={!deliveryAddress.trim() || placeOrder.isPending}
-                onClick={() => placeOrder.mutate({ data: { deliveryAddress, notes: notes || undefined } })}
+                onClick={() => placeOrder.mutate({ data: { deliveryAddress, notes: notes || undefined } as any })}
               >
                 {placeOrder.isPending ? "Placing order..." : `Place Order · ${formatPrice(total)}`}
               </Button>
@@ -224,3 +254,4 @@ export function CartPage() {
     </div>
   );
 }
+

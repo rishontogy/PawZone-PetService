@@ -21,6 +21,7 @@ import { OrderDetailPage } from "@/pages/buyer/OrderDetailPage";
 import { SellerDashboard } from "@/pages/seller/SellerDashboard";
 import { SellerListingsPage } from "@/pages/seller/SellerListingsPage";
 import { CreateListingPage } from "@/pages/seller/CreateListingPage";
+import { EditListingPage } from "@/pages/seller/EditListingPage";
 import { SellerOrdersPage } from "@/pages/seller/SellerOrdersPage";
 
 import { TransporterDashboard } from "@/pages/transporter/TransporterDashboard";
@@ -127,6 +128,11 @@ function Router() {
       <Route path="/seller/listings/new">
         <RequireAuth allowedRoles={["seller"]}>
           <AppLayout><CreateListingPage /></AppLayout>
+        </RequireAuth>
+      </Route>
+      <Route path="/seller/listings/:id/edit">
+        <RequireAuth allowedRoles={["seller"]}>
+          <AppLayout><EditListingPage /></AppLayout>
         </RequireAuth>
       </Route>
       <Route path="/seller/orders">

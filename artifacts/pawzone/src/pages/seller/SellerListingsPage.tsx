@@ -1,17 +1,20 @@
 import { Link } from "wouter";
 import { useGetListings, useDeleteListing } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor } from "@/lib/api";
-import { PlusCircle, Edit, Trash2, PawPrint } from "lucide-react";
+import { PlusCircle, Edit, Trash2, PawPrint, Package, ChevronRight } from "lucide-react";
 
 export function SellerListingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { data: rawData, refetch } = useGetListings({ limit: 50 } as any, { query: { enabled: !!user } });
+
+  // Filter by sellerId to only show THIS seller's listings (security fix)
+  const { data: rawData, refetch } = useGetListings(
+    { sellerId: user?.id as any },
+    { query: { enabled: !!user?.id } }
+  );
   const data = rawData as any;
 
   const deleteMutation = useDeleteListing({
@@ -21,62 +24,87 @@ export function SellerListingsPage() {
     },
   });
 
-  const myListings = data?.listings ?? [];
+  const myListings: any[] = data?.listings ?? [];
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">My Listings</h1>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-6 py-8">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <Package className="w-6 h-6" /> My Listings
+            </h1>
+            <p className="text-teal-100 text-sm mt-1">{myListings.length} listing{myListings.length !== 1 ? "s" : ""} in your shop</p>
+          </div>
           <Link href="/seller/listings/new">
-            <Button className="gap-2">
+            <Button className="gap-2 bg-white text-teal-700 hover:bg-teal-50 font-bold rounded-xl shadow-lg">
               <PlusCircle className="w-4 h-4" /> Add Listing
             </Button>
           </Link>
         </div>
+      </div>
 
+      <div className="max-w-5xl mx-auto px-6 -mt-4 pb-12">
         {!myListings.length ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <PawPrint className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-              <h3 className="font-medium mb-2">No listings yet</h3>
-              <p className="text-muted-foreground text-sm mb-4">Create your first listing to start selling.</p>
-              <Link href="/seller/listings/new"><Button>Create Listing</Button></Link>
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center">
+            <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <PawPrint className="w-10 h-10 text-teal-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No listings yet</h3>
+            <p className="text-gray-500 text-sm mb-6">Create your first listing to start selling pets on PawZone.</p>
+            <Link href="/seller/listings/new">
+              <Button className="rounded-xl px-8">Create First Listing</Button>
+            </Link>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {myListings.map((listing) => (
-              <Card key={listing.id} className="overflow-hidden">
-                <div className="aspect-video bg-muted overflow-hidden relative">
+            {myListings.map((listing: any) => (
+              <div key={listing.id} className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+                <div className="aspect-video bg-gray-100 overflow-hidden relative">
                   {listing.photos?.[0] ? (
-                    <img src={listing.photos[0]} alt={listing.breed} className="w-full h-full object-cover" />
+                    <img
+                      src={listing.photos[0]}
+                      alt={listing.breed}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <PawPrint className="w-8 h-8 text-muted-foreground" />
+                      <PawPrint className="w-10 h-10 text-gray-300" />
                     </div>
                   )}
-                  <Badge className={`absolute top-2 right-2 text-xs ${getStatusColor(listing.status)}`}>
-                    {listing.status}
-                  </Badge>
+                  <div className="absolute top-2 right-2">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${getStatusColor(listing.status)}`}>
+                      {listing.status}
+                    </span>
+                  </div>
+                  {listing.status === "rejected" && listing.rejectionReason && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-red-600/90 text-white text-xs p-2">
+                      Rejected: {listing.rejectionReason}
+                    </div>
+                  )}
                 </div>
-                <CardContent className="p-3">
-                  <h3 className="font-semibold">{listing.breed}</h3>
-                  <p className="text-sm text-muted-foreground capitalize">{listing.category}</p>
-                  <p className="font-bold text-primary mt-1">{formatPrice(listing.price)}</p>
-                  <p className="text-xs text-muted-foreground">{listing.availableQuantity}/{listing.quantity} available</p>
-                  <div className="flex gap-2 mt-3">
+                <div className="p-4">
+                  <h3 className="font-bold text-gray-900">{listing.breed}</h3>
+                  <p className="text-xs text-gray-400 capitalize mb-2">{listing.category}</p>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="font-bold text-teal-600 text-lg">{formatPrice(Number(listing.price ?? 0))}</p>
+                    <p className="text-xs text-gray-400">
+                      {listing.availableQuantity}/{listing.quantity} available
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
                     <Link href={`/seller/listings/${listing.id}/edit`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full gap-1">
+                      <Button variant="outline" size="sm" className="w-full gap-1 rounded-xl">
                         <Edit className="w-3 h-3" /> Edit
                       </Button>
                     </Link>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-destructive hover:bg-destructive/10"
+                      className="text-red-500 hover:bg-red-50 border-red-200 rounded-xl"
                       onClick={() => {
-                        if (confirm("Delete this listing?")) {
+                        if (confirm(`Delete listing for "${listing.breed}"?`)) {
                           deleteMutation.mutate({ id: listing.id });
                         }
                       }}
@@ -84,8 +112,8 @@ export function SellerListingsPage() {
                       <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         )}
