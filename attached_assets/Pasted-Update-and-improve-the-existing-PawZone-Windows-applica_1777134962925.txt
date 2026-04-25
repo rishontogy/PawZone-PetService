@@ -1,0 +1,356 @@
+Update and improve the existing **PawZone Windows application**.
+
+This is NOT a new build.
+This is a **refinement + bug fix + UI upgrade task**.
+
+Fix all issues and implement all improvements listed below strictly.
+
+---
+
+# 🌍 REGION & SIGNUP LOGIC UPDATE
+
+* Remove any text like “Kerala’s premier pet marketplace”
+* App is expanding → do NOT restrict signup
+
+### Signup changes:
+
+* Allow all users to sign up
+* Add fields:
+
+  * Country (default: India)
+  * State (default: Kerala)
+
+---
+
+## Access Rule:
+
+* All users can SIGNUP
+* BUT:
+
+  * Only Kerala users can fully USE services (for now)
+* Do NOT block signup
+* Future-ready design required
+
+---
+
+# 👤 ROLE ACCESS CONTROL UPDATE
+
+---
+
+## Buyer
+
+* Buyer DOES NOT need admin approval
+* Buyer gets instant access after signup
+
+---
+
+## Seller & Transporter
+
+* MUST require admin approval before accessing dashboard
+
+---
+
+## Approval Flow:
+
+After admin approves:
+
+* Send WhatsApp notification:
+
+  > “Your PawZone account has been approved. You can now access your dashboard.”
+
+---
+
+## Admin
+
+* No signup allowed
+* Only login:
+
+ID: PAWZONE_A2005
+Password: PawZone2005
+
+---
+
+# 🛒 BUYER DASHBOARD (MAJOR UI CHANGE)
+
+---
+
+## Problem:
+
+Current layout is boring and not purchase-focused
+
+---
+
+## Fix:
+
+Design buyer dashboard like a **modern e-commerce app**
+
+---
+
+## New Layout:
+
+### Main Area:
+
+* Animal categories:
+
+  * Dogs
+  * Cats
+  * Birds
+  * Fish
+
+* Featured listings
+
+* Popular pets
+
+* New arrivals
+
+---
+
+### Sidebar / Topbar:
+
+* Search
+* Profile
+* Cart
+* Orders
+* Support
+
+---
+
+## UX Requirement:
+
+* Clean modern UI
+* Attractive cards
+* Smooth hover effects
+* Mobile-like layout even on desktop
+
+---
+
+# 🛒 CART SYSTEM FIX (CRITICAL BUG)
+
+---
+
+## Issues to Fix:
+
+* Items not showing properly in cart
+* Quantity not updating properly
+* No count indicator
+
+---
+
+## Required Fix:
+
+* Cart must:
+
+  * Display all added items correctly
+  * Show:
+
+    * Image
+    * Name
+    * Price
+    * Quantity
+
+---
+
+## Add Cart Count Badge:
+
+* Show number on cart icon:
+  Example:
+  Cart (3)
+
+---
+
+## Ensure:
+
+* Multi-seller cart works correctly
+* Total calculation updates live
+
+---
+
+# 🏪 SELLER LISTING FIX
+
+---
+
+## Problem:
+
+Currently using image URL
+
+---
+
+## Fix:
+
+* Allow direct IMAGE UPLOAD
+* Store locally or in app storage
+
+---
+
+## UI:
+
+* Drag & drop image upload
+* Preview before submit
+
+---
+
+# 🚚 TRANSPORTER ROUTE SYSTEM FIX
+
+---
+
+## Problem:
+
+Route input too simple
+
+---
+
+## Required Upgrade:
+
+---
+
+## Route Input UI:
+
+* Add field:
+
+  * Start location
+  * End location
+  * Start time
+  * End time
+
+---
+
+## Stops Feature (IMPORTANT):
+
+Transporter must be able to:
+
+* Add multiple stops
+
+Example:
+
+Start → Stop 1 → Stop 2 → Stop 3 → End
+
+---
+
+## UI Requirement:
+
+* “+ Add Stop” button
+* Each stop is editable
+* Display route clearly in list
+
+---
+
+## Input Type:
+
+* Typing + selectable suggestions
+
+---
+
+# 🎨 UI/UX COMPLETE REDESIGN (VERY IMPORTANT)
+
+---
+
+## Current Rating: 2/10 → Improve to 9/10
+
+---
+
+## Requirements:
+
+* Modern UI design
+* Clean spacing
+* Rounded cards
+* Soft shadows
+* Smooth animations
+
+---
+
+## Use Design Style Similar To:
+
+* Amazon (product layout)
+* Flipkart (clean UI)
+* Swiggy (cards & UX)
+
+---
+
+## Improve:
+
+* Typography
+* Colors
+* Buttons
+* Layout hierarchy
+
+---
+
+## Add:
+
+* Hover effects
+* Loading states
+* Empty states (no data screens)
+
+---
+
+# 📲 NOTIFICATION SYSTEM FIX
+
+---
+
+Ensure working:
+
+* WhatsApp (mock if needed)
+* In-app notifications
+
+---
+
+## Trigger Notifications:
+
+* Seller approval
+* Transporter approval
+* Order updates
+* Payment reminders
+
+---
+
+# 🧠 GENERAL BUG FIX REQUIREMENTS
+
+---
+
+Fix ALL:
+
+* Broken UI elements
+* Non-working buttons
+* Incorrect state updates
+* Navigation issues
+
+---
+
+## Ensure:
+
+* No crashes
+* No blank pages
+* No console errors
+
+---
+
+# ⚙️ FUNCTIONAL CONSISTENCY CHECK
+
+---
+
+Ensure ALL features from original PRD still work:
+
+* Order flow
+* Payment flow
+* Tracking system
+* Admin alerts
+* Barcode system (if implemented)
+
+---
+
+# 🎯 FINAL OUTPUT REQUIREMENT
+
+---
+
+After update:
+
+* App must be visually attractive
+* All bugs must be fixed
+* All flows must work end-to-end
+* UI must feel like a real production app
+
+---
+
+Do NOT simplify logic.
+Do NOT remove features.
+Improve everything while keeping full functionality.

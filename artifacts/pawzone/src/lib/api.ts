@@ -1,5 +1,9 @@
 export const BASE_URL = "/api";
 
+export function getApiBase(): string {
+  return BASE_URL;
+}
+
 export function formatPrice(price: number): string {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",

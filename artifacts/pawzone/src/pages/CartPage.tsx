@@ -5,21 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, platformFee } from "@/lib/api";
-import { Trash2, ShoppingCart, PawPrint, AlertCircle } from "lucide-react";
+import { Trash2, ShoppingCart, PawPrint, AlertCircle, Plus, Minus, ArrowLeft, Tag } from "lucide-react";
 import { useState } from "react";
 
 export function CartPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState(user?.address || "");
   const [notes, setNotes] = useState("");
 
   const { data: cart, refetch } = useGetCart({ query: { enabled: !!user } });
 
   const removeItem = useRemoveFromCart({
     mutation: {
-      onSuccess: () => { refetch(); toast({ title: "Item removed" }); },
+      onSuccess: () => { refetch(); toast({ title: "Item removed from cart" }); },
     },
   });
 
@@ -32,33 +32,34 @@ export function CartPage() {
   const placeOrder = usePlaceOrder({
     mutation: {
       onSuccess: (order) => {
-        toast({ title: "Order placed!", description: `Order #${order.orderNumber} placed successfully.` });
+        toast({ title: "🎉 Order placed!", description: `Order #${order.orderNumber} confirmed. Pay within 3 hours.` });
         setLocation("/buyer/orders");
       },
       onError: (err: any) => {
-        toast({ variant: "destructive", title: "Error", description: err?.data?.error || "Failed to place order" });
+        toast({ variant: "destructive", title: "Order failed", description: err?.data?.error || "Failed to place order" });
       },
     },
   });
 
   const items = cart?.items ?? [];
-  const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const fees = items.reduce((s, i) => s + platformFee(i.price) * i.quantity, 0);
+  const subtotal = items.reduce((s: number, i: any) => s + i.price * i.quantity, 0);
+  const fees = items.reduce((s: number, i: any) => s + platformFee(i.price) * i.quantity, 0);
   const total = subtotal + fees;
 
-  // Night rule check
   const hour = new Date().getHours();
   const isNightTime = hour >= 21;
 
   if (!items.length) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center">
-          <ShoppingCart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Your cart is empty</h2>
-          <p className="text-muted-foreground mb-6">Browse our pets to find your perfect companion.</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center max-w-sm">
+          <div className="w-24 h-24 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <ShoppingCart className="w-12 h-12 text-teal-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
+          <p className="text-gray-500 mb-6">Looks like you haven't added any pets yet. Browse our listings to find your perfect companion!</p>
           <Link href="/listings">
-            <Button>Browse Pets</Button>
+            <Button className="rounded-xl px-8">Browse Pets</Button>
           </Link>
         </div>
       </div>
@@ -66,119 +67,157 @@ export function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          <ShoppingCart className="w-6 h-6" />
-          Shopping Cart ({items.length} items)
-        </h1>
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <Link href="/buyer">
+            <button className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors shadow-sm">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <ShoppingCart className="w-6 h-6 text-teal-600" />
+              Shopping Cart
+            </h1>
+            <p className="text-sm text-gray-500">{items.length} item{items.length !== 1 ? "s" : ""} in your cart</p>
+          </div>
+        </div>
 
+        {/* Night warning */}
         {isNightTime && (
-          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 mb-4">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>Orders placed after 9 PM will be processed the next business day.</span>
+          <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-sm text-amber-800 mb-6">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold">Late night order</p>
+              <p className="text-amber-700">Orders placed after 9 PM will be processed the next business day.</p>
+            </div>
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => (
-              <Card key={item.listingId}>
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                      {item.photo ? (
-                        <img src={item.photo} alt={item.breed} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <PawPrint className="w-8 h-8 text-muted-foreground" />
+          {/* Cart items */}
+          <div className="lg:col-span-2 space-y-3">
+            {items.map((item: any) => (
+              <div key={item.listingId} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex gap-4">
+                  {/* Image */}
+                  <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
+                    {item.photo ? (
+                      <img src={item.photo} alt={item.breed} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-3xl">🐾</div>
+                    )}
+                  </div>
+
+                  {/* Details */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h3 className="font-bold text-gray-900">{item.breed}</h3>
+                        <p className="text-sm text-gray-400 capitalize">{item.category}</p>
+                        <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
+                          <Tag className="w-3 h-3" />
+                          {formatPrice(item.price)} + ₹{platformFee(item.price)} fee
                         </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold">{item.breed}</h3>
-                      <p className="text-sm text-muted-foreground capitalize">{item.category}</p>
-                      <p className="text-sm text-muted-foreground">{formatPrice(item.price)} each + ₹{platformFee(item.price)} fee</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
+                      </div>
                       <button
                         onClick={() => removeItem.mutate({ listingId: item.listingId })}
-                        className="text-muted-foreground hover:text-destructive"
+                        className="w-8 h-8 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center transition-colors flex-shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
-                      <div className="flex items-center gap-1">
+                    </div>
+
+                    <div className="flex items-center justify-between mt-3">
+                      {/* Quantity */}
+                      <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-1">
                         <button
-                          className="w-7 h-7 rounded border flex items-center justify-center text-sm hover:bg-muted"
-                          onClick={() => updateItem.mutate({ listingId: item.listingId, data: { quantity: Math.max(1, item.quantity - 1) } })}
-                        >-</button>
-                        <span className="w-6 text-center text-sm">{item.quantity}</span>
+                          className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors"
+                          onClick={() => {
+                            if (item.quantity <= 1) {
+                              removeItem.mutate({ listingId: item.listingId });
+                            } else {
+                              updateItem.mutate({ listingId: item.listingId, data: { quantity: item.quantity - 1 } });
+                            }
+                          }}
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="w-8 text-center text-sm font-bold text-gray-900">{item.quantity}</span>
                         <button
-                          className="w-7 h-7 rounded border flex items-center justify-center text-sm hover:bg-muted"
+                          className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors"
                           onClick={() => updateItem.mutate({ listingId: item.listingId, data: { quantity: item.quantity + 1 } })}
-                        >+</button>
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
                       </div>
-                      <p className="font-semibold text-sm">{formatPrice((item.price + platformFee(item.price)) * item.quantity)}</p>
+                      <p className="font-extrabold text-teal-600 text-lg">
+                        {formatPrice((item.price + platformFee(item.price)) * item.quantity)}
+                      </p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
 
+          {/* Sidebar */}
           <div className="space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Order Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
+            {/* Order summary */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="p-4 border-b border-gray-50">
+                <h2 className="font-bold text-gray-900">Order Summary</h2>
+              </div>
+              <div className="p-4 space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatPrice(subtotal)}</span>
+                  <span className="text-gray-500">Subtotal ({items.length} items)</span>
+                  <span className="font-medium">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Platform fees</span>
-                  <span>{formatPrice(fees)}</span>
+                  <span className="text-gray-500">Platform fees</span>
+                  <span className="font-medium">{formatPrice(fees)}</span>
                 </div>
-                <div className="border-t pt-2 flex justify-between font-semibold">
-                  <span>Total</span>
-                  <span className="text-primary">{formatPrice(total)}</span>
+                <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-base">
+                  <span>Total Amount</span>
+                  <span className="text-teal-600 text-lg">{formatPrice(total)}</span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                <div>
-                  <label className="text-sm font-medium block mb-1">Delivery Address *</label>
-                  <textarea
-                    className="w-full text-sm border rounded-md p-2 resize-none h-20 focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="Enter your delivery address in Kerala..."
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-1">Notes (optional)</label>
-                  <textarea
-                    className="w-full text-sm border rounded-md p-2 resize-none h-16 focus:outline-none focus:ring-1 focus:ring-ring"
-                    placeholder="Any special instructions..."
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                  />
-                </div>
-                <Button
-                  className="w-full"
-                  disabled={!deliveryAddress.trim() || placeOrder.isPending}
-                  onClick={() => placeOrder.mutate({ data: { deliveryAddress, notes: notes || undefined } })}
-                >
-                  {placeOrder.isPending ? "Placing order..." : `Place Order · ${formatPrice(total)}`}
-                </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  Payment due within 3 hours of order placement
-                </p>
-              </CardContent>
-            </Card>
+            {/* Delivery & checkout */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-4">
+              <h2 className="font-bold text-gray-900">Delivery Details</h2>
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1.5">Delivery Address *</label>
+                <textarea
+                  className="w-full text-sm border border-gray-200 rounded-xl p-3 resize-none h-24 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                  placeholder="Enter your full delivery address..."
+                  value={deliveryAddress}
+                  onChange={(e) => setDeliveryAddress(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1.5">Special Instructions</label>
+                <textarea
+                  className="w-full text-sm border border-gray-200 rounded-xl p-3 resize-none h-16 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                  placeholder="Any special instructions for delivery..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
+              <Button
+                className="w-full h-12 rounded-xl text-base font-bold"
+                disabled={!deliveryAddress.trim() || placeOrder.isPending}
+                onClick={() => placeOrder.mutate({ data: { deliveryAddress, notes: notes || undefined } })}
+              >
+                {placeOrder.isPending ? "Placing order..." : `Place Order · ${formatPrice(total)}`}
+              </Button>
+              <p className="text-xs text-gray-400 text-center">
+                ⏰ Payment due within 3 hours of order placement
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -9,6 +9,7 @@ import reviewsRouter from "./reviews";
 import dashboardRouter from "./dashboard";
 import adminRouter from "./admin";
 import usersRouter from "./users";
+import uploadRouter from "./upload";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(reviewsRouter);
 router.use(dashboardRouter);
 router.use(adminRouter);
 router.use(usersRouter);
+router.use(uploadRouter);
 
 export default router;

@@ -5,8 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PawPrint, AlertCircle } from "lucide-react";
+import { PawPrint, AlertCircle, Mail, Lock } from "lucide-react";
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -17,7 +16,7 @@ export function LoginPage() {
   const loginMutation = useLogin({
     mutation: {
       onSuccess: (data) => {
-        login(data.token, data.user);
+        login(data.token, data.user as any);
       },
       onError: (err: any) => {
         setError(err?.data?.error || "Invalid credentials. Please try again.");
@@ -32,69 +31,92 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-3">
-            <PawPrint className="w-12 h-12 text-primary" />
+          <div className="w-16 h-16 bg-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <PawPrint className="w-9 h-9 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-primary">PawZone</h1>
-          <p className="text-muted-foreground mt-1">Kerala's Premier Pet Marketplace</p>
+          <h1 className="text-3xl font-extrabold text-gray-900">PawZone</h1>
+          <p className="text-gray-500 mt-1">India's Trusted Pet Marketplace</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Welcome back</CardTitle>
-            <CardDescription>Sign in to your account</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Card */}
+        <div className="bg-white rounded-2xl shadow-xl border-0 overflow-hidden">
+          <div className="bg-gradient-to-r from-teal-600 to-emerald-500 px-8 py-5">
+            <h2 className="text-xl font-bold text-white">Welcome back</h2>
+            <p className="text-white/80 text-sm">Sign in to your account</p>
+          </div>
+
+          <div className="p-8">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {error && (
-                <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+                <div className="flex items-center gap-2 p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   {error}
                 </div>
               )}
-              <div className="space-y-1">
-                <Label htmlFor="loginId">Email or Seller ID or Admin ID</Label>
-                <Input
-                  id="loginId"
-                  type="text"
-                  placeholder="your@email.com"
-                  value={loginId}
-                  onChange={(e) => setLoginId(e.target.value)}
-                  required
-                />
+
+              <div>
+                <Label className="text-sm font-semibold text-gray-700">Email or ID</Label>
+                <div className="relative mt-1.5">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    type="text"
+                    placeholder="your@email.com"
+                    value={loginId}
+                    onChange={(e) => setLoginId(e.target.value)}
+                    required
+                    className="pl-9 rounded-xl border-gray-200 h-11"
+                    autoComplete="username"
+                  />
+                </div>
               </div>
-              <div className="space-y-1">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+
+              <div>
+                <Label className="text-sm font-semibold text-gray-700">Password</Label>
+                <div className="relative mt-1.5">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="pl-9 rounded-xl border-gray-200 h-11"
+                    autoComplete="current-password"
+                  />
+                </div>
               </div>
-              <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+
+              <Button
+                type="submit"
+                className="w-full h-12 rounded-xl text-base font-bold"
+                disabled={loginMutation.isPending}
+              >
                 {loginMutation.isPending ? "Signing in..." : "Sign In"}
               </Button>
             </form>
-            <div className="mt-4 text-center text-sm text-muted-foreground">
+
+            <div className="mt-5 text-center text-sm text-gray-500">
               Don't have an account?{" "}
-              <Link href="/signup" className="text-primary hover:underline font-medium">
-                Sign up
+              <Link href="/signup" className="text-teal-600 hover:underline font-semibold">
+                Sign up free
               </Link>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <div className="mt-4 p-3 bg-muted rounded-lg text-xs text-muted-foreground">
-          <p className="font-medium mb-1">Demo Credentials:</p>
-          <p>Buyer: arun@example.com / test123</p>
-          <p>Seller: rajan@example.com / seller123</p>
-          <p>Admin: PAWZONE_A2005 / PawZone2005</p>
+        {/* Demo credentials */}
+        <div className="mt-5 p-4 bg-white border border-gray-200 rounded-2xl shadow-sm">
+          <p className="font-semibold text-gray-700 text-sm mb-2">Demo Credentials:</p>
+          <div className="space-y-1 text-xs text-gray-500 font-mono">
+            <p>🛒 Buyer: arun@example.com / test123</p>
+            <p>🏪 Seller: rajan@example.com / seller123</p>
+            <p>🚚 Transporter: saji@example.com / transport123</p>
+            <p>🛡️ Admin: PAWZONE_A2005 / PawZone2005</p>
+          </div>
         </div>
       </div>
     </div>

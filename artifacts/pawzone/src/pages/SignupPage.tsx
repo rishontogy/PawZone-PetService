@@ -4,9 +4,21 @@ import { useSignup } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PawPrint, AlertCircle, CheckCircle } from "lucide-react";
+import { PawPrint, AlertCircle, CheckCircle, User, Mail, Phone, Lock, MapPin } from "lucide-react";
+
+const KERALA_CITIES = ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kollam", "Palakkad", "Alappuzha", "Malappuram", "Kottayam", "Kannur", "Kasaragod", "Wayanad", "Idukki", "Pathanamthitta"];
+
+const INDIA_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
+  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh",
+  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
+  "Uttarakhand", "West Bengal", "Delhi", "Jammu and Kashmir", "Ladakh",
+];
+
+const COUNTRIES = ["India", "United Arab Emirates", "United Kingdom", "United States", "Canada", "Australia", "Singapore", "Other"];
 
 export function SignupPage() {
   const [, setLocation] = useLocation();
@@ -18,16 +30,23 @@ export function SignupPage() {
     role: "buyer" as "buyer" | "seller" | "transporter",
     address: "",
     city: "",
+    state: "Kerala",
+    country: "India",
     pincode: "",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  const isKerala = form.state === "Kerala";
+
   const signupMutation = useSignup({
     mutation: {
-      onSuccess: () => {
-        setSuccess(true);
-        setTimeout(() => setLocation("/login"), 2000);
+      onSuccess: (data: any) => {
+        if (form.role === "buyer") {
+          setLocation("/buyer");
+        } else {
+          setSuccess(true);
+        }
       },
       onError: (err: any) => {
         setError(err?.data?.error || "Registration failed. Please try again.");
@@ -38,122 +57,193 @@ export function SignupPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    signupMutation.mutate({ data: { ...form, state: "Kerala", country: "India" } });
+    signupMutation.mutate({ data: form });
   };
 
   if (success) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center p-8">
-          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Registration Successful!</h2>
-          <p className="text-muted-foreground">
-            {form.role !== "buyer"
-              ? "Your account is pending admin approval. You'll be notified once approved."
-              : "Your account has been created. Redirecting to login..."}
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center p-10 shadow-xl border-0">
+          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+            <CheckCircle className="w-10 h-10 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2 text-gray-900">Account Created!</h2>
+          <p className="text-gray-500 text-sm leading-relaxed">
+            Your account is pending admin approval. You'll receive a notification once approved. Usually takes 24 hours.
           </p>
+          <Button className="mt-6 w-full" onClick={() => setLocation("/login")}>Go to Login</Button>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 py-10">
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-3">
-            <PawPrint className="w-12 h-12 text-primary" />
+          <div className="w-16 h-16 bg-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <PawPrint className="w-9 h-9 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-primary">PawZone</h1>
-          <p className="text-muted-foreground mt-1">Create your account</p>
+          <h1 className="text-3xl font-extrabold text-gray-900">Join PawZone</h1>
+          <p className="text-gray-500 mt-1">Create your account — it's free!</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign Up</CardTitle>
-            <CardDescription>Join Kerala's #1 pet marketplace</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <Card className="shadow-xl border-0 rounded-2xl overflow-hidden">
+          <CardContent className="p-8">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {error && (
-                <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+                <div className="flex items-center gap-2 p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   {error}
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1 col-span-2">
-                  <Label>Account Type</Label>
-                  <Select value={form.role} onValueChange={(v: any) => setForm({ ...form, role: v })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="buyer">Buyer</SelectItem>
-                      <SelectItem value="seller">Seller</SelectItem>
-                      <SelectItem value="transporter">Transporter</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {form.role !== "buyer" && (
-                    <p className="text-xs text-amber-600">Requires admin approval</p>
-                  )}
+              {/* Role selector */}
+              <div>
+                <Label className="text-sm font-semibold text-gray-700 mb-2 block">I want to...</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { value: "buyer", label: "Buy Pets", emoji: "🛒" },
+                    { value: "seller", label: "Sell Pets", emoji: "🏪" },
+                    { value: "transporter", label: "Transport", emoji: "🚚" },
+                  ] as const).map((r) => (
+                    <button
+                      key={r.value}
+                      type="button"
+                      onClick={() => setForm({ ...form, role: r.value })}
+                      className={`flex flex-col items-center gap-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                        form.role === r.value
+                          ? "border-teal-500 bg-teal-50 text-teal-700"
+                          : "border-gray-200 text-gray-600 hover:border-gray-300"
+                      }`}
+                    >
+                      <span className="text-xl">{r.emoji}</span>
+                      {r.label}
+                    </button>
+                  ))}
                 </div>
+                {form.role !== "buyer" && (
+                  <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    Requires admin approval before dashboard access
+                  </p>
+                )}
+                {form.role === "buyer" && (
+                  <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" />
+                    Instant access after signup
+                  </p>
+                )}
+              </div>
 
-                <div className="space-y-1 col-span-2">
-                  <Label>Full Name</Label>
-                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+              {/* Name + Email */}
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700">Full Name *</Label>
+                  <div className="relative mt-1">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input className="pl-9 rounded-xl border-gray-200" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required placeholder="Your full name" />
+                  </div>
                 </div>
-
-                <div className="space-y-1">
-                  <Label>Email</Label>
-                  <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700">Email *</Label>
+                  <div className="relative mt-1">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input type="email" className="pl-9 rounded-xl border-gray-200" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required placeholder="your@email.com" />
+                  </div>
                 </div>
-
-                <div className="space-y-1">
-                  <Label>Phone</Label>
-                  <Input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700">Phone *</Label>
+                  <div className="relative mt-1">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input type="tel" className="pl-9 rounded-xl border-gray-200" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required placeholder="+91 98765 43210" />
+                  </div>
                 </div>
-
-                <div className="space-y-1 col-span-2">
-                  <Label>Password</Label>
-                  <Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={6} />
-                </div>
-
-                <div className="space-y-1 col-span-2">
-                  <Label>Address</Label>
-                  <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} required />
-                </div>
-
-                <div className="space-y-1">
-                  <Label>City (Kerala)</Label>
-                  <Select value={form.city} onValueChange={(v) => setForm({ ...form, city: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select city" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kollam", "Palakkad", "Alappuzha", "Malappuram", "Kottayam", "Kannur", "Kasaragod", "Pathanamthitta", "Idukki", "Wayanad"].map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1">
-                  <Label>Pincode</Label>
-                  <Input value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} required />
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700">Password *</Label>
+                  <div className="relative mt-1">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input type="password" className="pl-9 rounded-xl border-gray-200" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={6} placeholder="At least 6 characters" autoComplete="new-password" />
+                  </div>
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={signupMutation.isPending}>
+              {/* Location */}
+              <div>
+                <Label className="text-sm font-semibold text-gray-700 mb-2 block flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5" /> Location
+                </Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-gray-500">Country</Label>
+                    <Select value={form.country} onValueChange={(v) => setForm({ ...form, country: v })}>
+                      <SelectTrigger className="mt-1 rounded-xl border-gray-200">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COUNTRIES.map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-500">State</Label>
+                    {form.country === "India" ? (
+                      <Select value={form.state} onValueChange={(v) => setForm({ ...form, state: v, city: "" })}>
+                        <SelectTrigger className="mt-1 rounded-xl border-gray-200">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {INDIA_STATES.map((s) => (
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input className="mt-1 rounded-xl border-gray-200" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} placeholder="State/Province" />
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-500">City *</Label>
+                    {isKerala ? (
+                      <Select value={form.city} onValueChange={(v) => setForm({ ...form, city: v })}>
+                        <SelectTrigger className="mt-1 rounded-xl border-gray-200">
+                          <SelectValue placeholder="Select city" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {KERALA_CITIES.map((c) => (
+                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input className="mt-1 rounded-xl border-gray-200" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required placeholder="Your city" />
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-500">Pincode</Label>
+                    <Input className="mt-1 rounded-xl border-gray-200" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} placeholder="PIN / ZIP code" />
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-xs text-gray-500">Street Address</Label>
+                    <Input className="mt-1 rounded-xl border-gray-200" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Flat/House no, Street name" />
+                  </div>
+                </div>
+                {!isKerala && (
+                  <p className="text-xs text-amber-600 mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    ⚠️ Full services (buying, selling, transport) are currently available within Kerala. We're expanding soon — you can sign up now and be ready!
+                  </p>
+                )}
+              </div>
+
+              <Button type="submit" className="w-full h-12 rounded-xl text-base font-bold" disabled={signupMutation.isPending}>
                 {signupMutation.isPending ? "Creating account..." : "Create Account"}
               </Button>
             </form>
-            <div className="mt-4 text-center text-sm text-muted-foreground">
+            <div className="mt-5 text-center text-sm text-gray-500">
               Already have an account?{" "}
-              <Link href="/login" className="text-primary hover:underline font-medium">
-                Sign in
-              </Link>
+              <Link href="/login" className="text-teal-600 hover:underline font-semibold">Sign in</Link>
             </div>
           </CardContent>
         </Card>

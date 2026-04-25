@@ -41,6 +41,17 @@ PawZone is a full-featured pet marketplace web application serving Kerala, India
 - Transporter: `saji@example.com` / `transport123`
 - Admin: `PAWZONE_A2005` / `PawZone2005`
 
+## Recent Updates (v2)
+- **Open Signup**: All users can sign up worldwide. Country + State fields added (India/Kerala default). Non-Kerala users shown informational message.
+- **Buyer Instant Access**: Buyers get immediate dashboard access. Sellers/Transporters still require admin approval.
+- **Buyer Dashboard Redesign**: Amazon/Swiggy-style with sidebar, category pills (Dogs/Cats/Birds/Fish), live pet grid, welcome banner.
+- **Image Upload**: Drag & drop image upload on CreateListingPage with POST `/api/upload` endpoint (multer).
+- **Multi-stop Routes**: Transporter AddRoutePage now supports multiple intermediate stops with visual route preview.
+- **Admin User Notifications**: WhatsApp button opens wa.me link with approval message for sellers/transporters.
+- **UI/UX Overhaul**: New teal gradient hero, search bar, stats bar, improved cards, rounded-2xl design system.
+- **Login/Signup Redesigned**: Modern cards, icon inputs, role selector buttons with emoji.
+- **DB Schema**: Added `stops` JSON column to `transporter_routes` table.
+
 ## Business Logic
 
 - **Kerala-only**: Service restricted to Kerala cities
