@@ -1,0 +1,163 @@
+import { useState } from "react";
+import { Link, useSearch } from "wouter";
+import { useGetListings } from "@workspace/api-client-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { PawPrint, MapPin, Search, Filter } from "lucide-react";
+import { formatPrice } from "@/lib/api";
+
+const CATEGORIES = ["dogs", "cats", "birds", "fish", "rabbits", "others"];
+const KERALA_CITIES = ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kollam", "Palakkad", "Alappuzha", "Malappuram", "Kottayam", "Kannur"];
+
+export function ListingsPage() {
+  const search = useSearch();
+  const params = new URLSearchParams(search);
+  const [category, setCategory] = useState(params.get("category") || "");
+  const [city, setCity] = useState("");
+  const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+
+  const { data: rawData, isLoading } = useGetListings({
+    page,
+    limit: 12,
+    category: category || undefined,
+    city: city || undefined,
+    search: q || undefined,
+  } as any);
+  const data = rawData as any;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="bg-muted/30 py-8 px-4 border-b">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-2xl font-bold mb-4">Browse Pets</h1>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search breed, type..."
+                value={q}
+                onChange={(e) => { setQ(e.target.value); setPage(1); }}
+                className="pl-9"
+              />
+            </div>
+            <Select value={category} onValueChange={(v) => { setCategory(v === "all" ? "" : v); setPage(1); }}>
+              <SelectTrigger className="w-full sm:w-44">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={city} onValueChange={(v) => { setCity(v === "all" ? "" : v); setPage(1); }}>
+              <SelectTrigger className="w-full sm:w-52">
+                <SelectValue placeholder="All Cities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Kerala</SelectItem>
+                {KERALA_CITIES.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="overflow-hidden">
+                <div className="aspect-video bg-muted animate-pulse" />
+                <CardContent className="p-4 space-y-2">
+                  <div className="h-4 bg-muted animate-pulse rounded" />
+                  <div className="h-3 bg-muted animate-pulse rounded w-2/3" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : !data?.listings?.length ? (
+          <div className="text-center py-20">
+            <PawPrint className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">No pets found</h3>
+            <p className="text-muted-foreground">Try adjusting your search or filters.</p>
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground mb-4">
+              Showing {data.listings.length} of {data.total} pets
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {data.listings.map((listing) => (
+                <Link key={listing.id} href={`/listings/${listing.id}`}>
+                  <Card className="hover:shadow-lg transition-all cursor-pointer overflow-hidden group h-full">
+                    <div className="aspect-video bg-muted overflow-hidden">
+                      {listing.photos?.[0] ? (
+                        <img
+                          src={listing.photos[0]}
+                          alt={listing.breed}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => { (e.target as HTMLImageElement).src = "https://via.placeholder.com/400x300?text=Pet"; }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <PawPrint className="w-10 h-10 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className="font-semibold">{listing.breed}</h3>
+                          <p className="text-sm text-muted-foreground capitalize">{listing.category}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-bold text-primary">{formatPrice(listing.price)}</span>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <MapPin className="w-3 h-3" />
+                          {listing.city}
+                        </div>
+                      </div>
+                      <div className="flex gap-1 mt-2 flex-wrap">
+                        {listing.vaccinated && (
+                          <Badge className="text-xs bg-green-100 text-green-800 border-0">✓ Vaccinated</Badge>
+                        )}
+                        {listing.availableQuantity > 0 ? (
+                          <Badge variant="secondary" className="text-xs">{listing.availableQuantity} available</Badge>
+                        ) : (
+                          <Badge variant="destructive" className="text-xs">Sold Out</Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+
+            {data.totalPages > 1 && (
+              <div className="flex justify-center gap-2 mt-8">
+                <Button variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+                  Previous
+                </Button>
+                <span className="flex items-center text-sm text-muted-foreground px-4">
+                  Page {page} of {data.totalPages}
+                </span>
+                <Button variant="outline" onClick={() => setPage(p => p + 1)} disabled={page >= data.totalPages}>
+                  Next
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

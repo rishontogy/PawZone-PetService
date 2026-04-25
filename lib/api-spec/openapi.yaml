@@ -3,20 +3,38 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: PawZone API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User management
+  - name: listings
+    description: Pet listings
+  - name: cart
+    description: Cart operations
+  - name: orders
+    description: Order management
+  - name: transporter
+    description: Transporter operations
+  - name: admin
+    description: Admin operations
+  - name: reviews
+    description: Ratings and reviews
+  - name: dashboard
+    description: Dashboard summaries
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +42,950 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email/password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/signup:
+    post:
+      operationId: signup
+      tags: [auth]
+      summary: Sign up as buyer, seller or transporter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupBody"
+      responses:
+        "201":
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout current user
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/waitlist:
+    post:
+      operationId: addToWaitlist
+      tags: [auth]
+      summary: Add user to waitlist for non-Kerala region
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WaitlistBody"
+      responses:
+        "201":
+          description: Added to waitlist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /listings:
+    get:
+      operationId: getListings
+      tags: [listings]
+      summary: Get all approved listings
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: breed
+          in: query
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: sellerId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of listings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Listing"
+    post:
+      operationId: createListing
+      tags: [listings]
+      summary: Create a new pet listing (seller only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateListingBody"
+      responses:
+        "201":
+          description: Listing created (pending admin approval)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+
+  /listings/{id}:
+    get:
+      operationId: getListing
+      tags: [listings]
+      summary: Get a listing by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Listing details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListingDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateListing
+      tags: [listings]
+      summary: Update a listing (seller only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateListingBody"
+      responses:
+        "200":
+          description: Listing updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+    delete:
+      operationId: deleteListing
+      tags: [listings]
+      summary: Delete a listing (seller only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /cart:
+    get:
+      operationId: getCart
+      tags: [cart]
+      summary: Get current user's cart
+      responses:
+        "200":
+          description: Cart items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    post:
+      operationId: addToCart
+      tags: [cart]
+      summary: Add item to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddToCartBody"
+      responses:
+        "200":
+          description: Cart updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  /cart/{listingId}:
+    put:
+      operationId: updateCartItem
+      tags: [cart]
+      summary: Update cart item quantity
+      parameters:
+        - name: listingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCartItemBody"
+      responses:
+        "200":
+          description: Cart updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+    delete:
+      operationId: removeFromCart
+      tags: [cart]
+      summary: Remove item from cart
+      parameters:
+        - name: listingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cart updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cart"
+
+  /orders:
+    get:
+      operationId: getOrders
+      tags: [orders]
+      summary: Get orders for current user (role-based)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [buyer, seller, transporter]
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: placeOrder
+      tags: [orders]
+      summary: Place an order from cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceOrderBody"
+      responses:
+        "201":
+          description: Order placed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get order details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderDetail"
+    patch:
+      operationId: updateOrderStatus
+      tags: [orders]
+      summary: Update order status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderStatusBody"
+      responses:
+        "200":
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}/payment:
+    post:
+      operationId: processPayment
+      tags: [orders]
+      summary: Simulate payment for an order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentBody"
+      responses:
+        "200":
+          description: Payment processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}/issue:
+    post:
+      operationId: reportIssue
+      tags: [orders]
+      summary: Report an issue with an order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportIssueBody"
+      responses:
+        "201":
+          description: Issue reported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /transporter/routes:
+    get:
+      operationId: getTransporterRoutes
+      tags: [transporter]
+      summary: Get transporter routes
+      responses:
+        "200":
+          description: Routes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransporterRoute"
+    post:
+      operationId: createTransporterRoute
+      tags: [transporter]
+      summary: Create a weekly route
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRouteBody"
+      responses:
+        "201":
+          description: Route created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransporterRoute"
+
+  /transporter/orders:
+    get:
+      operationId: getTransporterOrders
+      tags: [transporter]
+      summary: Get orders available for transporter
+      responses:
+        "200":
+          description: Orders available for pickup/delivery
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /transporter/orders/{id}/accept:
+    post:
+      operationId: acceptDelivery
+      tags: [transporter]
+      summary: Accept a delivery order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptDeliveryBody"
+      responses:
+        "200":
+          description: Delivery accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /transporter/orders/{id}/pickup:
+    post:
+      operationId: confirmPickup
+      tags: [transporter]
+      summary: Confirm pickup with barcode scan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PickupBody"
+      responses:
+        "200":
+          description: Pickup confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /transporter/orders/{id}/deliver:
+    post:
+      operationId: confirmDelivery
+      tags: [transporter]
+      summary: Confirm delivery
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeliveryBody"
+      responses:
+        "200":
+          description: Delivery confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /reviews:
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Create a review for a seller
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewBody"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+
+  /reviews/seller/{sellerId}:
+    get:
+      operationId: getSellerReviews
+      tags: [reviews]
+      summary: Get reviews for a seller
+      parameters:
+        - name: sellerId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+
+  /dashboard/buyer:
+    get:
+      operationId: getBuyerDashboard
+      tags: [dashboard]
+      summary: Get buyer dashboard summary
+      responses:
+        "200":
+          description: Buyer dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BuyerDashboard"
+
+  /dashboard/seller:
+    get:
+      operationId: getSellerDashboard
+      tags: [dashboard]
+      summary: Get seller dashboard summary
+      responses:
+        "200":
+          description: Seller dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SellerDashboard"
+
+  /dashboard/transporter:
+    get:
+      operationId: getTransporterDashboard
+      tags: [dashboard]
+      summary: Get transporter dashboard summary
+      responses:
+        "200":
+          description: Transporter dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransporterDashboard"
+
+  /admin/users:
+    get:
+      operationId: adminGetUsers
+      tags: [admin]
+      summary: Get all users (admin only)
+      parameters:
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /admin/users/{id}/approve:
+    post:
+      operationId: adminApproveUser
+      tags: [admin]
+      summary: Approve a seller or transporter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /admin/users/{id}/block:
+    post:
+      operationId: adminBlockUser
+      tags: [admin]
+      summary: Block a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User blocked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /admin/listings:
+    get:
+      operationId: adminGetListings
+      tags: [admin]
+      summary: Get all listings for admin review
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Listings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Listing"
+
+  /admin/listings/{id}/approve:
+    post:
+      operationId: adminApproveListing
+      tags: [admin]
+      summary: Approve a listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Listing approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+
+  /admin/listings/{id}/reject:
+    post:
+      operationId: adminRejectListing
+      tags: [admin]
+      summary: Reject a listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectBody"
+      responses:
+        "200":
+          description: Listing rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Listing"
+
+  /admin/orders:
+    get:
+      operationId: adminGetOrders
+      tags: [admin]
+      summary: Get all orders (admin only)
+      responses:
+        "200":
+          description: All orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /admin/disputes:
+    get:
+      operationId: adminGetDisputes
+      tags: [admin]
+      summary: Get all disputes
+      responses:
+        "200":
+          description: Disputes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Dispute"
+
+  /admin/disputes/{id}/resolve:
+    post:
+      operationId: adminResolveDispute
+      tags: [admin]
+      summary: Resolve a dispute
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResolveDisputeBody"
+      responses:
+        "200":
+          description: Dispute resolved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dispute"
+
+  /admin/refunds/{orderId}/approve:
+    post:
+      operationId: adminApproveRefund
+      tags: [admin]
+      summary: Approve a refund
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Refund approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/dashboard:
+    get:
+      operationId: getAdminDashboard
+      tags: [admin]
+      summary: Admin dashboard summary
+      responses:
+        "200":
+          description: Admin dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDashboard"
+
+  /admin/waitlist:
+    get:
+      operationId: adminGetWaitlist
+      tags: [admin]
+      summary: Get waitlist entries
+      responses:
+        "200":
+          description: Waitlist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WaitlistEntry"
+
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [dashboard]
+      summary: Get notifications for current user
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/{id}/read:
+    post:
+      operationId: markNotificationRead
+      tags: [dashboard]
+      summary: Mark notification as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notification marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /users/profile:
+    put:
+      operationId: updateProfile
+      tags: [users]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileBody"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/addresses:
+    get:
+      operationId: getUserAddresses
+      tags: [users]
+      summary: Get saved addresses
+      responses:
+        "200":
+          description: Addresses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Address"
+    post:
+      operationId: addUserAddress
+      tags: [users]
+      summary: Add a new address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressBody"
+      responses:
+        "201":
+          description: Address added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Address"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +996,996 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+
+    LoginBody:
+      type: object
+      properties:
+        loginId:
+          type: string
+        password:
+          type: string
+      required:
+        - loginId
+        - password
+
+    SignupBody:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [buyer, seller, transporter]
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        password:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        pincode:
+          type: string
+        country:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+      required:
+        - role
+        - name
+        - email
+        - phone
+        - password
+        - address
+        - city
+        - state
+        - pincode
+        - country
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+      required:
+        - user
+        - token
+
+    WaitlistBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+      required:
+        - name
+        - email
+        - city
+        - state
+        - country
+
+    WaitlistEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - city
+        - state
+        - country
+        - createdAt
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        role:
+          type: string
+          enum: [buyer, seller, transporter, admin]
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        pincode:
+          type: string
+        country:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        status:
+          type: string
+          enum: [pending, approved, blocked]
+        sellerId:
+          type: string
+          nullable: true
+        sellerScore:
+          type: number
+          nullable: true
+        profilePhoto:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - role
+        - name
+        - email
+        - status
+        - createdAt
+
+    Listing:
+      type: object
+      properties:
+        id:
+          type: integer
+        sellerId:
+          type: integer
+        sellerName:
+          type: string
+        category:
+          type: string
+          enum: [dogs, cats, birds, fish]
+        breed:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+        availableQuantity:
+          type: integer
+        vaccinated:
+          type: boolean
+        vaccinationDetails:
+          type: string
+          nullable: true
+        photos:
+          type: array
+          items:
+            type: string
+        videoUrl:
+          type: string
+          nullable: true
+        description:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected, sold_out]
+        petCode:
+          type: string
+          nullable: true
+        address:
+          type: string
+        city:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - sellerId
+        - sellerName
+        - category
+        - breed
+        - price
+        - quantity
+        - availableQuantity
+        - vaccinated
+        - photos
+        - description
+        - status
+        - address
+        - city
+        - createdAt
+
+    ListingDetail:
+      allOf:
+        - $ref: "#/components/schemas/Listing"
+        - type: object
+          properties:
+            sellerInfo:
+              $ref: "#/components/schemas/User"
+            reviews:
+              type: array
+              items:
+                $ref: "#/components/schemas/Review"
+            avgRating:
+              type: number
+
+    CreateListingBody:
+      type: object
+      properties:
+        category:
+          type: string
+          enum: [dogs, cats, birds, fish]
+        breed:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+        vaccinated:
+          type: boolean
+        vaccinationDetails:
+          type: string
+        photos:
+          type: array
+          items:
+            type: string
+        videoUrl:
+          type: string
+        description:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+      required:
+        - category
+        - breed
+        - price
+        - quantity
+        - vaccinated
+        - description
+        - address
+        - city
+
+    CartItem:
+      type: object
+      properties:
+        listingId:
+          type: integer
+        listing:
+          $ref: "#/components/schemas/Listing"
+        quantity:
+          type: integer
+        subtotal:
+          type: number
+        platformFee:
+          type: number
+      required:
+        - listingId
+        - listing
+        - quantity
+        - subtotal
+        - platformFee
+
+    Cart:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CartItem"
+        subtotal:
+          type: number
+        platformFee:
+          type: number
+        total:
+          type: number
+        itemCount:
+          type: integer
+      required:
+        - items
+        - subtotal
+        - platformFee
+        - total
+        - itemCount
+
+    AddToCartBody:
+      type: object
+      properties:
+        listingId:
+          type: integer
+        quantity:
+          type: integer
+      required:
+        - listingId
+        - quantity
+
+    UpdateCartItemBody:
+      type: object
+      properties:
+        quantity:
+          type: integer
+      required:
+        - quantity
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderNumber:
+          type: string
+        buyerId:
+          type: integer
+        buyerName:
+          type: string
+        sellerId:
+          type: integer
+        sellerName:
+          type: string
+        transporterId:
+          type: integer
+          nullable: true
+        transporterName:
+          type: string
+          nullable: true
+        transporterPhone:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, confirmed, ready, picked_up, in_transit, delivered, cancelled, refunded]
+        paymentStatus:
+          type: string
+          enum: [pending, paid, failed, refunded]
+        subtotal:
+          type: number
+        platformFee:
+          type: number
+        deliveryFee:
+          type: number
+        total:
+          type: number
+        deliveryAddress:
+          type: string
+        petCode:
+          type: string
+          nullable: true
+        barcodeUrl:
+          type: string
+          nullable: true
+        pickupTime:
+          type: string
+          format: date-time
+          nullable: true
+        deliveryTime:
+          type: string
+          format: date-time
+          nullable: true
+        confirmedAt:
+          type: string
+          format: date-time
+          nullable: true
+        paymentDeadline:
+          type: string
+          format: date-time
+          nullable: true
+        inventoryLockedUntil:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - orderNumber
+        - buyerId
+        - buyerName
+        - sellerId
+        - sellerName
+        - status
+        - paymentStatus
+        - subtotal
+        - platformFee
+        - deliveryFee
+        - total
+        - deliveryAddress
+        - createdAt
+
+    OrderDetail:
+      allOf:
+        - $ref: "#/components/schemas/Order"
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/OrderItem"
+            timeline:
+              type: array
+              items:
+                $ref: "#/components/schemas/OrderTimelineEvent"
+
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        listingId:
+          type: integer
+        listingTitle:
+          type: string
+        category:
+          type: string
+        breed:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        subtotal:
+          type: number
+        photos:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - listingId
+        - listingTitle
+        - category
+        - breed
+        - quantity
+        - unitPrice
+        - subtotal
+        - photos
+
+    OrderTimelineEvent:
+      type: object
+      properties:
+        status:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        note:
+          type: string
+          nullable: true
+      required:
+        - status
+        - timestamp
+
+    PlaceOrderBody:
+      type: object
+      properties:
+        deliveryAddressId:
+          type: integer
+        deliveryAddress:
+          type: string
+      required:
+        - deliveryAddress
+
+    UpdateOrderStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+        note:
+          type: string
+      required:
+        - status
+
+    PaymentBody:
+      type: object
+      properties:
+        method:
+          type: string
+          enum: [upi, card, netbanking]
+        amount:
+          type: number
+      required:
+        - method
+        - amount
+
+    ReportIssueBody:
+      type: object
+      properties:
+        issueType:
+          type: string
+        description:
+          type: string
+      required:
+        - issueType
+        - description
+
+    TransporterRoute:
+      type: object
+      properties:
+        id:
+          type: integer
+        transporterId:
+          type: integer
+        dayOfWeek:
+          type: string
+        startCity:
+          type: string
+        endCity:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - transporterId
+        - dayOfWeek
+        - startCity
+        - endCity
+        - startTime
+        - endTime
+        - active
+        - createdAt
+
+    CreateRouteBody:
+      type: object
+      properties:
+        dayOfWeek:
+          type: string
+        startCity:
+          type: string
+        endCity:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+      required:
+        - dayOfWeek
+        - startCity
+        - endCity
+        - startTime
+        - endTime
+
+    AcceptDeliveryBody:
+      type: object
+      properties:
+        pickupTime:
+          type: string
+          format: date-time
+        deliveryTime:
+          type: string
+          format: date-time
+      required:
+        - pickupTime
+        - deliveryTime
+
+    PickupBody:
+      type: object
+      properties:
+        petCode:
+          type: string
+        videoProofUrl:
+          type: string
+      required:
+        - petCode
+
+    DeliveryBody:
+      type: object
+      properties:
+        videoProofUrl:
+          type: string
+        location:
+          type: string
+      required:
+        - location
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        buyerId:
+          type: integer
+        buyerName:
+          type: string
+        sellerId:
+          type: integer
+        rating:
+          type: integer
+        comment:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - orderId
+        - buyerId
+        - buyerName
+        - sellerId
+        - rating
+        - createdAt
+
+    CreateReviewBody:
+      type: object
+      properties:
+        orderId:
+          type: integer
+        sellerId:
+          type: integer
+        rating:
+          type: integer
+        comment:
+          type: string
+      required:
+        - orderId
+        - sellerId
+        - rating
+
+    BuyerDashboard:
+      type: object
+      properties:
+        activeOrders:
+          type: integer
+        completedOrders:
+          type: integer
+        cartItems:
+          type: integer
+        recentOrders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        featuredListings:
+          type: array
+          items:
+            $ref: "#/components/schemas/Listing"
+        categoryStats:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string
+              count:
+                type: integer
+            required:
+              - category
+              - count
+      required:
+        - activeOrders
+        - completedOrders
+        - cartItems
+        - recentOrders
+        - featuredListings
+        - categoryStats
+
+    SellerDashboard:
+      type: object
+      properties:
+        totalEarnings:
+          type: number
+        pendingOrders:
+          type: integer
+        totalListings:
+          type: integer
+        activeListings:
+          type: integer
+        totalSold:
+          type: integer
+        sellerScore:
+          type: number
+        recentOrders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        earningsByMonth:
+          type: array
+          items:
+            type: object
+            properties:
+              month:
+                type: string
+              earnings:
+                type: number
+            required:
+              - month
+              - earnings
+      required:
+        - totalEarnings
+        - pendingOrders
+        - totalListings
+        - activeListings
+        - totalSold
+        - sellerScore
+        - recentOrders
+        - earningsByMonth
+
+    TransporterDashboard:
+      type: object
+      properties:
+        pendingDeliveries:
+          type: integer
+        completedDeliveries:
+          type: integer
+        totalEarnings:
+          type: number
+        activeRoutes:
+          type: integer
+        recentDeliveries:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        deliveriesByWeek:
+          type: array
+          items:
+            type: object
+            properties:
+              day:
+                type: string
+              count:
+                type: integer
+            required:
+              - day
+              - count
+      required:
+        - pendingDeliveries
+        - completedDeliveries
+        - totalEarnings
+        - activeRoutes
+        - recentDeliveries
+        - deliveriesByWeek
+
+    AdminDashboard:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        pendingApprovals:
+          type: integer
+        totalOrders:
+          type: integer
+        activeDisputes:
+          type: integer
+        platformRevenue:
+          type: number
+        pendingListings:
+          type: integer
+        fraudAlerts:
+          type: integer
+        waitlistCount:
+          type: integer
+        recentOrders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        revenueByMonth:
+          type: array
+          items:
+            type: object
+            properties:
+              month:
+                type: string
+              revenue:
+                type: number
+            required:
+              - month
+              - revenue
+      required:
+        - totalUsers
+        - pendingApprovals
+        - totalOrders
+        - activeDisputes
+        - platformRevenue
+        - pendingListings
+        - fraudAlerts
+        - waitlistCount
+        - recentOrders
+        - revenueByMonth
+
+    Dispute:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        orderNumber:
+          type: string
+        reportedBy:
+          type: integer
+        reportedByName:
+          type: string
+        issueType:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [open, in_review, resolved, closed]
+        resolution:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - orderId
+        - orderNumber
+        - reportedBy
+        - reportedByName
+        - issueType
+        - description
+        - status
+        - createdAt
+
+    ResolveDisputeBody:
+      type: object
+      properties:
+        resolution:
+          type: string
+        action:
+          type: string
+          enum: [refund, no_action, warn_seller, warn_buyer]
+      required:
+        - resolution
+        - action
+
+    RejectBody:
+      type: object
+      properties:
+        reason:
+          type: string
+      required:
+        - reason
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        read:
+          type: boolean
+        orderId:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - type
+        - title
+        - message
+        - read
+        - createdAt
+
+    UpdateProfileBody:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        profilePhoto:
+          type: string
+
+    Address:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        label:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        pincode:
+          type: string
+        isDefault:
+          type: boolean
+      required:
+        - id
+        - userId
+        - address
+        - city
+        - state
+        - pincode
+        - isDefault
+
+    AddressBody:
+      type: object
+      properties:
+        label:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        pincode:
+          type: string
+        isDefault:
+          type: boolean
+      required:
+        - address
+        - city
+        - state
+        - pincode

@@ -1,0 +1,398 @@
+Build a **full-featured Windows desktop application** named **PawZone**.
+
+This is a **multi-role animal marketplace system** with logistics, payments simulation, and admin control.
+
+The application must be:
+
+* Native Windows compatible (use **Electron + React** OR **.NET (WPF)** preferred)
+* Fully functional (not demo UI)
+* Clean, modern, responsive UI
+* Structured for future backend/API integration
+
+---
+
+# 🧱 TECH STACK (STRICT)
+
+Option 1 (Preferred):
+
+* Electron (desktop shell)
+* React + Tailwind CSS (UI)
+* Node.js backend (local server inside app)
+* SQLite (local database)
+
+OR
+
+Option 2:
+
+* .NET WPF (C#)
+* MVVM architecture
+* Local database (SQLite)
+
+---
+
+# 👤 USER ROLES
+
+1. Buyer
+2. Seller
+3. Transporter
+4. Admin (SYSTEM CONTROLLED ONLY)
+
+---
+
+# 🔐 AUTH SYSTEM
+
+* Signup allowed ONLY for:
+
+  * Buyer
+  * Seller
+  * Transporter
+
+* Admin:
+
+  * NO signup option
+  * Only one admin account exists
+
+---
+
+## 🔑 ADMIN LOGIN (STRICT RULE)
+
+```text
+Login ID: PAWZONE_A2005
+Password: PawZone2005
+```
+
+* Admin logs in using the SAME login page as buyer
+* System detects admin credentials → redirect to Admin Dashboard
+
+---
+
+# 🌍 REGION RESTRICTION
+
+* App works ONLY in Kerala (India)
+
+If user selects any other state/country:
+
+Show message:
+“We will be available in your region soon”
+
+Store user in waitlist database
+
+---
+
+# 🛒 BUYER MODULE
+
+---
+
+## Dashboard
+
+* Categories:
+
+  * Dogs
+  * Cats
+  * Birds
+  * Fish
+
+* Search + filters
+
+* Cart icon
+
+* Profile
+
+---
+
+## Product System
+
+* View listings
+* Product details:
+
+  * Images
+  * Video
+  * Description
+  * Vaccination details
+  * Seller info
+
+---
+
+## Cart
+
+* Multi-seller support
+* Quantity control
+
+---
+
+## Platform Fee Logic
+
+* ₹20 per animal (>₹100)
+* ₹5 per item (<₹100)
+
+---
+
+## Order Flow
+
+1. Request order
+2. Lock inventory (3 hrs)
+
+---
+
+## 🌙 Night Rule
+
+If order placed after 9 PM:
+
+* Seller response starts next day 9 AM
+
+---
+
+## Payment Logic
+
+* Payment only after seller confirmation
+
+Timeline:
+
+* 30 min → reminder
+* 60 min → admin alert
+* 5 hr → auto cancel
+
+---
+
+## Tracking System
+
+Status:
+
+* Order Confirmed
+* Ready
+* Picked Up
+* In Transit
+* Delivered
+
+---
+
+## Issue Reporting
+
+Available anytime
+
+---
+
+# 🏪 SELLER MODULE
+
+---
+
+## Add Listing
+
+Fields:
+
+* Category
+* Breed
+* Price
+* Quantity
+* Vaccination
+* Photos + video
+
+→ Goes to admin approval
+
+---
+
+## Order Handling
+
+* Respond within 3 hrs
+* Confirm / Cancel
+
+---
+
+## Packaging System
+
+After payment:
+
+* Generate:
+
+  * Pet Code
+  * Barcode
+  * PDF Bill
+
+Seller prints and attaches to package
+
+---
+
+## Ready Video
+
+* Must upload before pickup
+
+---
+
+## Seller Score
+
+Based on:
+
+* cancellations
+* delays
+* ratings
+
+---
+
+# 🚚 TRANSPORTER MODULE
+
+---
+
+## Setup
+
+* Weekly route entry
+* Editable anytime
+
+---
+
+## Order Handling
+
+* Accept order
+* Enter:
+
+  * Pickup time
+  * Delivery time
+
+---
+
+## Pickup
+
+* Scan barcode
+* Upload pickup video
+
+---
+
+## Delivery
+
+* GPS simulation (map UI)
+* Upload delivery video
+* Deliver bill
+
+---
+
+## Contact Sharing
+
+* Seller sees pickup time + transporter phone
+* Buyer sees delivery time + transporter phone
+
+---
+
+# 🚚 DELIVERY RULES
+
+* Pickup = Delivery SAME DAY
+* Must complete within 3 days
+
+---
+
+# 🛠 ADMIN PANEL
+
+---
+
+## Access
+
+Only via:
+
+```text
+PAWZONE_A2005 / PawZone2005
+```
+
+---
+
+## Features
+
+* Approve sellers
+* Approve transporters
+* Approve listings (within 12 hr)
+
+---
+
+## Alert System
+
+* Seller delay
+* Payment delay
+* Transport delay
+* Fraud detection
+
+---
+
+## Admin Call System
+
+* Admin verifies buyer & seller
+
+If call fails:
+→ Send auto confirmation message
+
+---
+
+## Dispute System
+
+* Resolve within 5 hrs
+
+---
+
+## Refund System
+
+* Admin approves
+* Auto processed within 6 hrs
+
+---
+
+# 📊 ACCOUNTING SYSTEM
+
+* Track:
+
+  * Platform revenue
+  * Seller payouts
+  * Transporter earnings
+
+---
+
+# 🔐 FRAUD DETECTION
+
+Flag:
+
+* high cancellations
+* repeated issues
+* complaints
+
+---
+
+# 📦 VERIFICATION SYSTEM
+
+* Unique pet code
+* Barcode scan
+* Video proof:
+
+  * Seller
+  * Pickup
+  * Delivery
+
+---
+
+# 🧠 CORE SYSTEMS TO IMPLEMENT
+
+* Inventory locking
+* Payment expiry
+* Admin action queue
+* Delay detection
+* Notification system
+
+---
+
+# 📱 UI/UX REQUIREMENTS
+
+* Modern clean UI
+* Desktop optimized
+* Smooth navigation
+* Timeline-based tracking UI
+* Notification panel
+
+---
+
+# 🎯 OUTPUT REQUIREMENT
+
+Build a COMPLETE working application including:
+
+* UI screens
+* Role dashboards
+* Database
+* Business logic
+* All workflows functioning
+
+---
+
+The code must be clean, modular, and ready for future scaling.
