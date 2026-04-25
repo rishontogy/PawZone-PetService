@@ -234,7 +234,25 @@ router.patch("/orders/:id", authMiddleware, async (req, res): Promise<void> => {
   const updates: any = { status: parsed.data.status };
   if (parsed.data.status === "confirmed") {
     updates.confirmedAt = new Date();
-    updates.paymentDeadline = new Date(Date.now() + 5 * 60 * 60 * 1000);
+    // Night-order logic: if the order was placed at or after 9 PM IST (21:00),
+    // the payment timer starts at 9 AM IST the next day; otherwise it starts now.
+    // Buyer has 3 hours from timerStart to complete payment.
+    // Server runs in UTC, so convert order.createdAt to IST (UTC+5:30) before checking hour.
+    const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000; // 5h 30m in ms
+    const orderPlacedAt = new Date(order.createdAt);
+    const orderInIST = new Date(orderPlacedAt.getTime() + IST_OFFSET_MS);
+    const istHour = orderInIST.getUTCHours(); // IST hour (0-23)
+    let timerStart: Date;
+    if (istHour >= 21) {
+      // Start timer at 9 AM IST next day → in UTC that is 3:30 AM next day
+      timerStart = new Date(orderInIST);
+      timerStart.setUTCDate(timerStart.getUTCDate() + 1);
+      timerStart.setUTCHours(3, 30, 0, 0); // 9:00 IST = 03:30 UTC
+    } else {
+      timerStart = new Date();
+    }
+    updates.paymentDeadline = new Date(timerStart.getTime() + 3 * 60 * 60 * 1000);
+    console.log(`[orders] Order ${order.orderNumber} placed at IST hour ${istHour}. Timer starts: ${timerStart.toISOString()}, deadline: ${updates.paymentDeadline.toISOString()}`);
   }
   if (parsed.data.status === "ready") {
     const petCode = generatePetCode();

@@ -61,9 +61,29 @@ export function OrderDetailPage() {
   const platformFeeAmount = Number(o.platformFee ?? 0);
   const currentStatus = o.status ?? "pending_payment";
 
-  // Payment deadline
-  const payDeadline = new Date(o.createdAt);
-  payDeadline.setHours(payDeadline.getHours() + 3);
+  // Payment deadline — prefer server-stored paymentDeadline (already applies night logic).
+  // Fall back to computing locally with IST-aware night-order logic:
+  // If order placed at or after 9 PM IST, timer starts next day 9 AM IST;
+  // otherwise it starts from order creation. Buyer gets 3 hours from timerStart.
+  let payDeadline: Date;
+  if (o.paymentDeadline) {
+    payDeadline = new Date(o.paymentDeadline);
+  } else {
+    const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000;
+    const orderDate = new Date(o.createdAt);
+    const orderInIST = new Date(orderDate.getTime() + IST_OFFSET_MS);
+    const istHour = orderInIST.getUTCHours();
+    let timerStart: Date;
+    if (istHour >= 21) {
+      // 9 AM IST next day = 3:30 AM UTC next day
+      timerStart = new Date(orderInIST);
+      timerStart.setUTCDate(timerStart.getUTCDate() + 1);
+      timerStart.setUTCHours(3, 30, 0, 0);
+    } else {
+      timerStart = new Date(orderDate);
+    }
+    payDeadline = new Date(timerStart.getTime() + 3 * 60 * 60 * 1000);
+  }
   const payExpired = new Date() > payDeadline;
   const timeLeft = Math.max(0, payDeadline.getTime() - Date.now());
   const hoursLeft = Math.floor(timeLeft / 3600000);

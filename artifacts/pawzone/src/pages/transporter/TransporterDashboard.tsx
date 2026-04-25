@@ -6,36 +6,73 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor } from "@/lib/api";
 import { Truck, MapPin, Package, PlusCircle, ArrowRight, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { useState } from "react";
 
 export function TransporterDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [acceptingId, setAcceptingId] = useState<number | null>(null);
+  const [acceptForm, setAcceptForm] = useState({ pickupTime: "", deliveryTime: "" });
 
   const { data: dash } = useGetTransporterDashboard({ query: { enabled: !!user } });
+  const { data: routesData, refetch: refetchRoutes } = useGetTransporterRoutes({ query: { enabled: !!user } });
   const { data: ordersData, refetch } = useGetTransporterOrders({ query: { enabled: !!user } });
-  const { data: routesData } = useGetTransporterRoutes({ query: { enabled: !!user } });
+
+  // Both endpoints return plain arrays, NOT wrapped objects
+  const routes = Array.isArray(routesData) ? routesData : [];
+  const orders = Array.isArray(ordersData) ? ordersData : [];
 
   const acceptDelivery = useAcceptDelivery({
     mutation: {
-      onSuccess: () => { toast({ title: "✅ Delivery accepted!" }); refetch(); },
-      onError: (err: any) => { toast({ variant: "destructive", title: "Error", description: err?.data?.error }); },
+      onSuccess: () => {
+        toast({ title: "✅ Delivery accepted!" });
+        setAcceptingId(null);
+        refetch();
+      },
+      onError: (err: any) => {
+        toast({ variant: "destructive", title: "Error", description: err?.data?.error || "Failed to accept delivery" });
+      },
     },
   });
 
   const confirmPickup = useConfirmPickup({
     mutation: {
       onSuccess: () => { toast({ title: "📦 Pickup confirmed!" }); refetch(); },
+      onError: (err: any) => { toast({ variant: "destructive", title: "Error", description: err?.data?.error || "Failed to confirm pickup" }); },
     },
   });
 
   const confirmDelivery = useConfirmDelivery({
     mutation: {
       onSuccess: () => { toast({ title: "🎉 Delivery completed!" }); refetch(); },
+      onError: (err: any) => { toast({ variant: "destructive", title: "Error", description: err?.data?.error || "Failed to confirm delivery" }); },
     },
   });
 
-  const orders = (ordersData as any)?.orders ?? [];
-  const routes = (routesData as any)?.routes ?? [];
+  const handleOpenAccept = (orderId: number) => {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const fmt = (d: Date) => d.toISOString().slice(0, 16);
+    const pickupDefault = fmt(new Date(now.getTime() + 2 * 3600000));
+    const deliveryDefault = fmt(new Date(now.getTime() + 6 * 3600000));
+    setAcceptForm({ pickupTime: pickupDefault, deliveryTime: deliveryDefault });
+    setAcceptingId(orderId);
+  };
+
+  const handleAcceptSubmit = (orderId: number) => {
+    if (!acceptForm.pickupTime || !acceptForm.deliveryTime) {
+      toast({ variant: "destructive", title: "Required", description: "Please set both pickup and delivery times." });
+      return;
+    }
+    acceptDelivery.mutate({
+      id: orderId,
+      data: {
+        pickupTime: new Date(acceptForm.pickupTime) as any,
+        deliveryTime: new Date(acceptForm.deliveryTime) as any,
+      },
+    });
+  };
 
   if (user?.status === "pending") {
     return (
@@ -45,7 +82,7 @@ export function TransporterDashboard() {
             <AlertCircle className="w-8 h-8 text-amber-600" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Awaiting Approval</h2>
-          <p className="text-gray-500 text-sm">Your transporter account is pending admin approval. You'll receive a WhatsApp notification once approved.</p>
+          <p className="text-gray-500 text-sm">Your transporter account is pending admin approval. You'll receive a notification once approved.</p>
         </div>
       </div>
     );
@@ -70,9 +107,9 @@ export function TransporterDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[
-            { icon: <CheckCircle className="w-6 h-6 text-green-600" />, label: "Deliveries Done", value: dash?.stats?.completedDeliveries ?? 0, bg: "bg-green-50", border: "border-green-200" },
-            { icon: <Package className="w-6 h-6 text-amber-600" />, label: "Active", value: dash?.stats?.activeDeliveries ?? 0, bg: "bg-amber-50", border: "border-amber-200" },
-            { icon: <Truck className="w-6 h-6 text-blue-600" />, label: "Total Earnings", value: formatPrice(dash?.stats?.totalEarnings ?? 0), bg: "bg-blue-50", border: "border-blue-200" },
+            { icon: <CheckCircle className="w-6 h-6 text-green-600" />, label: "Deliveries Done", value: (dash as any)?.stats?.completedDeliveries ?? 0, bg: "bg-green-50", border: "border-green-200" },
+            { icon: <Package className="w-6 h-6 text-amber-600" />, label: "Active", value: (dash as any)?.stats?.activeDeliveries ?? 0, bg: "bg-amber-50", border: "border-amber-200" },
+            { icon: <Truck className="w-6 h-6 text-blue-600" />, label: "Total Earnings", value: formatPrice((dash as any)?.stats?.totalEarnings ?? 0), bg: "bg-blue-50", border: "border-blue-200" },
           ].map((stat) => (
             <div key={stat.label} className={`${stat.bg} border ${stat.border} rounded-2xl p-5 flex items-center gap-4 shadow-sm`}>
               <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
@@ -109,12 +146,11 @@ export function TransporterDashboard() {
           ) : (
             <div className="divide-y divide-gray-50">
               {routes.map((route: any) => {
-                const allCities = [route.startCity, ...(route.stops || []), route.endCity].filter(Boolean);
+                const allCities = [route.startCity, ...(Array.isArray(route.stops) ? route.stops : []), route.endCity].filter(Boolean);
                 return (
                   <div key={route.id} className="px-5 py-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        {/* Route path with stops */}
                         <div className="flex flex-wrap items-center gap-1 mb-2">
                           {allCities.map((city: string, idx: number) => (
                             <span key={idx} className="flex items-center gap-1">
@@ -169,34 +205,106 @@ export function TransporterDashboard() {
                         <Badge className={`text-xs ${getStatusColor(order.status)}`}>{order.status.replace(/_/g, " ")}</Badge>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-green-500" /> {order.pickupCity}
-                        </span>
-                        <ArrowRight className="w-3.5 h-3.5 text-gray-300" />
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-red-500" /> {order.deliveryCity}
-                        </span>
+                        {order.pickupCity && (
+                          <>
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5 text-green-500" /> {order.pickupCity}
+                            </span>
+                            <ArrowRight className="w-3.5 h-3.5 text-gray-300" />
+                          </>
+                        )}
+                        {order.deliveryCity && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3.5 h-3.5 text-red-500" /> {order.deliveryCity}
+                          </span>
+                        )}
                       </div>
-                      <p className="text-xs text-gray-400 mt-1">{order.itemCount} pet(s) • {formatPrice(order.totalAmount)}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {order.buyerName && `Buyer: ${order.buyerName} • `}
+                        {formatPrice(order.total ?? order.totalAmount ?? 0)}
+                      </p>
                     </div>
                   </div>
-                  <div className="flex gap-2 flex-wrap">
-                    {order.status === "ready_for_pickup" && !order.transporterId && (
-                      <Button size="sm" className="rounded-lg bg-blue-600 hover:bg-blue-700" onClick={() => acceptDelivery.mutate({ id: order.id, data: {} })}>
+
+                  {/* Accept Delivery — shows when order is "ready" and no transporter assigned */}
+                  {order.status === "ready" && !order.transporterId && (
+                    acceptingId === order.id ? (
+                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+                        <p className="text-sm font-semibold text-blue-800">Set Pickup & Delivery Schedule</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs text-blue-700 font-medium block mb-1">Pickup Time</label>
+                            <input
+                              type="datetime-local"
+                              className="w-full text-sm border border-blue-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              value={acceptForm.pickupTime}
+                              onChange={(e) => setAcceptForm({ ...acceptForm, pickupTime: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-blue-700 font-medium block mb-1">Delivery Time</label>
+                            <input
+                              type="datetime-local"
+                              className="w-full text-sm border border-blue-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              value={acceptForm.deliveryTime}
+                              onChange={(e) => setAcceptForm({ ...acceptForm, deliveryTime: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className="rounded-lg bg-blue-600 hover:bg-blue-700"
+                            disabled={acceptDelivery.isPending}
+                            onClick={() => handleAcceptSubmit(order.id)}
+                          >
+                            {acceptDelivery.isPending ? "Accepting..." : "Confirm Accept"}
+                          </Button>
+                          <Button size="sm" variant="outline" className="rounded-lg" onClick={() => setAcceptingId(null)}>
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="rounded-lg bg-blue-600 hover:bg-blue-700"
+                        onClick={() => handleOpenAccept(order.id)}
+                      >
                         Accept Delivery
                       </Button>
-                    )}
-                    {order.status === "assigned" && (
-                      <Button size="sm" className="rounded-lg bg-green-600 hover:bg-green-700" onClick={() => confirmPickup.mutate({ id: order.id, data: { barcode: order.barcode || "SCAN" } })}>
-                        Confirm Pickup
-                      </Button>
-                    )}
-                    {order.status === "in_transit" && (
-                      <Button size="sm" className="rounded-lg" onClick={() => confirmDelivery.mutate({ id: order.id, data: { signature: "confirmed" } })}>
-                        Complete Delivery
-                      </Button>
-                    )}
-                  </div>
+                    )
+                  )}
+
+                  {/* Confirm Pickup — after transporter accepted */}
+                  {order.status === "assigned" && order.transporterId === user?.id && (
+                    <Button
+                      size="sm"
+                      className="rounded-lg bg-green-600 hover:bg-green-700"
+                      disabled={confirmPickup.isPending}
+                      onClick={() => confirmPickup.mutate({
+                        id: order.id,
+                        data: { petCode: order.petCode || "SCAN" } as any,
+                      })}
+                    >
+                      {confirmPickup.isPending ? "Confirming..." : "Confirm Pickup"}
+                    </Button>
+                  )}
+
+                  {/* Complete Delivery */}
+                  {order.status === "in_transit" && order.transporterId === user?.id && (
+                    <Button
+                      size="sm"
+                      className="rounded-lg bg-teal-600 hover:bg-teal-700"
+                      disabled={confirmDelivery.isPending}
+                      onClick={() => confirmDelivery.mutate({
+                        id: order.id,
+                        data: { location: order.deliveryAddress || order.deliveryCity || "Delivered" } as any,
+                      })}
+                    >
+                      {confirmDelivery.isPending ? "Completing..." : "Complete Delivery"}
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>

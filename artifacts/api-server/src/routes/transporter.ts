@@ -27,15 +27,23 @@ router.post("/transporter/routes", authMiddleware, async (req, res): Promise<voi
 
   const parsed = CreateTransporterRouteBody.safeParse(req.body);
   if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+    res.status(400).json({ error: "Route could not be saved. Please try again." });
     return;
   }
+
+  // Extract stops separately — not in the Zod schema but stored in DB
+  const rawStops = req.body.stops;
+  const stops: string[] = Array.isArray(rawStops)
+    ? rawStops.filter((s: any) => typeof s === "string" && s.trim() !== "")
+    : [];
 
   const [route] = await db.insert(transporterRoutesTable).values({
     transporterId: user.id,
     ...parsed.data,
+    stops,
   }).returning();
 
+  console.log(`[routes] Saved route ${route.id} for transporter ${user.id} with ${stops.length} stops:`, stops);
   res.status(201).json(route);
 });
 
