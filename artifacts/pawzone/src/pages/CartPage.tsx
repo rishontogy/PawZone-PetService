@@ -42,8 +42,8 @@ export function CartPage() {
   });
 
   const items = cart?.items ?? [];
-  const subtotal = items.reduce((s: number, i: any) => s + i.price * i.quantity, 0);
-  const fees = items.reduce((s: number, i: any) => s + platformFee(i.price) * i.quantity, 0);
+  const subtotal = items.reduce((s: number, i: any) => s + Number(i.price ?? 0) * Number(i.quantity ?? 1), 0);
+  const fees = items.reduce((s: number, i: any) => s + platformFee(Number(i.price ?? 0)) * Number(i.quantity ?? 1), 0);
   const total = subtotal + fees;
 
   const hour = new Date().getHours();
@@ -119,7 +119,7 @@ export function CartPage() {
                         <p className="text-sm text-gray-400 capitalize">{item.category}</p>
                         <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
                           <Tag className="w-3 h-3" />
-                          {formatPrice(item.price)} + ₹{platformFee(item.price)} fee
+                          {formatPrice(Number(item.price ?? 0))} + ₹{platformFee(Number(item.price ?? 0))} fee
                         </div>
                       </div>
                       <button
@@ -154,7 +154,7 @@ export function CartPage() {
                         </button>
                       </div>
                       <p className="font-extrabold text-teal-600 text-lg">
-                        {formatPrice((item.price + platformFee(item.price)) * item.quantity)}
+                        {formatPrice((Number(item.price ?? 0) + platformFee(Number(item.price ?? 0))) * Number(item.quantity ?? 1))}
                       </p>
                     </div>
                   </div>

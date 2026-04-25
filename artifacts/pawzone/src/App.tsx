@@ -31,6 +31,7 @@ import { AdminUsersPage } from "@/pages/admin/AdminUsersPage";
 import { AdminListingsPage } from "@/pages/admin/AdminListingsPage";
 import { AdminOrdersPage } from "@/pages/admin/AdminOrdersPage";
 import { AdminDisputesPage } from "@/pages/admin/AdminDisputesPage";
+import { AdminAccountingPage } from "@/pages/admin/AdminAccountingPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -170,6 +171,11 @@ function Router() {
       <Route path="/admin/disputes">
         <RequireAuth allowedRoles={["admin"]}>
           <AppLayout><AdminDisputesPage /></AppLayout>
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/accounting">
+        <RequireAuth allowedRoles={["admin"]}>
+          <AppLayout><AdminAccountingPage /></AppLayout>
         </RequireAuth>
       </Route>
 

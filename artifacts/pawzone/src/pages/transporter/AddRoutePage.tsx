@@ -29,7 +29,7 @@ export function AddRoutePage() {
   const [stops, setStops] = useState<string[]>([]);
 
   const addStop = () => {
-    if (stops.length < 5) setStops([...stops, ""]);
+    setStops([...stops, ""]);
   };
 
   const updateStop = (idx: number, val: string) => {
@@ -183,21 +183,19 @@ export function AddRoutePage() {
                   ))}
 
                   {/* Add stop button */}
-                  {stops.length < 5 && (
-                    <div>
-                      <div className="flex items-center gap-2 pl-2.5">
-                        <ArrowDown className="w-3 h-3 text-gray-300 flex-shrink-0" />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={addStop}
-                        className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all w-full"
-                      >
-                        <Plus className="w-4 h-4" />
-                        + Add Stop ({5 - stops.length} remaining)
-                      </button>
+                  <div>
+                    <div className="flex items-center gap-2 pl-2.5">
+                      <ArrowDown className="w-3 h-3 text-gray-300 flex-shrink-0" />
                     </div>
-                  )}
+                    <button
+                      type="button"
+                      onClick={addStop}
+                      className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all w-full"
+                    >
+                      <Plus className="w-4 h-4" />
+                      + Add Stop
+                    </button>
+                  </div>
 
                   {/* Arrow to end */}
                   <div className="flex items-center gap-2 pl-2.5">

@@ -285,4 +285,110 @@ router.get("/admin/waitlist", async (req, res): Promise<void> => {
   res.json(entries);
 });
 
+router.get("/admin/accounting", async (req, res): Promise<void> => {
+  const allOrders = await db
+    .select({
+      order: ordersTable,
+      buyerName: usersTable.name,
+    })
+    .from(ordersTable)
+    .innerJoin(usersTable, eq(ordersTable.buyerId, usersTable.id))
+    .orderBy(desc(ordersTable.createdAt));
+
+  const transactions = await Promise.all(allOrders.map(async ({ order, buyerName }) => {
+    const [seller] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, order.sellerId));
+    let transporterName: string | null = null;
+    if (order.transporterId) {
+      const [t] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, order.transporterId));
+      transporterName = t?.name ?? null;
+    }
+    const price = Number(order.totalAmount ?? 0);
+    const fee = Number(order.platformFee ?? 0);
+    const deliveryFee = Number(order.deliveryFee ?? 0);
+    const sellerPayout = price - fee - deliveryFee;
+    const transporterPayout = deliveryFee > 0 ? Math.round(deliveryFee * 0.85) : 0;
+    return {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      buyerName,
+      sellerName: seller?.name ?? "",
+      transporterName,
+      totalAmount: price,
+      platformFee: fee,
+      deliveryFee,
+      sellerPayout: Math.max(0, sellerPayout),
+      transporterPayout,
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      createdAt: order.createdAt,
+    };
+  }));
+
+  const paidTransactions = transactions.filter(t => t.paymentStatus === "paid");
+
+  const totalRevenue = paidTransactions.reduce((s, t) => s + t.totalAmount, 0);
+  const totalPlatformFees = paidTransactions.reduce((s, t) => s + t.platformFee, 0);
+  const totalSellerPayouts = paidTransactions.reduce((s, t) => s + t.sellerPayout, 0);
+  const totalTransporterPayouts = paidTransactions.reduce((s, t) => s + t.transporterPayout, 0);
+
+  // Seller ledger
+  const sellerMap: Record<string, { name: string; totalEarnings: number; completedOrders: number; pendingPayouts: number }> = {};
+  for (const t of transactions) {
+    if (!sellerMap[t.sellerName]) sellerMap[t.sellerName] = { name: t.sellerName, totalEarnings: 0, completedOrders: 0, pendingPayouts: 0 };
+    if (t.paymentStatus === "paid") {
+      sellerMap[t.sellerName].totalEarnings += t.sellerPayout;
+      sellerMap[t.sellerName].completedOrders += 1;
+    } else if (["pending_payment", "confirmed"].includes(t.status)) {
+      sellerMap[t.sellerName].pendingPayouts += t.sellerPayout;
+    }
+  }
+
+  // Transporter ledger
+  const transporterMap: Record<string, { name: string; totalEarnings: number; completedDeliveries: number }> = {};
+  for (const t of transactions) {
+    if (!t.transporterName) continue;
+    if (!transporterMap[t.transporterName]) transporterMap[t.transporterName] = { name: t.transporterName, totalEarnings: 0, completedDeliveries: 0 };
+    if (t.status === "delivered") {
+      transporterMap[t.transporterName].totalEarnings += t.transporterPayout;
+      transporterMap[t.transporterName].completedDeliveries += 1;
+    }
+  }
+
+  // Daily income last 30 days
+  const today = new Date();
+  const dailyIncome = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - (29 - i));
+    const label = `${d.getDate()}/${d.getMonth() + 1}`;
+    const revenue = paidTransactions.filter(t => {
+      const td = new Date(t.createdAt);
+      return td.getDate() === d.getDate() && td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
+    }).reduce((s, t) => s + t.platformFee, 0);
+    return { date: label, revenue };
+  });
+
+  // Monthly income last 12 months
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthlyIncome = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(today);
+    d.setMonth(d.getMonth() - (11 - i));
+    const m = d.getMonth();
+    const y = d.getFullYear();
+    const revenue = paidTransactions.filter(t => {
+      const td = new Date(t.createdAt);
+      return td.getMonth() === m && td.getFullYear() === y;
+    }).reduce((s, t) => s + t.platformFee, 0);
+    return { month: `${months[m]} ${y}`, revenue };
+  });
+
+  res.json({
+    summary: { totalRevenue, totalPlatformFees, totalSellerPayouts, totalTransporterPayouts },
+    transactions: transactions.slice(0, 100),
+    sellerLedger: Object.values(sellerMap),
+    transporterLedger: Object.values(transporterMap),
+    dailyIncome,
+    monthlyIncome,
+  });
+});
+
 export default router;
