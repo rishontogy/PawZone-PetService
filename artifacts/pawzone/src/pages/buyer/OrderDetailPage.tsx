@@ -3,7 +3,7 @@ import { useGetOrder, useProcessPayment, useReportIssue } from "@workspace/api-c
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { formatPrice, getStatusColor, platformFee } from "@/lib/api";
+import { formatPrice, getStatusColor, statusLabel, platformFee } from "@/lib/api";
 import {
   ChevronLeft, Shield, AlertCircle, Package, CheckCircle,
   Truck, Clock, MapPin, Phone, Star, User
@@ -11,14 +11,21 @@ import {
 import { useState } from "react";
 
 const STATUS_STEPS = [
-  { key: "pending_payment", label: "Order Placed", icon: <Package className="w-4 h-4" /> },
-  { key: "paid", label: "Payment Confirmed", icon: <CheckCircle className="w-4 h-4" /> },
-  { key: "ready_for_pickup", label: "Ready for Pickup", icon: <Package className="w-4 h-4" /> },
+  { key: "pending", label: "Order Placed", icon: <Package className="w-4 h-4" /> },
+  { key: "confirmed", label: "Seller Accepted", icon: <CheckCircle className="w-4 h-4" /> },
+  { key: "paid", label: "Paid", icon: <CheckCircle className="w-4 h-4" /> },
+  { key: "ready", label: "Ready for Pickup", icon: <Package className="w-4 h-4" /> },
   { key: "in_transit", label: "In Transit", icon: <Truck className="w-4 h-4" /> },
   { key: "delivered", label: "Delivered", icon: <CheckCircle className="w-4 h-4" /> },
 ];
 
-const STEP_ORDER = ["pending_payment", "paid", "confirmed", "ready_for_pickup", "assigned", "in_transit", "delivered"];
+const STEP_ORDER = ["pending", "confirmed", "paid", "ready", "picked_up", "in_transit", "delivered"];
+
+function getEffectiveStatus(status: string, paymentStatus: string): string {
+  // "paid" is a virtual progress step: order is "confirmed" AND payment received.
+  if (status === "confirmed" && paymentStatus === "paid") return "paid";
+  return status;
+}
 
 export function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -59,7 +66,9 @@ export function OrderDetailPage() {
   const totalAmount = Number(o.totalAmount ?? 0);
   const subtotalAmount = Number(o.subtotal ?? totalAmount);
   const platformFeeAmount = Number(o.platformFee ?? 0);
-  const currentStatus = o.status ?? "pending_payment";
+  const rawStatus = o.status ?? "pending";
+  const paymentStatusVal = o.paymentStatus ?? "pending";
+  const currentStatus = getEffectiveStatus(rawStatus, paymentStatusVal);
 
   // Payment deadline — prefer server-stored paymentDeadline (already applies night logic).
   // Fall back to computing locally with IST-aware night-order logic:
@@ -89,8 +98,10 @@ export function OrderDetailPage() {
   const hoursLeft = Math.floor(timeLeft / 3600000);
   const minsLeft = Math.floor((timeLeft % 3600000) / 60000);
 
-  const isPendingPayment = currentStatus === "pending_payment";
-  const canReportIssue = ["paid", "in_transit", "delivered", "confirmed", "ready_for_pickup", "assigned"].includes(currentStatus);
+  // Buyer can pay only AFTER seller has accepted the order (status=confirmed) and payment hasn't been made.
+  const isPendingPayment = rawStatus === "confirmed" && paymentStatusVal !== "paid";
+  const isAwaitingSeller = rawStatus === "pending";
+  const canReportIssue = ["paid", "ready", "picked_up", "in_transit", "delivered", "confirmed"].includes(rawStatus);
 
   // Progress tracker
   const currentStepIdx = STEP_ORDER.indexOf(currentStatus);
@@ -115,12 +126,25 @@ export function OrderDetailPage() {
             </p>
           </div>
           <span className={`text-xs px-3 py-1 rounded-full font-medium ${getStatusColor(currentStatus)}`}>
-            {currentStatus.replace(/_/g, " ")}
+            {statusLabel(currentStatus)}
           </span>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-6 py-6 space-y-4">
+        {/* Awaiting Seller Banner */}
+        {isAwaitingSeller && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
+            <Clock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-blue-900">Waiting for seller to accept</p>
+              <p className="text-sm text-blue-700 mt-0.5">
+                Once the seller approves your request, you'll be able to complete payment.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Payment Banner */}
         {isPendingPayment && !payExpired && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">

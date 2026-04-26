@@ -1,0 +1,505 @@
+Update and finalize the PawZone Windows desktop application.
+
+This is the FINAL SYSTEM BUILD + VALIDATION + BUG FIX phase.
+
+Your objective is to ensure that the ENTIRE application works as a **fully functional production-ready system**.
+
+---
+
+# 🎯 CORE RULES
+
+* Do NOT skip any feature
+* Do NOT leave anything incomplete
+* Do NOT patch UI only — fix backend logic too
+* If ANY issue is found → FIX immediately and re-test
+* Ensure ALL modules are connected and synced
+
+---
+
+# 🧠 1. END-TO-END USER STORY (MUST WORK 100%)
+
+---
+
+## 👤 LOGIN FLOW
+
+* Buyer, Seller, Transporter login must work
+* Admin login only via:
+
+  * ID: PAWZONE_A2005
+  * Password: PawZone2005
+
+---
+
+## ADMIN MUST TRACK:
+
+* Login activity
+* Active users
+* Roles
+* Activity logs
+
+---
+
+# 🛒 2. BUYER FLOW
+
+---
+
+## Browse & Cart
+
+* Buyer browses pets
+* Opens product
+* Clicks “Add to Cart”
+
+---
+
+## Cart MUST:
+
+* Update instantly
+* Show:
+
+  * Product name
+  * Price
+  * Quantity
+  * Seller
+* Support multi-seller
+
+---
+
+## ❗ CART DATA MODEL
+
+Each item must contain:
+
+* product_id
+* product_name
+* price (number)
+* quantity (number)
+* seller_id
+
+---
+
+## Place Order
+
+* Creates order request
+* Stored in:
+
+  * Buyer order page
+  * Seller incoming orders
+
+---
+
+## Order Data MUST include:
+
+* Product details
+* Quantity
+* Price
+* Buyer info
+* Seller info
+
+---
+
+# 🏪 3. SELLER FLOW (CRITICAL FIX)
+
+---
+
+## Seller MUST have:
+
+* Accept Order
+* Reject Order
+
+---
+
+## Accept:
+
+* Status → Confirmed
+* Buyer notified
+* Payment unlocked
+
+---
+
+## Reject:
+
+* Buyer notified with reason
+* Suggest similar pets
+
+---
+
+## Ensure:
+
+* Works day and night
+* 3-hour timer logic works
+
+---
+
+# 💳 4. PAYMENT FLOW
+
+---
+
+* Buyer pays AFTER seller confirmation
+
+---
+
+## Payment includes:
+
+* Product total
+* Platform fee
+* Transport charge
+
+---
+
+## Result:
+
+* Order → Confirmed
+* Visible in:
+
+  * Buyer
+  * Seller
+  * Admin
+
+---
+
+# 🚚 5. TRANSPORTER ASSIGNMENT
+
+---
+
+## Logic:
+
+Order shown ONLY to transporters whose route:
+
+* Matches seller location
+* Matches buyer location
+* Within delivery window
+
+---
+
+## Assignment:
+
+* First transporter to accept → gets order
+
+---
+
+## Must update in:
+
+* Buyer page
+* Seller page
+* Transporter page
+* Admin panel
+
+---
+
+# 📞 CONTACT SHARING
+
+---
+
+After assignment:
+
+* Transporter sees:
+
+  * Buyer phone
+  * Seller phone
+
+* Seller sees:
+
+  * Transporter phone
+  * Pickup time
+
+* Buyer sees:
+
+  * Transporter phone
+  * Delivery time
+
+---
+
+# 🚚 6. DELIVERY FLOW
+
+---
+
+Steps:
+
+1. Seller uploads ready video
+2. Transporter uploads pickup video
+3. Status → Picked Up
+4. Tracking starts
+5. Delivery video uploaded
+6. Buyer confirms
+
+---
+
+## MUST UPDATE IN ALL PANELS:
+
+* Buyer
+* Seller
+* Transporter
+* Admin
+
+---
+
+# 🛒 7. ORDER PAGE – PRICE FIX (CRITICAL)
+
+---
+
+## FIX DATA BINDING
+
+Each item must use:
+
+* product_name
+* price (number)
+* quantity
+
+---
+
+## CALCULATION:
+
+```js
+item_total = Number(price) * Number(quantity)
+```
+
+---
+
+## TOTAL:
+
+```js
+cart_total = sum(item_totals)
+
+platform_fee = 
+  (items_above_100 * 20) + 
+  (items_below_100 * 5)
+
+final_total = cart_total + platform_fee + transport_charge
+```
+
+---
+
+## MUST DISPLAY:
+
+* Product name
+* Unit price
+* Quantity
+* Subtotal
+* Platform fee
+* Transport fee
+* Final total
+
+---
+
+## CONSISTENCY:
+
+Same values must match across:
+
+* Cart
+* Order page
+* Payment page
+* Final bill
+
+---
+
+# 🚚 8. TRANSPORTER ROUTE SYSTEM
+
+---
+
+## MUST SUPPORT:
+
+* Unlimited stops
+* Add route
+* Edit route
+* Delete route
+
+---
+
+## ROUTE STRUCTURE:
+
+Start → Stops → End
+
+---
+
+## MUST:
+
+* Save properly
+* Persist after restart
+* Display correctly
+
+---
+
+# ⏱ 9. TIMER SYSTEM (FULL FIX)
+
+---
+
+## Seller Timer:
+
+* 3 hours
+* If after 9 PM → starts next day 9 AM
+
+---
+
+## Payment Timer:
+
+* 30 min → reminder
+* 60 min → admin alert
+* 5 hr → auto cancel
+
+---
+
+## Transport Assignment:
+
+* Must assign within 12 hours
+* Else → admin alert
+
+---
+
+## Refund:
+
+* Admin approval
+* Auto refund in 6 hours
+
+---
+
+## IMPORTANT:
+
+* Timers must persist (not UI-only)
+
+---
+
+# 🔔 10. ALERT SYSTEM
+
+---
+
+Ensure working:
+
+* Order request
+* Seller confirmation
+* Payment reminders
+* Transport assignment
+* Delivery updates
+* Delay alerts
+* Fraud alerts
+
+---
+
+# 🚨 11. REPORT SYSTEM (ADD THIS)
+
+---
+
+Add “Report Issue” button in:
+
+* Buyer
+* Seller
+* Transporter
+
+---
+
+## Behavior:
+
+* Select issue
+* Submit
+
+---
+
+## Result:
+
+* Visible in Admin panel
+* Admin can act
+
+---
+
+# 🛠 12. ADMIN PANEL (FULL CONTROL)
+
+---
+
+Admin must see:
+
+* Logins
+* Orders
+* Payments
+* Transport assignments
+* Delivery status
+* Reports
+* Earnings
+
+---
+
+## Accounting:
+
+* Platform revenue
+* Seller payouts
+* Transport payouts
+
+---
+
+# 🔁 13. DATA CONSISTENCY
+
+---
+
+Ensure NO mismatch across:
+
+* Order status
+* Prices
+* Users
+* Assignment
+
+---
+
+# 🧪 14. FULL VALIDATION CHECK
+
+---
+
+System MUST PASS:
+
+✔ Authentication
+✔ Buyer flow
+✔ Seller flow
+✔ Transporter flow
+✔ Admin panel
+✔ Accounting
+✔ Logistics
+✔ Security
+✔ UI/UX
+✔ Edge cases
+
+---
+
+# ⚠️ EDGE CASES
+
+---
+
+Must handle:
+
+* Seller not responding
+* Buyer not paying
+* Transporter not accepting
+* Delivery delay
+* Refund cases
+
+---
+
+# 🧠 AUTO FIX RULE
+
+---
+
+If ANY issue is detected:
+
+→ Fix immediately
+→ Re-run that flow
+
+---
+
+# 🎯 FINAL OUTPUT REQUIREMENT
+
+---
+
+After completion:
+
+* ALL features working
+* ALL flows complete
+* NO bugs
+* NO missing UI
+* NO incorrect data
+* NO timing errors
+* NO security flaws
+
+---
+
+## FINAL RULE
+
+This app must behave like a REAL production system.
+
+No shortcuts.
+No partial work.
+Everything must work exactly as defined.

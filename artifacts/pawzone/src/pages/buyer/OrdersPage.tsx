@@ -3,18 +3,18 @@ import { Link } from "wouter";
 import { useGetOrders } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { formatPrice, getStatusColor } from "@/lib/api";
+import { formatPrice, getStatusColor, statusLabel } from "@/lib/api";
 import { Package, ChevronRight, ShoppingBag, Clock, CheckCircle, AlertCircle, Truck } from "lucide-react";
 
 const STATUS_ICONS: Record<string, JSX.Element> = {
-  pending_payment: <AlertCircle className="w-4 h-4 text-amber-500" />,
-  confirmed: <Clock className="w-4 h-4 text-blue-500" />,
-  paid: <Clock className="w-4 h-4 text-blue-500" />,
-  ready_for_pickup: <Package className="w-4 h-4 text-purple-500" />,
-  assigned: <Truck className="w-4 h-4 text-indigo-500" />,
+  pending: <Clock className="w-4 h-4 text-amber-500" />,
+  confirmed: <AlertCircle className="w-4 h-4 text-blue-500" />,
+  ready: <Package className="w-4 h-4 text-purple-500" />,
+  picked_up: <Truck className="w-4 h-4 text-indigo-500" />,
   in_transit: <Truck className="w-4 h-4 text-indigo-600" />,
   delivered: <CheckCircle className="w-4 h-4 text-green-500" />,
   cancelled: <AlertCircle className="w-4 h-4 text-gray-400" />,
+  refunded: <AlertCircle className="w-4 h-4 text-gray-400" />,
 };
 
 export function BuyerOrdersPage() {
@@ -104,16 +104,21 @@ export function BuyerOrdersPage() {
                         <div className="flex items-center gap-2 mb-0.5">
                           <span className="font-bold text-gray-900">Order #{order.orderNumber}</span>
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusColor(order.status)}`}>
-                            {order.status?.replace(/_/g, " ")}
+                            {statusLabel(order.status)}
                           </span>
                         </div>
                         <p className="text-sm text-gray-400">
                           {new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                           {" · "}{order.itemCount} pet{order.itemCount !== 1 ? "s" : ""}
                         </p>
-                        {order.status === "pending_payment" && (
+                        {order.status === "pending" && (
                           <p className="text-xs text-amber-600 mt-0.5 flex items-center gap-1">
-                            <AlertCircle className="w-3 h-3" /> Payment pending — tap to pay
+                            <Clock className="w-3 h-3" /> Waiting for seller to accept
+                          </p>
+                        )}
+                        {order.status === "confirmed" && order.paymentStatus !== "paid" && (
+                          <p className="text-xs text-blue-600 mt-0.5 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" /> Seller accepted — tap to pay
                           </p>
                         )}
                         {order.status === "in_transit" && (

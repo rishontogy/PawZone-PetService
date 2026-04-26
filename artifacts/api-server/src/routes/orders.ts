@@ -20,6 +20,8 @@ function calcPlatformFee(price: number): number {
 function formatOrder(order: any, buyerName: string, sellerName: string, transporterName?: string | null, transporterPhone?: string | null) {
   return {
     ...order,
+    // Frontend uses `totalAmount` historically; DB column is `total`. Expose both to avoid mismatches.
+    totalAmount: order.total,
     buyerName,
     sellerName,
     transporterName: transporterName ?? null,
