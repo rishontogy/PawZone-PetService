@@ -152,6 +152,11 @@ function Router() {
           <AppLayout><AddRoutePage /></AppLayout>
         </RequireAuth>
       </Route>
+      <Route path="/transporter/routes/:id/edit">
+        <RequireAuth allowedRoles={["transporter"]}>
+          <AppLayout><AddRoutePage /></AppLayout>
+        </RequireAuth>
+      </Route>
 
       {/* Admin routes */}
       <Route path="/admin">

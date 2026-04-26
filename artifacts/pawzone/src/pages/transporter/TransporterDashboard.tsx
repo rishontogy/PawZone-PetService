@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor } from "@/lib/api";
-import { Truck, MapPin, Package, PlusCircle, ArrowRight, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Truck, MapPin, Package, PlusCircle, ArrowRight, Clock, CheckCircle, AlertCircle, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 export function TransporterDashboard() {
@@ -13,19 +17,20 @@ export function TransporterDashboard() {
   const { toast } = useToast();
   const [acceptingId, setAcceptingId] = useState<number | null>(null);
   const [acceptForm, setAcceptForm] = useState({ pickupTime: "", deliveryTime: "" });
+  const [deleteRouteId, setDeleteRouteId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: dash } = useGetTransporterDashboard({ query: { enabled: !!user } });
   const { data: routesData, refetch: refetchRoutes } = useGetTransporterRoutes({ query: { enabled: !!user } });
   const { data: ordersData, refetch } = useGetTransporterOrders({ query: { enabled: !!user } });
 
-  // Both endpoints return plain arrays, NOT wrapped objects
   const routes = Array.isArray(routesData) ? routesData : [];
   const orders = Array.isArray(ordersData) ? ordersData : [];
 
   const acceptDelivery = useAcceptDelivery({
     mutation: {
       onSuccess: () => {
-        toast({ title: "✅ Delivery accepted!" });
+        toast({ title: "Delivery accepted!" });
         setAcceptingId(null);
         refetch();
       },
@@ -37,22 +42,20 @@ export function TransporterDashboard() {
 
   const confirmPickup = useConfirmPickup({
     mutation: {
-      onSuccess: () => { toast({ title: "📦 Pickup confirmed!" }); refetch(); },
+      onSuccess: () => { toast({ title: "Pickup confirmed!" }); refetch(); },
       onError: (err: any) => { toast({ variant: "destructive", title: "Error", description: err?.data?.error || "Failed to confirm pickup" }); },
     },
   });
 
   const confirmDelivery = useConfirmDelivery({
     mutation: {
-      onSuccess: () => { toast({ title: "🎉 Delivery completed!" }); refetch(); },
+      onSuccess: () => { toast({ title: "Delivery completed!" }); refetch(); },
       onError: (err: any) => { toast({ variant: "destructive", title: "Error", description: err?.data?.error || "Failed to confirm delivery" }); },
     },
   });
 
   const handleOpenAccept = (orderId: number) => {
     const now = new Date();
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
     const fmt = (d: Date) => d.toISOString().slice(0, 16);
     const pickupDefault = fmt(new Date(now.getTime() + 2 * 3600000));
     const deliveryDefault = fmt(new Date(now.getTime() + 6 * 3600000));
@@ -74,6 +77,29 @@ export function TransporterDashboard() {
     });
   };
 
+  const handleDeleteRoute = async () => {
+    if (!deleteRouteId) return;
+    setDeleting(true);
+    try {
+      const token = localStorage.getItem("pawzone_token");
+      const res = await fetch(`/api/transporter/routes/${deleteRouteId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token ?? ""}` },
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || "Failed to delete route");
+      }
+      toast({ title: "Route deleted" });
+      setDeleteRouteId(null);
+      refetchRoutes();
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Error", description: err?.message || "Failed to delete route" });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (user?.status === "pending") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -87,6 +113,15 @@ export function TransporterDashboard() {
       </div>
     );
   }
+
+  const isAvailableForAccept = (order: any) =>
+    order.paymentStatus === "paid" &&
+    !order.transporterId &&
+    !["picked_up", "in_transit", "delivered", "cancelled", "refunded"].includes(order.status);
+
+  const isAssignedToMeAndPending = (order: any) =>
+    order.transporterId === user?.id &&
+    !["picked_up", "in_transit", "delivered", "cancelled", "refunded"].includes(order.status);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -173,9 +208,28 @@ export function TransporterDashboard() {
                           )}
                         </div>
                       </div>
-                      <Badge variant={route.active ? "default" : "secondary"} className="flex-shrink-0">
-                        {route.active ? "Active" : "Inactive"}
-                      </Badge>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Badge variant={route.active ? "default" : "secondary"}>
+                          {route.active ? "Active" : "Inactive"}
+                        </Badge>
+                        <Link href={`/transporter/routes/${route.id}/edit`}>
+                          <button
+                            data-testid={`button-edit-route-${route.id}`}
+                            className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center transition-colors"
+                            title="Edit route"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                        </Link>
+                        <button
+                          data-testid={`button-delete-route-${route.id}`}
+                          onClick={() => setDeleteRouteId(route.id)}
+                          className="w-8 h-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 flex items-center justify-center transition-colors"
+                          title="Delete route"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -202,7 +256,7 @@ export function TransporterDashboard() {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <p className="font-bold text-gray-900">#{order.orderNumber}</p>
-                        <Badge className={`text-xs ${getStatusColor(order.status)}`}>{order.status.replace(/_/g, " ")}</Badge>
+                        <Badge className={`text-xs ${getStatusColor(order.status)}`}>{String(order.status).replace(/_/g, " ")}</Badge>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         {order.pickupCity && (
@@ -226,8 +280,8 @@ export function TransporterDashboard() {
                     </div>
                   </div>
 
-                  {/* Accept Delivery — shows when order is "ready" and no transporter assigned */}
-                  {order.status === "ready" && !order.transporterId && (
+                  {/* Accept Delivery — visible when order is paid and unassigned */}
+                  {isAvailableForAccept(order) && (
                     acceptingId === order.id ? (
                       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
                         <p className="text-sm font-semibold text-blue-800">Set Pickup & Delivery Schedule</p>
@@ -267,6 +321,7 @@ export function TransporterDashboard() {
                       </div>
                     ) : (
                       <Button
+                        data-testid={`button-accept-${order.id}`}
                         size="sm"
                         className="rounded-lg bg-blue-600 hover:bg-blue-700"
                         onClick={() => handleOpenAccept(order.id)}
@@ -276,8 +331,8 @@ export function TransporterDashboard() {
                     )
                   )}
 
-                  {/* Confirm Pickup — after transporter accepted */}
-                  {order.status === "assigned" && order.transporterId === user?.id && (
+                  {/* Confirm Pickup — after I've accepted, before pickup is done */}
+                  {isAssignedToMeAndPending(order) && order.status !== "ready" && (
                     <Button
                       size="sm"
                       className="rounded-lg bg-green-600 hover:bg-green-700"
@@ -292,10 +347,10 @@ export function TransporterDashboard() {
                   )}
 
                   {/* Complete Delivery */}
-                  {order.status === "in_transit" && order.transporterId === user?.id && (
+                  {(order.status === "in_transit" || order.status === "picked_up") && order.transporterId === user?.id && (
                     <Button
                       size="sm"
-                      className="rounded-lg bg-teal-600 hover:bg-teal-700"
+                      className="rounded-lg bg-teal-600 hover:bg-teal-700 ml-2"
                       disabled={confirmDelivery.isPending}
                       onClick={() => confirmDelivery.mutate({
                         id: order.id,
@@ -311,6 +366,29 @@ export function TransporterDashboard() {
           )}
         </div>
       </div>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={deleteRouteId !== null} onOpenChange={(open) => !open && setDeleteRouteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this route?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This route will be permanently removed. Orders matched to this route may no longer appear in your dashboard.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              data-testid="button-confirm-delete-route"
+              disabled={deleting}
+              onClick={(e) => { e.preventDefault(); handleDeleteRoute(); }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

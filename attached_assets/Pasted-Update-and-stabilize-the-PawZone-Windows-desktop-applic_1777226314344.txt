@@ -1,0 +1,324 @@
+Update and stabilize the PawZone Windows desktop application.
+
+This is a TARGETED BUG FIX + FLOW CORRECTION phase.
+
+Fix all the issues listed below and re-validate the entire system to ensure everything works correctly without breaking existing features.
+
+---
+
+# 🛒 1. BUYER ORDER PAGE – ORDER ITEM FIX (CRITICAL)
+
+---
+
+## ❌ Problem:
+
+* Order item section is incorrect
+* Price mismatch between cart and order page
+* Item rates are not consistent
+
+---
+
+## ✅ Required Fix:
+
+### 🔹 Ensure correct data mapping:
+
+Each order item must include:
+
+* product_name
+* price (number)
+* quantity (number)
+* seller_id
+
+---
+
+### 🔹 Correct calculation:
+
+```js
+item_total = Number(price) * Number(quantity)
+```
+
+---
+
+### 🔹 Display properly:
+
+Each item must show:
+
+* Product Name
+* Unit Price
+* Quantity
+* Subtotal
+
+---
+
+### 🔹 Final totals must match EXACTLY:
+
+* Cart page
+* Order page
+* Payment page
+
+---
+
+### 🔹 Fix root cause:
+
+* Ensure order page pulls from correct CART/ORDER data
+* Remove any hardcoded or stale values
+* Prevent undefined / NaN values
+
+---
+
+# 🧹 2. BUYER DASHBOARD CLEANUP
+
+---
+
+## ❌ Problem:
+
+* “Recent Orders” section unnecessary
+
+---
+
+## ✅ Fix:
+
+* Remove “Recent Orders” from buyer dashboard
+* Keep dashboard focused on:
+
+  * Categories
+  * Search
+  * Product browsing
+
+---
+
+# 🚚 3. TRANSPORTER FLOW CHANGE (IMPORTANT LOGIC UPDATE)
+
+---
+
+## ❌ Old Flow:
+
+* Transporter receives order only after seller confirmation
+
+---
+
+## ✅ New Required Flow:
+
+* After BUYER PAYMENT:
+
+  * Order must be sent directly to transporters
+  * NO dependency on seller confirmation
+
+---
+
+## 🔹 Assignment Logic:
+
+Show order ONLY to transporters:
+
+* Whose route includes seller location
+* AND buyer location
+* Within next 2 days
+
+---
+
+## 🔹 Notification:
+
+* Send alert to matching transporters
+* First transporter to accept → gets order
+
+---
+
+## 🔹 Ensure:
+
+* Fast assignment
+* No duplicate assignment
+* Correct filtering
+
+---
+
+# 🚚 4. TRANSPORTER ROUTE MANAGEMENT FIX
+
+---
+
+## ❌ Problems:
+
+* No edit option
+* No delete option
+* Routes not updating properly
+
+---
+
+## ✅ Required Fix:
+
+For each route:
+
+### Add:
+
+* Edit Route button
+* Delete Route button
+
+---
+
+## 🔹 Behavior:
+
+### Edit:
+
+* Modify stops, start time, end time
+* Save updates properly
+
+### Delete:
+
+* Confirmation popup
+* Remove from database
+* UI updates instantly
+
+---
+
+## 🔹 Route Rules:
+
+* Unlimited stops allowed
+* Must persist after restart
+* Must reflect immediately in assignment logic
+
+---
+
+# 🚚 5. TRANSPORTER PAGE – FULL SYSTEM FIX
+
+---
+
+## ❌ Problem:
+
+Transporter page has multiple broken or incomplete features
+
+---
+
+## ✅ Required Fix:
+
+### Ensure ALL features work:
+
+---
+
+## 🔹 Route System:
+
+* Add route
+* Edit route
+* Delete route
+* Unlimited stops
+* Proper display
+
+---
+
+## 🔹 Order System:
+
+* Orders appear based on route
+* Accept order works
+* Only one transporter assigned
+
+---
+
+## 🔹 Order Details:
+
+* Show:
+
+  * Seller location
+  * Buyer location
+  * Order items
+  * Payment status
+
+---
+
+## 🔹 Contact Sharing:
+
+* Show:
+
+  * Buyer phone
+  * Seller phone
+
+---
+
+## 🔹 Time Entry:
+
+* Pickup time input
+* Delivery time input
+
+---
+
+## 🔹 Delivery Flow:
+
+* Upload pickup video
+* Upload delivery video
+* Status updates correctly
+
+---
+
+## 🔹 Status Updates:
+
+Must reflect in:
+
+* Buyer page
+* Seller page
+* Admin panel
+
+---
+
+## 🔹 Notifications:
+
+* New order alerts
+* Assignment alerts
+* Delay alerts
+
+---
+
+# 🔁 6. FULL SYSTEM RE-CHECK
+
+---
+
+After implementing above fixes:
+
+---
+
+## Validate:
+
+✔ Buyer flow works
+✔ Order page correct
+✔ Cart matches order
+✔ Transport assignment works
+✔ Routes working correctly
+✔ Transporter UI fully functional
+✔ Contact sharing works
+✔ No missing data
+✔ No UI issues
+
+---
+
+# 🧪 7. AUTO BUG FIX RULE
+
+---
+
+While testing:
+
+* If ANY issue is found → FIX immediately
+* Re-test that flow
+* Do NOT leave partial fixes
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+* Buyer order page must be fully accurate
+* Dashboard clean and focused
+* Transporter assignment logic updated
+* Transporter system fully functional
+* No broken features anywhere
+
+---
+
+## FINAL RULE:
+
+This must behave like a real working logistics + marketplace system.
+
+No incorrect pricing
+No broken routes
+No missing actions
+No incomplete flows
+
+Everything must work correctly.

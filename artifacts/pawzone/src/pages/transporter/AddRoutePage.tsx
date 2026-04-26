@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { useLocation, useRoute } from "wouter";
 import { useCreateTransporterRoute } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,10 @@ const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 export function AddRoutePage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [matchEdit, paramsEdit] = useRoute("/transporter/routes/:id/edit");
+  const editingId = matchEdit && paramsEdit ? Number(paramsEdit.id) : null;
+  const isEditMode = editingId !== null && !Number.isNaN(editingId);
+
   const [form, setForm] = useState({
     dayOfWeek: "",
     startCity: "",
@@ -27,18 +31,50 @@ export function AddRoutePage() {
     endTime: "17:00",
   });
   const [stops, setStops] = useState<string[]>([]);
+  const [loadingExisting, setLoadingExisting] = useState(isEditMode);
+  const [submitting, setSubmitting] = useState(false);
 
-  const addStop = () => {
-    setStops([...stops, ""]);
-  };
+  useEffect(() => {
+    if (!isEditMode || editingId === null) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = localStorage.getItem("pawzone_token");
+        const res = await fetch(`/api/transporter/routes`, {
+          headers: { Authorization: `Bearer ${token ?? ""}` },
+        });
+        if (!res.ok) throw new Error("Failed to load route");
+        const list: any[] = await res.json();
+        const r = list.find((x) => Number(x.id) === editingId);
+        if (cancelled) return;
+        if (r) {
+          setForm({
+            dayOfWeek: r.dayOfWeek ?? "",
+            startCity: r.startCity ?? "",
+            endCity: r.endCity ?? "",
+            startTime: r.startTime ?? "09:00",
+            endTime: r.endTime ?? "17:00",
+          });
+          setStops(Array.isArray(r.stops) ? r.stops.filter((s: any) => typeof s === "string" && s) : []);
+        } else {
+          toast({ variant: "destructive", title: "Not found", description: "Route not found." });
+          setLocation("/transporter");
+          return;
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          toast({ variant: "destructive", title: "Error", description: err?.message || "Failed to load route" });
+        }
+      } finally {
+        if (!cancelled) setLoadingExisting(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isEditMode, editingId, setLocation, toast]);
 
-  const updateStop = (idx: number, val: string) => {
-    setStops(stops.map((s, i) => (i === idx ? val : s)));
-  };
-
-  const removeStop = (idx: number) => {
-    setStops(stops.filter((_, i) => i !== idx));
-  };
+  const addStop = () => setStops([...stops, ""]);
+  const updateStop = (idx: number, val: string) => setStops(stops.map((s, i) => (i === idx ? val : s)));
+  const removeStop = (idx: number) => setStops(stops.filter((_, i) => i !== idx));
 
   const createRoute = useCreateTransporterRoute({
     mutation: {
@@ -52,18 +88,44 @@ export function AddRoutePage() {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validStops = stops.filter(Boolean);
-    createRoute.mutate({
-      data: {
-        ...form,
-        stops: validStops.length > 0 ? validStops : undefined,
-      } as any,
-    });
+    const payload = {
+      ...form,
+      stops: validStops,
+    };
+
+    if (isEditMode && editingId !== null) {
+      setSubmitting(true);
+      try {
+        const token = localStorage.getItem("pawzone_token");
+        const res = await fetch(`/api/transporter/routes/${editingId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token ?? ""}`,
+          },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body?.error || "Failed to update route");
+        }
+        toast({ title: "Route updated!", description: "Your delivery route has been saved." });
+        setLocation("/transporter");
+      } catch (err: any) {
+        toast({ variant: "destructive", title: "Error", description: err?.message || "Failed to update route" });
+      } finally {
+        setSubmitting(false);
+      }
+    } else {
+      createRoute.mutate({ data: payload as any });
+    }
   };
 
   const allCities = [form.startCity, ...stops, form.endCity].filter(Boolean);
+  const isPending = submitting || createRoute.isPending || loadingExisting;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -82,7 +144,7 @@ export function AddRoutePage() {
                 <Truck className="w-6 h-6 text-white" />
               </div>
               <div>
-                <CardTitle className="text-xl">Add Delivery Route</CardTitle>
+                <CardTitle className="text-xl">{isEditMode ? "Edit Delivery Route" : "Add Delivery Route"}</CardTitle>
                 <p className="text-blue-100 text-sm mt-0.5">Configure your delivery schedule</p>
               </div>
             </div>
@@ -197,7 +259,6 @@ export function AddRoutePage() {
                     </button>
                   </div>
 
-                  {/* Arrow to end */}
                   <div className="flex items-center gap-2 pl-2.5">
                     <ArrowDown className="w-3 h-3 text-gray-300 flex-shrink-0" />
                   </div>
@@ -247,10 +308,11 @@ export function AddRoutePage() {
 
               <Button
                 type="submit"
+                data-testid="button-save-route"
                 className="w-full h-12 rounded-xl text-base font-bold bg-blue-600 hover:bg-blue-700"
-                disabled={createRoute.isPending || !form.dayOfWeek || !form.startCity || !form.endCity}
+                disabled={isPending || !form.dayOfWeek || !form.startCity || !form.endCity}
               >
-                {createRoute.isPending ? "Adding Route..." : "Save Route"}
+                {isPending ? (isEditMode ? "Saving..." : "Adding Route...") : (isEditMode ? "Save Changes" : "Save Route")}
               </Button>
             </form>
           </CardContent>

@@ -250,7 +250,9 @@ export function OrderDetailPage() {
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-gray-900">{item.breed}</p>
-                  <p className="text-sm text-gray-400">{formatPrice(Number(item.price ?? 0))} × {item.quantity}</p>
+                  <p className="text-sm text-gray-400">
+                    {formatPrice(Number(item.unitPrice ?? item.price ?? 0))} × {item.quantity ?? 1}
+                  </p>
                   {item.petCode && (
                     <div className="flex items-center gap-1 mt-1">
                       <Shield className="w-3 h-3 text-teal-600" />
@@ -259,7 +261,9 @@ export function OrderDetailPage() {
                   )}
                 </div>
                 <p className="font-bold text-gray-900">
-                  {formatPrice((Number(item.price ?? 0) + platformFee(Number(item.price ?? 0))) * Number(item.quantity ?? 1))}
+                  {formatPrice(
+                    Number(item.subtotal ?? (Number(item.unitPrice ?? item.price ?? 0) * Number(item.quantity ?? 1)))
+                  )}
                 </p>
               </div>
             ))}

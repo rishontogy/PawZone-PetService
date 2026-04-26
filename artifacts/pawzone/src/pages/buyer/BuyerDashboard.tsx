@@ -237,36 +237,6 @@ export function BuyerDashboard() {
             )}
           </div>
 
-          {/* Recent Orders */}
-          {dashData?.recentOrders && dashData.recentOrders.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-gray-900">Recent Orders</h2>
-                <Link href="/buyer/orders" className="text-teal-600 text-sm font-medium flex items-center gap-1 hover:text-teal-700">
-                  View all <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-              <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-50 overflow-hidden shadow-sm">
-                {dashData.recentOrders.slice(0, 3).map((order: any) => (
-                  <Link key={order.id} href={`/buyer/orders/${order.id}`}>
-                    <div className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center text-xl">📦</div>
-                        <div>
-                          <p className="font-semibold text-sm text-gray-900">#{order.orderNumber}</p>
-                          <p className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString("en-IN")}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-bold text-gray-900">{formatPrice(order.totalAmount)}</span>
-                        <Badge className={`text-xs ${getStatusColor(order.status)}`}>{order.status}</Badge>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
