@@ -34,7 +34,10 @@ export function CartPage() {
   const placeOrder = usePlaceOrder({
     mutation: {
       onSuccess: (order: any) => {
-        toast({ title: "🎉 Order placed!", description: `Order #${order.orderNumber} confirmed. Pay within 3 hours.` });
+        toast({
+          title: "🎉 Order placed!",
+          description: `Order #${order.orderNumber} sent to seller. Once accepted, a transporter will set the delivery charge — you'll be notified to pay the final total.`,
+        });
         setLocation("/buyer/orders");
       },
       onError: (err: any) => {

@@ -35,7 +35,9 @@ export function EditListingPage() {
     city: "",
   });
   const [photos, setPhotos] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState<string>("");
   const [uploading, setUploading] = useState(false);
+  const [videoUploading, setVideoUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
   // Populate form when listing loads
@@ -53,8 +55,40 @@ export function EditListingPage() {
         city: (listing as any).city || "",
       });
       setPhotos((listing as any).photos || []);
+      setVideoUrl((listing as any).videoUrl || "");
     }
   }, [listing]);
+
+  const handleVideoFile = async (file: File) => {
+    const okType = file.type === "video/mp4" || file.type === "video/quicktime" || /\.(mp4|mov)$/i.test(file.name);
+    if (!okType) {
+      toast({ variant: "destructive", title: "Invalid file", description: "Only .mp4 or .mov videos are allowed" });
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "Video too large", description: "Max 50MB per video" });
+      return;
+    }
+    setVideoUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`${getApiBase()}/upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      if (!res.ok) {
+        toast({ variant: "destructive", title: "Upload failed", description: "Could not upload the video. Try again." });
+        return;
+      }
+      const data = await res.json();
+      setVideoUrl(data.url);
+      toast({ title: "Video uploaded" });
+    } finally {
+      setVideoUploading(false);
+    }
+  };
 
   const uploadFile = async (file: File): Promise<string | null> => {
     if (!file.type.startsWith("image/")) {
@@ -131,6 +165,7 @@ export function EditListingPage() {
         vaccinationDetails: form.vaccinationDetails || undefined,
         description: form.description || undefined,
         photos: photos.length > 0 ? photos : undefined,
+        videoUrl: videoUrl || undefined,
         address: form.address,
         city: form.city,
       },
@@ -310,6 +345,44 @@ export function EditListingPage() {
                       </>
                     )}
                   </div>
+                )}
+              </div>
+
+              {/* Pet Video (optional) */}
+              <div className="space-y-2">
+                <Label className="font-semibold text-gray-700">Pet Video (optional)</Label>
+                <p className="text-xs text-gray-500">Upload or replace the pet video — .mp4 or .mov, max 50MB.</p>
+                {videoUrl ? (
+                  <div className="space-y-2">
+                    <video src={videoUrl} controls className="w-full rounded-xl border border-gray-200 max-h-64 bg-black" />
+                    <Button type="button" variant="outline" size="sm" className="rounded-lg" onClick={() => setVideoUrl("")}>
+                      Remove video
+                    </Button>
+                  </div>
+                ) : (
+                  <label className={`block border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+                    videoUploading ? "opacity-60 pointer-events-none" : "border-gray-300 hover:border-teal-400 hover:bg-gray-50"
+                  }`}>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/quicktime,.mp4,.mov"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleVideoFile(e.target.files[0])}
+                      data-testid="input-listing-video"
+                    />
+                    {videoUploading ? (
+                      <div className="flex flex-col items-center gap-2 text-gray-500">
+                        <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                        <p className="text-sm">Uploading video...</p>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm font-medium text-gray-700">Click to upload video</p>
+                        <p className="text-xs text-gray-400 mt-1">.mp4 or .mov • Max 50MB</p>
+                      </>
+                    )}
+                  </label>
                 )}
               </div>
 

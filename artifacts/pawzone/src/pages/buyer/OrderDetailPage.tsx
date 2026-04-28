@@ -127,12 +127,15 @@ export function OrderDetailPage() {
   );
 
   const o = order as any;
-  const totalAmount = Number(o.totalAmount ?? 0);
-  const subtotalAmount = Number(o.subtotal ?? totalAmount);
+  const transportFeeAmount = Number(o.transportFee ?? 0);
+  const subtotalAmount = Number(o.subtotal ?? 0);
   const platformFeeAmount = Number(o.platformFee ?? 0);
+  // Final total = subtotal + platformFee + transportFee. Server already updates `total` once a transporter is assigned.
+  const totalAmount = Number(o.totalAmount ?? subtotalAmount + platformFeeAmount + transportFeeAmount);
   const rawStatus = o.status ?? "pending";
   const paymentStatusVal = o.paymentStatus ?? "pending";
   const currentStatus = getEffectiveStatus(rawStatus, paymentStatusVal);
+  const transporterAssigned = !!o.transporterId && transportFeeAmount > 0;
 
   // Payment deadline — prefer server-stored paymentDeadline (already applies night logic).
   // Fall back to computing locally with IST-aware night-order logic:
@@ -162,9 +165,10 @@ export function OrderDetailPage() {
   const hoursLeft = Math.floor(timeLeft / 3600000);
   const minsLeft = Math.floor((timeLeft % 3600000) / 60000);
 
-  // Buyer can pay only AFTER seller has accepted the order (status=confirmed) and payment hasn't been made.
-  const isPendingPayment = rawStatus === "confirmed" && paymentStatusVal !== "paid";
+  // NEW FLOW: buyer can pay only AFTER seller confirmed AND a transporter has accepted with a fee.
+  const isPendingPayment = rawStatus === "confirmed" && transporterAssigned && paymentStatusVal !== "paid";
   const isAwaitingSeller = rawStatus === "pending";
+  const isAwaitingTransporter = rawStatus === "confirmed" && !transporterAssigned && paymentStatusVal !== "paid";
   const canReportIssue = ["paid", "ready", "picked_up", "in_transit", "delivered", "confirmed"].includes(rawStatus);
 
   // 8-stage progress tracker
@@ -212,7 +216,20 @@ export function OrderDetailPage() {
           </div>
         )}
 
-        {/* Payment Banner */}
+        {/* Awaiting Transporter Banner — seller confirmed, no transporter yet */}
+        {isAwaitingTransporter && (
+          <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 flex items-start gap-3">
+            <Clock className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-indigo-900">Waiting for a transporter to accept</p>
+              <p className="text-sm text-indigo-700 mt-0.5">
+                Your seller has confirmed. A transporter will set the delivery charge soon. You'll be notified to complete payment with the final total.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Payment Banner — only after transporter accepted */}
         {isPendingPayment && !payExpired && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
             <div className="flex items-start gap-3">
@@ -222,6 +239,12 @@ export function OrderDetailPage() {
                 <p className="text-sm text-amber-700 mt-0.5">
                   Complete payment within {hoursLeft}h {minsLeft}m to confirm your order.
                 </p>
+                <div className="mt-2 text-xs text-amber-800 bg-amber-100/60 rounded-lg p-2 space-y-0.5">
+                  <div className="flex justify-between"><span>Items subtotal</span><span>{formatPrice(subtotalAmount)}</span></div>
+                  <div className="flex justify-between"><span>Platform fee</span><span>{formatPrice(platformFeeAmount)}</span></div>
+                  <div className="flex justify-between"><span>Transport charge</span><span>{formatPrice(transportFeeAmount)}</span></div>
+                  <div className="flex justify-between font-bold border-t border-amber-300 pt-1 mt-1"><span>Final total</span><span>{formatPrice(totalAmount)}</span></div>
+                </div>
                 <Button
                   className="mt-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white"
                   size="sm"

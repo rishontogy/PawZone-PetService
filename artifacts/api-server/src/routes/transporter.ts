@@ -171,15 +171,16 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
   const upcomingDays = new Set(nextNDays(3));
   const hasUpcomingRoute = Array.from(routeDays).some(d => upcomingDays.has(d));
 
-  // Query: orders assigned to me OR available (paid + unassigned + not yet picked up)
+  // Query: orders assigned to me OR available (seller-confirmed + unassigned + not yet picked up).
+  // NEW FLOW: transporters bid BEFORE payment, so paymentStatus is no longer required to be 'paid'.
   const candidates = await db.select().from(ordersTable)
     .where(
       or(
         eq(ordersTable.transporterId, user.id),
         and(
-          eq(ordersTable.paymentStatus, "paid"),
+          eq(ordersTable.status, "confirmed"),
           isNull(ordersTable.transporterId),
-          notInArray(ordersTable.status, ["picked_up", "in_transit", "delivered", "cancelled", "refunded"])
+          notInArray(ordersTable.paymentStatus, ["refunded"] as any)
         )
       )!
     );
@@ -249,8 +250,9 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
     res.status(404).json({ error: "Order not found" });
     return;
   }
-  if (order.paymentStatus !== "paid") {
-    res.status(400).json({ error: "Order is not yet paid" });
+  // NEW FLOW: transporter accepts BEFORE payment. Order must be seller-confirmed but not yet paid.
+  if (order.status !== "confirmed") {
+    res.status(400).json({ error: "Seller must confirm the order before transporter accepts" });
     return;
   }
   if (order.transporterId && order.transporterId !== user.id) {
@@ -259,8 +261,8 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
   }
 
   const transportFee = Number(req.body?.transportFee ?? 0);
-  if (!Number.isFinite(transportFee) || transportFee < 0) {
-    res.status(400).json({ error: "transportFee is required and must be a non-negative number" });
+  if (!Number.isFinite(transportFee) || transportFee <= 0) {
+    res.status(400).json({ error: "transportFee is required and must be a positive number" });
     return;
   }
 
@@ -268,12 +270,16 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
   const sharePercent = Math.max(10, Number(me?.platformSharePercent ?? 10));
   const transporterShareAmount = Math.round(transportFee * (sharePercent / 100));
 
+  // Recompute total to include transport fee, so the buyer's payment includes it.
+  const newTotal = Number(order.subtotal) + Number(order.platformFee) + transportFee;
+
   const [updated] = await db.update(ordersTable).set({
     transporterId: user.id,
     pickupTime: parsed.data.pickupTime,
     deliveryTime: parsed.data.deliveryTime,
     transportFee,
     transporterShareAmount,
+    total: newTotal,
   }).where(eq(ordersTable.id, id)).returning();
 
   await db.insert(orderTimelineTable).values({
@@ -294,8 +300,8 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
   await db.insert(notificationsTable).values({
     userId: order.buyerId,
     type: "transporter_assigned",
-    title: "Transporter Assigned",
-    message: `Your order will be delivered by ${user.name}`,
+    title: "Transporter Assigned — Pay Now",
+    message: `${user.name} will deliver your order. Final total ₹${newTotal} (incl. transport ₹${transportFee}). Please complete payment to confirm.`,
     orderId: id,
   });
 

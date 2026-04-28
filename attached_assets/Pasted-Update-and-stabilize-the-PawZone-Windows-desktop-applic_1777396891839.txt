@@ -1,0 +1,391 @@
+Update and stabilize the PawZone Windows desktop application.
+
+This is a CRITICAL BUG FIX + FLOW REDESIGN phase.
+
+You must:
+
+* Fix all listed bugs
+* Correct all financial inconsistencies
+* Implement new transporter pricing flow
+* Ensure all roles sync properly
+* Make the system production-ready
+
+If ANY issue is found during implementation:
+→ FIX immediately and re-test
+
+---
+
+# 🛑 1. SELLER VIDEO UPLOAD ISSUE
+
+---
+
+## ❌ Problem:
+
+Uploading video requires URL instead of file
+
+---
+
+## ✅ Fix:
+
+* Replace URL input with FILE UPLOAD
+* Accept:
+
+  * MP4, MOV
+* Store file locally or simulate storage
+* Save file path in database
+
+---
+
+## Ensure:
+
+* Video preview works
+* Video loads in product details page
+
+---
+
+# 🖼 2. SELLER IMAGE NOT LOADING
+
+---
+
+## ❌ Problem:
+
+Uploaded images not visible in other pages
+
+---
+
+## ✅ Fix:
+
+* Ensure image file is:
+
+  * Saved correctly
+  * Path stored properly
+* Use consistent path binding across:
+
+  * Listing page
+  * Buyer product page
+  * Seller page
+
+---
+
+## Ensure:
+
+* No broken images
+* No null/undefined paths
+
+---
+
+# 💰 3. AMOUNT DISPLAY ISSUES (GLOBAL FIX)
+
+---
+
+## ❌ Affected Areas:
+
+* Seller recent orders
+* Transporter recent orders
+* Admin all orders
+* Admin ledger
+* Seller ledger
+* Transport ledger
+
+---
+
+## ✅ Fix:
+
+---
+
+### 🔹 Correct Calculation:
+
+```js
+item_total = price * quantity
+
+platform_fee = 
+  (price > 100 ? 20 : 5) * quantity
+
+seller_payout = item_total - platform_fee
+```
+
+---
+
+### 🔹 Transport:
+
+```js
+platform_commission = transport_amount * percentage
+transporter_payout = transport_amount - platform_commission
+```
+
+---
+
+## Ensure:
+
+* No NaN
+* No missing values
+* All totals consistent across pages
+
+---
+
+# 📊 4. ADMIN ACCOUNTING & LEDGER FIX
+
+---
+
+## ❌ Problem:
+
+Values missing or incorrect
+
+---
+
+## ✅ Must include:
+
+* Total Buyer Payments
+* Total Seller Payouts
+* Total Transport Payouts
+* Platform Revenue
+* Transport Commission
+
+---
+
+## Ledger must show:
+
+* Date
+* Transaction type
+* Amount
+* Status
+
+---
+
+## Ensure:
+
+* Fully working
+* All values calculated dynamically
+
+---
+
+# 🚚 5. TRANSPORT PAGE ERROR (IN TRANSIT)
+
+---
+
+## ❌ Problem:
+
+“In Transit” → request failed
+
+---
+
+## ✅ Fix:
+
+* Correct API / state binding
+* Ensure valid order data is passed
+* Handle async properly
+
+---
+
+---
+
+# 🔔 6. NOTIFICATION SYSTEM FIX
+
+---
+
+## ❌ Problems:
+
+* Notification page not updating
+* Notifications not syncing
+
+---
+
+## ✅ Fix:
+
+* Central notification store
+* Sync icon count with page data
+
+---
+
+## Ensure:
+
+* Real-time updates
+* No mismatch
+
+---
+
+# 🚨 7. REPORT SYSTEM IMPROVEMENT
+
+---
+
+## ✅ Add:
+
+* “Report Issue” button on Buyer page (top)
+
+---
+
+## Admin Response Flow:
+
+* When admin replies:
+  → User gets notification
+
+---
+
+# ⏱ 8. AUTO CANCEL SYSTEM
+
+---
+
+## ✅ Add:
+
+After time limits:
+
+* Seller delay
+* Buyer payment delay
+* Transport delay
+
+---
+
+## Behavior:
+
+* Order auto cancels
+* Removed from active pages
+* Status = Cancelled
+
+---
+
+# 🔄 9. NEW ORDER FLOW (MAJOR CHANGE)
+
+---
+
+## 🧠 NEW LOGIC (IMPORTANT)
+
+---
+
+### Step 1: Buyer places order
+
+Show message:
+
+“Transport charge will be added soon. You will be notified for payment.”
+
+---
+
+### Step 2: Seller receives request
+
+* Can Accept / Reject
+
+---
+
+### Step 3: If Seller Accepts
+
+* Order moves to Transporters
+* Transporters see request
+
+---
+
+### Step 4: Transporter Action
+
+* Enter transport amount
+* Accept order
+
+---
+
+### Step 5: After Transporter Accepts
+
+* Buyer sees updated total:
+
+```js
+final_total = cart_total + platform_fee + transport_amount
+```
+
+---
+
+### Step 6: Buyer Payment
+
+* Payment unlocked
+* Buyer completes payment
+
+---
+
+### Step 7: Continue Flow
+
+* Seller uploads ready video
+* Transporter pickup & delivery
+* Same as previous system
+
+---
+
+## ❗ IMPORTANT RULES:
+
+* Payment ONLY after transporter assigned
+* Transport cost dynamic
+* First transporter wins
+
+---
+
+# 📞 10. STATUS & SYNC VALIDATION
+
+---
+
+Ensure ALL updates reflect in:
+
+* Buyer page
+* Seller page
+* Transporter page
+* Admin panel
+
+---
+
+# 🧪 11. FULL SYSTEM TEST
+
+---
+
+Simulate:
+
+---
+
+## Buyer:
+
+Add → Order → Wait → Pay
+
+---
+
+## Seller:
+
+Accept → Upload video
+
+---
+
+## Transporter:
+
+Accept → Set price → Deliver
+
+---
+
+## Admin:
+
+Monitor → Ledger → Reports
+
+---
+
+## If ANY failure:
+
+→ Fix immediately
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+✔ No broken uploads
+✔ No missing images
+✔ All amounts correct
+✔ Ledger fully working
+✔ Notifications synced
+✔ Transport pricing flow working
+✔ Auto cancel working
+✔ No API errors
+
+---
+
+## FINAL RULE:
+
+This must behave like a REAL marketplace + logistics + financial system.
+
+No fake data
+No broken flows
+No incorrect calculations
+
+Everything must be COMPLETE and RELIABLE.

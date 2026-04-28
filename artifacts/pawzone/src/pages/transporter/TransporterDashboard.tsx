@@ -116,10 +116,10 @@ export function TransporterDashboard() {
     );
   }
 
+  // NEW FLOW: transporter accepts BEFORE payment, once seller has confirmed.
   const isAvailableForAccept = (order: any) =>
-    order.paymentStatus === "paid" &&
-    !order.transporterId &&
-    !["picked_up", "in_transit", "delivered", "cancelled", "refunded"].includes(order.status);
+    order.status === "confirmed" &&
+    !order.transporterId;
 
   const isAssignedToMeAndPending = (order: any) =>
     order.transporterId === user?.id &&
@@ -519,7 +519,7 @@ function StartInTransitBlock({ orderId, onDone }: { orderId: number; onDone: () 
   const start = async () => {
     setBusy(true);
     try {
-      await postJson(`/api/orders/${orderId}/in-transit`, {});
+      await postJson(`/api/transporter/orders/${orderId}/in-transit`, {});
       toast({ title: "In transit", description: "Order is now en-route to the buyer." });
       onDone();
     } catch (err: any) {

@@ -304,6 +304,20 @@ router.post("/orders/:id/payment", authMiddleware, async (req, res): Promise<voi
     return;
   }
 
+  // NEW FLOW gating: payment is only allowed AFTER seller confirmed AND a transporter has been assigned with a transport fee.
+  if (order.status !== "confirmed") {
+    res.status(400).json({ error: "Seller has not confirmed your order yet" });
+    return;
+  }
+  if (!order.transporterId || !order.transportFee || Number(order.transportFee) <= 0) {
+    res.status(400).json({ error: "A transporter has not yet accepted with a transport fee. Please wait." });
+    return;
+  }
+  if (order.paymentStatus === "paid") {
+    res.status(400).json({ error: "Order is already paid" });
+    return;
+  }
+
   const [updated] = await db.update(ordersTable)
     .set({ paymentStatus: "paid" })
     .where(eq(ordersTable.id, id))
