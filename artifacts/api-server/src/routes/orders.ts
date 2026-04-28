@@ -340,9 +340,12 @@ router.post("/orders/:id/prepared-video", authMiddleware, async (req, res): Prom
   const user = (req as any).user;
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
-  const url = typeof req.body?.url === "string" ? req.body.url : null;
+  // Accept either { url } or { videoUrl } for backward compatibility.
+  const url =
+    typeof req.body?.url === "string" ? req.body.url :
+    typeof req.body?.videoUrl === "string" ? req.body.videoUrl : null;
   if (!url) {
-    res.status(400).json({ error: "url is required" });
+    res.status(400).json({ error: "videoUrl is required" });
     return;
   }
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
@@ -378,9 +381,12 @@ router.post("/orders/:id/received-video", authMiddleware, async (req, res): Prom
   const user = (req as any).user;
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
-  const url = typeof req.body?.url === "string" ? req.body.url : null;
+  // Accept either { url } or { videoUrl } for backward compatibility.
+  const url =
+    typeof req.body?.url === "string" ? req.body.url :
+    typeof req.body?.videoUrl === "string" ? req.body.videoUrl : null;
   if (!url) {
-    res.status(400).json({ error: "url is required" });
+    res.status(400).json({ error: "videoUrl is required" });
     return;
   }
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));

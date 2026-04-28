@@ -33,8 +33,10 @@ router.post("/upload", authMiddleware, upload.single("file"), async (req, res): 
     res.status(400).json({ error: "No file uploaded" });
     return;
   }
-  const baseUrl = process.env["BASE_URL"] || `http://localhost:${process.env["PORT"] || 8080}`;
-  const url = `${baseUrl}/api/uploads/${req.file.filename}`;
+  // Return a same-origin RELATIVE URL so it works through Replit's reverse proxy
+  // and from any client (browser dev preview, deployed app, etc.) without depending
+  // on a hard-coded host. The frontend renders this directly in <img src> / <video src>.
+  const url = `/api/uploads/${req.file.filename}`;
   res.json({ url, filename: req.file.filename });
 });
 

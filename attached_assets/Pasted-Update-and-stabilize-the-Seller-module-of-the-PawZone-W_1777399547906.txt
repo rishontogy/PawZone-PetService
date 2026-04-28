@@ -1,0 +1,301 @@
+Update and stabilize the Seller module of the PawZone Windows desktop application.
+
+This is a SELLER-SPECIFIC BUG FIX + MEDIA HANDLING + UI CONSISTENCY phase.
+
+Fix all issues listed below and validate end-to-end seller flows.
+
+If ANY issue is found:
+→ Fix immediately
+→ Re-test that flow
+
+---
+
+# 🎥 1. SELLER ORDER PAGE – VIDEO UPLOAD FAILURE
+
+---
+
+## ❌ Problem:
+
+Video upload shows:
+“Upload failed – URL is required”
+
+---
+
+## ✅ Fix (MANDATORY):
+
+* Remove URL-based input completely
+* Replace with FILE UPLOAD system
+
+---
+
+## Implementation:
+
+* Use file picker (input type="file")
+* Accept formats:
+
+  * MP4
+  * MOV
+
+---
+
+## Storage:
+
+* Save file locally or simulate storage
+* Store file path in DB (NOT URL field)
+
+---
+
+## After Upload:
+
+* Save video path to order record
+* Enable:
+  → “Ready for Pickup” status
+
+---
+
+## Ensure:
+
+* No “URL required” error
+* Upload success message shown
+* Video preview works in seller page
+* Video visible in buyer + admin view
+
+---
+
+# 🖼 2. PET LISTING MEDIA NOT VISIBLE
+
+---
+
+## ❌ Problem:
+
+Images and videos uploaded in listing:
+
+* Not visible in other pages
+* Sometimes not visible even after upload
+
+---
+
+## ✅ Fix:
+
+---
+
+### 🔹 A. Image Handling
+
+* Save image file correctly
+* Store valid file path
+* Ensure consistent access across:
+
+  * Seller listing page
+  * Buyer product page
+  * Admin view
+
+---
+
+### 🔹 B. Video Handling
+
+* Same as image:
+
+  * Store path
+  * Load correctly
+
+---
+
+### 🔹 C. Rendering Fix
+
+* Use correct binding:
+
+  * src = stored_path
+
+---
+
+## Ensure:
+
+* No broken image icon
+* No null/undefined
+* Media loads instantly
+* Same file visible everywhere
+
+---
+
+# 💰 3. SELLER DASHBOARD – RECENT ORDERS AMOUNT FIX
+
+---
+
+## ❌ Problem:
+
+Recent orders showing ₹0
+
+---
+
+## ✅ Fix:
+
+---
+
+### Correct Calculation:
+
+```js
+item_total = price * quantity
+
+platform_fee = 
+  (price > 100 ? 20 : 5) * quantity
+
+seller_net = item_total - platform_fee
+```
+
+---
+
+## Update UI:
+
+Each recent order must show:
+
+* Product name
+* Quantity
+* Total price
+* Net earning (after fee)
+
+---
+
+## Ensure:
+
+* No ₹0 unless actual value is 0
+* No NaN
+* Correct values pulled from order DB
+
+---
+
+# 🔙 4. GLOBAL NAVIGATION – BACK BUTTON FIX
+
+---
+
+## ❌ Problem:
+
+Some pages missing “Go Back” button
+
+---
+
+## ✅ Fix:
+
+Add “Back” button to ALL seller pages:
+
+---
+
+### Must exist in:
+
+* Add Listing Page
+* Edit Listing Page
+* Order Details Page
+* Upload Video Page
+* Analytics Page
+
+---
+
+## Behavior:
+
+* Returns to previous page
+* Maintains state (no full reset)
+
+---
+
+## UI:
+
+* Top-left placement
+* Consistent style across pages
+
+---
+
+# 🔁 5. DATA CONSISTENCY CHECK
+
+---
+
+Ensure all data is consistent across:
+
+* Seller Dashboard
+* Seller Orders Page
+* Buyer View
+* Admin Panel
+
+---
+
+## Validate:
+
+* Same images/videos visible everywhere
+* Same order amounts everywhere
+* Same status everywhere
+
+---
+
+# 🧪 6. SELLER FLOW VALIDATION
+
+---
+
+Simulate:
+
+---
+
+## Flow:
+
+1. Seller adds listing
+2. Uploads image + video
+3. Listing saved
+4. Admin approves
+5. Buyer views product
+6. Buyer places order
+7. Seller accepts
+8. Seller uploads video
+9. Status updates
+
+---
+
+## Ensure:
+
+* No upload failure
+* Media visible
+* Amount correct
+* Navigation smooth
+
+---
+
+# ⚠️ 7. ERROR HANDLING
+
+---
+
+For uploads:
+
+* Show success message
+* Show failure reason (if any)
+
+---
+
+For data:
+
+* Prevent undefined/null
+* Validate before saving
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+✔ Video upload works without URL
+✔ Images/videos visible everywhere
+✔ Seller revenue correct
+✔ Recent orders show correct amount
+✔ All pages have back button
+✔ No broken UI
+✔ No missing data
+
+---
+
+## FINAL RULE:
+
+Seller module must behave like a REAL production marketplace backend.
+
+No fake uploads
+No broken media
+No incorrect revenue
+No missing navigation
+
+Everything must be stable and complete.

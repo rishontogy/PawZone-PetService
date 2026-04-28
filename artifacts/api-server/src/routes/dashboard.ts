@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { eq, count, sum, and, desc } from "drizzle-orm";
-import { db, ordersTable, listingsTable, usersTable, cartTable, transporterRoutesTable, notificationsTable } from "@workspace/db";
+import { db, ordersTable, listingsTable, usersTable, cartTable, transporterRoutesTable, notificationsTable, orderItemsTable } from "@workspace/db";
 import { authMiddleware } from "../lib/auth";
 
 const router = Router();
@@ -76,7 +76,29 @@ router.get("/dashboard/seller", authMiddleware, async (req, res): Promise<void> 
 
   const recentOrdersWithNames = await Promise.all(recentOrders.map(async (order) => {
     const [buyer] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, order.buyerId));
-    return { ...order, buyerName: buyer?.name ?? "", sellerName: user.name };
+    const items = await db
+      .select({
+        quantity: orderItemsTable.quantity,
+        unitPrice: orderItemsTable.unitPrice,
+        subtotal: orderItemsTable.subtotal,
+        breed: listingsTable.breed,
+        photos: listingsTable.photos,
+      })
+      .from(orderItemsTable)
+      .innerJoin(listingsTable, eq(orderItemsTable.listingId, listingsTable.id))
+      .where(eq(orderItemsTable.orderId, order.id));
+    const itemTotal = items.reduce((s, it) => s + (it.subtotal || 0), 0);
+    const sellerNet = itemTotal - (order.platformFee || 0);
+    return {
+      ...order,
+      buyerName: buyer?.name ?? "",
+      sellerName: user.name,
+      // Frontend uses `totalAmount` for display; orders.total holds the buyer-facing total
+      totalAmount: order.total,
+      itemTotal,
+      sellerNet,
+      items,
+    };
   }));
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
