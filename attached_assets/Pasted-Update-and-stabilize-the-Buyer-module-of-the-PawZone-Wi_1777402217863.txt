@@ -1,0 +1,293 @@
+Update and stabilize the Buyer module of the PawZone Windows desktop application.
+
+This is a BUYER-SPECIFIC UI FIX + FLOW LOGIC UPDATE phase.
+
+Fix all issues listed below and validate the full buyer journey.
+
+If ANY issue is found:
+→ Fix immediately
+→ Re-test that flow
+
+---
+
+# 🔙 1. GLOBAL BACK BUTTON FIX
+
+---
+
+## ❌ Problem:
+
+Many buyer pages missing “Go Back” button
+
+---
+
+## ✅ Fix:
+
+Add a **Back button** to ALL buyer pages:
+
+---
+
+### Must include:
+
+* Cart Page
+* Order Details Page
+* Product Details Page
+* Search Page
+* Settings Page
+* Profile Sub-pages
+
+---
+
+## Behavior:
+
+* Returns to previous page
+* Maintains state (no reset)
+
+---
+
+## UI:
+
+* Top-left placement
+* Consistent style across all pages
+
+---
+
+# 🛒 2. PLACE ORDER FLOW UPDATE (IMPORTANT CHANGE)
+
+---
+
+## ❌ Current Problem:
+
+No proper notification before order request
+
+---
+
+## ✅ New Flow (MANDATORY):
+
+---
+
+### Step 1: Buyer clicks “Place Order”
+
+Show popup message:
+
+> “Transport charges will be added after a transporter accepts the order. You can complete payment after that.”
+
+---
+
+### Buttons:
+
+* OK → Continue flow
+
+---
+
+### Step 2: Order Request Created
+
+* Sent to Seller
+* Stored in Buyer Orders
+
+---
+
+# ⏱ 3. UPDATED TIME FLOW (STRICT IMPLEMENTATION)
+
+---
+
+## 🕒 Seller Response:
+
+* Duration: **3 Hours**
+* Night rule applies (after 9 PM → starts next day 9 AM)
+
+---
+
+## 🚚 Transporter Assignment:
+
+* Duration: **12 Hours after seller confirmation**
+
+---
+
+## 💳 Payment Timer (UPDATED):
+
+* Total: **5 Hours**
+
+---
+
+### 🔔 Alerts:
+
+* After **2 Hours**:
+  → Notify Admin (payment delay)
+
+---
+
+### ⏱ After **5 Hours**:
+
+→ Auto Cancel Order
+
+---
+
+## ❌ On Auto Cancel:
+
+* Status → Cancelled
+* Remove from active orders
+* **Restock pet automatically**
+
+---
+
+# 📄 4. ORDER DETAILS PAGE CLEANUP
+
+---
+
+## ❌ Problem:
+
+Order Timeline section unnecessary
+
+---
+
+## ✅ Fix:
+
+* REMOVE “Order Timeline” section completely
+
+---
+
+## Ensure:
+
+* Page becomes clean
+* Only relevant info shown
+
+---
+
+# 📞 5. TRANSPORTER DETAILS SHARING
+
+---
+
+## After Transporter Accepts:
+
+---
+
+### Buyer must see:
+
+* Transporter Name
+* Phone Number
+* Delivery (Arrival) Time
+
+---
+
+### Seller must see:
+
+* Transporter Name
+* Phone Number
+* Pickup Time
+
+---
+
+## Ensure:
+
+* Data visible in Order Details Page
+* Synced in real-time
+
+---
+
+# ⚙️ 6. SETTINGS PAGE IMPROVEMENT
+
+---
+
+## ✅ Add:
+
+“Report an Issue” button at TOP of settings page
+
+---
+
+## Behavior:
+
+* Opens report form
+* Sends report to Admin
+
+---
+
+## Ensure:
+
+* Easy access
+* Works properly
+
+---
+
+# 🔁 7. DATA & STATUS CONSISTENCY
+
+---
+
+Ensure all updates reflect in:
+
+* Buyer Orders Page
+* Seller Orders Page
+* Transporter Dashboard
+* Admin Panel
+
+---
+
+## Validate:
+
+* Status updates correctly
+* Contact info correct
+* No missing fields
+
+---
+
+# 🧪 8. BUYER FLOW VALIDATION
+
+---
+
+Simulate full flow:
+
+---
+
+1. Buyer adds product
+2. Clicks Place Order
+3. Sees transport message
+4. Seller confirms
+5. Transporter accepts
+6. Buyer sees transport details
+7. Buyer pays
+8. If not paid → auto cancel + restock
+
+---
+
+## Ensure:
+
+* No broken steps
+* No wrong timing
+* No missing data
+
+---
+
+# ⚠️ 9. ERROR HANDLING
+
+---
+
+* Show success messages
+* Show error messages clearly
+* Prevent invalid actions
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+✔ Back buttons in all pages
+✔ Correct order flow with notification
+✔ Updated timing logic working
+✔ Auto cancel + restock working
+✔ Order page cleaned
+✔ Transport details visible
+✔ Report issue accessible
+
+---
+
+## FINAL RULE:
+
+Buyer module must behave like a real e-commerce + logistics system.
+
+No broken navigation
+No confusing flow
+No missing data
+
+Everything must be smooth, clear, and reliable.

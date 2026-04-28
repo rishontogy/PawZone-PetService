@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, ChevronLeft, User, Mail, Phone, Lock, MapPin, LogOut, Percent } from "lucide-react";
+import { Settings as SettingsIcon, ChevronLeft, User, Mail, Phone, Lock, MapPin, LogOut, Percent, AlertCircle } from "lucide-react";
 
 export function SettingsPage() {
   const { user, logout, refresh } = useAuth() as any;
@@ -22,6 +22,9 @@ export function SettingsPage() {
   const [pincode, setPincode] = useState((user as any)?.pincode ?? "");
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportText, setReportText] = useState("");
+  const [submittingReport, setSubmittingReport] = useState(false);
   const [sharePct, setSharePct] = useState<string>(
     String((user as any)?.platformSharePercent ?? "")
   );
@@ -88,6 +91,73 @@ export function SettingsPage() {
         </div>
 
         <div className="space-y-4">
+          {/* Report an Issue (top-of-page quick action) */}
+          <Card className="border-red-100">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2 text-red-700">
+                <AlertCircle className="w-4 h-4" /> Report an Issue
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {!reportOpen ? (
+                <Button
+                  variant="outline"
+                  className="border-red-200 text-red-700 hover:bg-red-50 w-full sm:w-auto"
+                  data-testid="button-open-report-issue"
+                  onClick={() => setReportOpen(true)}
+                >
+                  <AlertCircle className="w-4 h-4 mr-1.5" /> Report an Issue to Admin
+                </Button>
+              ) : (
+                <>
+                  <textarea
+                    className="w-full text-sm border border-gray-200 rounded-xl p-3 resize-none h-24 focus:outline-none focus:ring-2 focus:ring-red-500/30"
+                    placeholder="Describe the issue you're experiencing…"
+                    value={reportText}
+                    data-testid="input-report-issue"
+                    onChange={(e) => setReportText(e.target.value)}
+                  />
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => { setReportOpen(false); setReportText(""); }}
+                      data-testid="button-cancel-report-issue"
+                    >Cancel</Button>
+                    <Button
+                      size="sm"
+                      disabled={!reportText.trim() || submittingReport}
+                      data-testid="button-submit-report-issue"
+                      onClick={async () => {
+                        setSubmittingReport(true);
+                        try {
+                          const token = localStorage.getItem("pawzone_token");
+                          const res = await fetch("/api/support/report", {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              Authorization: `Bearer ${token ?? ""}`,
+                            },
+                            body: JSON.stringify({ description: reportText }),
+                          });
+                          const data = await res.json();
+                          if (!res.ok) throw new Error(data?.error || "Failed to send report");
+                          toast({ title: "Report sent", description: "Admin has been notified. We'll get back to you soon." });
+                          setReportOpen(false);
+                          setReportText("");
+                        } catch (err: any) {
+                          toast({ variant: "destructive", title: "Failed", description: err?.message ?? "" });
+                        } finally {
+                          setSubmittingReport(false);
+                        }
+                      }}
+                    >{submittingReport ? "Sending…" : "Send Report"}</Button>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">

@@ -16,6 +16,7 @@ export function CartPage() {
   const { toast } = useToast();
   const [deliveryAddress, setDeliveryAddress] = useState(user?.address || "");
   const [notes, setNotes] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { data: cart, refetch } = useGetCart({ query: { enabled: !!user } } as any);
 
@@ -242,14 +243,51 @@ export function CartPage() {
               </div>
               <Button
                 className="w-full h-12 rounded-xl text-base font-bold"
+                data-testid="button-place-order"
                 disabled={!deliveryAddress.trim() || placeOrder.isPending}
-                onClick={() => placeOrder.mutate({ data: { deliveryAddress, notes: notes || undefined } as any })}
+                onClick={() => setConfirmOpen(true)}
               >
                 {placeOrder.isPending ? "Placing order..." : `Place Order · ${formatPrice(total)}`}
               </Button>
               <p className="text-xs text-gray-400 text-center">
                 ⏰ Payment due within 3 hours of order placement
               </p>
+
+              {confirmOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" data-testid="dialog-place-order-confirm">
+                  <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                        <AlertCircle className="w-5 h-5 text-amber-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-gray-900 mb-1">Before you continue</h3>
+                        <p className="text-sm text-gray-600">
+                          Transport charges will be added after a transporter accepts the order. You can complete payment after that.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 justify-end pt-2">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setConfirmOpen(false)}
+                        data-testid="button-cancel-place-order"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        data-testid="button-confirm-place-order"
+                        onClick={() => {
+                          setConfirmOpen(false);
+                          placeOrder.mutate({ data: { deliveryAddress, notes: notes || undefined } as any });
+                        }}
+                      >
+                        OK, Continue
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

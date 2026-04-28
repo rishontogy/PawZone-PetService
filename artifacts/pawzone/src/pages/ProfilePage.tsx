@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { getStatusColor } from "@/lib/api";
-import { User, Shield, Percent, Settings as SettingsIcon } from "lucide-react";
+import { User, Shield, Percent, Settings as SettingsIcon, ChevronLeft } from "lucide-react";
 import { Link } from "wouter";
 
 export function ProfilePage() {
@@ -40,6 +40,15 @@ export function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
+      <div className="max-w-3xl mx-auto mb-4">
+        <button
+          onClick={() => window.history.back()}
+          className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
+          data-testid="link-back"
+        >
+          <ChevronLeft className="w-4 h-4" /> Back
+        </button>
+      </div>
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
           <User className="w-6 h-6" /> My Profile

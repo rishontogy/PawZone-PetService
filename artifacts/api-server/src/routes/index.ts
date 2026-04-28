@@ -10,6 +10,7 @@ import dashboardRouter from "./dashboard";
 import adminRouter from "./admin";
 import usersRouter from "./users";
 import uploadRouter from "./upload";
+import supportRouter from "./support";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(dashboardRouter);
 router.use(adminRouter);
 router.use(usersRouter);
 router.use(uploadRouter);
+router.use(supportRouter);
 
 export default router;

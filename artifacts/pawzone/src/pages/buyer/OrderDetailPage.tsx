@@ -458,30 +458,6 @@ export function OrderDetailPage() {
           </div>
         )}
 
-        {/* Timeline */}
-        {o.timeline && o.timeline.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-teal-600" /> Order Timeline
-            </h2>
-            <div className="space-y-4">
-              {o.timeline.map((event: any, i: number) => (
-                <div key={i} className="flex gap-3">
-                  <div className="flex flex-col items-center">
-                    <div className={`w-3 h-3 rounded-full flex-shrink-0 mt-1 ${i === 0 ? "bg-teal-600" : "bg-gray-300"}`} />
-                    {i < o.timeline.length - 1 && <div className="w-0.5 flex-1 bg-gray-100 mt-1" />}
-                  </div>
-                  <div className="pb-3">
-                    <p className="text-sm font-semibold text-gray-800 capitalize">{event.status?.replace(/_/g, " ")}</p>
-                    {event.note && <p className="text-xs text-gray-500 mt-0.5">{event.note}</p>}
-                    <p className="text-xs text-gray-400 mt-0.5">{new Date(event.createdAt).toLocaleString("en-IN")}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Report Issue */}
         {canReportIssue && (
           <div>
