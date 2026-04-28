@@ -1,0 +1,299 @@
+Update and stabilize the PawZone Windows desktop application.
+
+This is a FULL INTERACTION VALIDATION + AUTO BUG FIX phase.
+
+Your task is to test and fix EVERY button, link, and interaction across ALL roles:
+
+* Buyer
+* Seller
+* Transporter
+* Admin
+
+---
+
+# 🎯 OBJECTIVE
+
+Ensure:
+
+✔ Every button works
+✔ Every click performs the correct action
+✔ Every navigation goes to the correct page
+✔ No dead buttons
+✔ No wrong redirects
+✔ No UI-only actions without backend logic
+
+---
+
+# 🧪 1. GLOBAL BUTTON TESTING (MANDATORY)
+
+---
+
+For EVERY screen in the app:
+
+---
+
+## Validate ALL:
+
+* Buttons
+* Icons (clickable)
+* Navigation links
+* Cards (click actions)
+* Form submissions
+* Modal actions
+* Dropdown selections
+
+---
+
+## ❌ Identify Issues:
+
+* Button not clickable
+* Button does nothing
+* Wrong page opens
+* Action not saved
+* Data not updating
+* UI changes but backend not updated
+
+---
+
+## ✅ Fix Rules:
+
+* Bind all buttons to correct functions
+* Ensure event listeners are attached properly
+* Ensure correct routing/navigation
+* Ensure backend calls are executed
+* Ensure UI reflects real data
+
+---
+
+# 🛒 2. BUYER SIDE – BUTTON VALIDATION
+
+---
+
+Test and fix:
+
+* Add to Cart
+* Cart icon
+* Quantity + / –
+* Place Order
+* Notification button
+* Settings button
+* Profile button
+* Search
+* Filters
+* Order page navigation
+* Report Issue
+
+---
+
+## Ensure:
+
+* Cart updates instantly
+* Order request created
+* Navigation correct
+* No broken flows
+
+---
+
+# 🏪 3. SELLER SIDE – BUTTON VALIDATION
+
+---
+
+Test and fix:
+
+* Add Listing
+* Upload Image
+* Upload Video
+* Submit Listing
+* Edit Listing
+* Delete Listing
+* Accept Order
+* Reject Order
+* Upload Prepared Video
+* View Orders
+* Dashboard navigation
+
+---
+
+## Ensure:
+
+* Listing saves correctly
+* Orders update correctly
+* Buttons trigger real backend changes
+
+---
+
+# 🚚 4. TRANSPORTER SIDE – BUTTON VALIDATION
+
+---
+
+Test and fix:
+
+* Add Route
+* Edit Route
+* Delete Route
+* Accept Order
+* Enter Pickup Time
+* Enter Delivery Time
+* Enter Rate
+* Upload Pickup Video
+* Upload Delivery Video
+* View Active Orders
+* Navigation buttons
+
+---
+
+## Ensure:
+
+* Routes save and update correctly
+* Orders assign properly
+* Status updates correctly
+
+---
+
+# 🛠 5. ADMIN PANEL – BUTTON VALIDATION
+
+---
+
+Test and fix:
+
+* Approve Seller
+* Reject Seller
+* Approve Transporter
+* Reject Transporter
+* Approve Listing
+* Reject Listing
+* Block User
+* Unblock User
+* View Orders
+* Assign Transporter
+* Refund Approval
+* Resolve Report
+
+---
+
+## Ensure:
+
+* All actions reflect instantly
+* Data updates system-wide
+* No silent failures
+
+---
+
+# 🔁 6. NAVIGATION & ROUTING FIX
+
+---
+
+Ensure:
+
+* Every button leads to correct page
+* No redirect to wrong pages
+* No fallback to profile page unless intended
+* Navigation state is preserved
+
+---
+
+# 🔗 7. BACKEND CONNECTION VALIDATION
+
+---
+
+Ensure every button:
+
+* Triggers correct API / function
+* Saves data to database/state
+* Updates UI after success
+
+---
+
+## ❌ Fix:
+
+* Missing API calls
+* Incorrect payloads
+* State not updating
+* Async issues
+
+---
+
+# ⚠️ 8. ERROR HANDLING
+
+---
+
+For every action:
+
+* Show success message
+* Show error message if failed
+* Prevent crashes
+
+---
+
+# 🧪 9. AUTO TEST FLOW
+
+---
+
+Simulate full usage:
+
+---
+
+## Buyer Flow:
+
+Browse → Add to cart → Place order → Payment → Tracking
+
+---
+
+## Seller Flow:
+
+Receive order → Accept → Upload video
+
+---
+
+## Transporter Flow:
+
+Accept → Pickup → Deliver
+
+---
+
+## Admin Flow:
+
+Approve → Monitor → Resolve
+
+---
+
+## If ANY step fails:
+
+→ FIX immediately
+→ Re-test that step
+
+---
+
+# 🧠 10. CONSISTENCY CHECK
+
+---
+
+Ensure:
+
+* Data matches across all roles
+* Status updates everywhere
+* No mismatch in UI vs backend
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+✔ No broken buttons
+✔ No wrong navigation
+✔ No dead clicks
+✔ No missing actions
+✔ Full system interaction working
+
+---
+
+## FINAL RULE:
+
+This must behave like a REAL production application.
+
+Every click must do something meaningful.
+No placeholder buttons allowed.
+No incomplete interactions allowed.

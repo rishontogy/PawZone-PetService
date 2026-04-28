@@ -95,7 +95,11 @@ export function AdminListingsPage() {
 
                       {listing.status === "pending" && (
                         <div className="flex gap-2 mt-3">
-                          <Button size="sm" className="gap-1" onClick={() => approve.mutate({ id: listing.id })}>
+                          <Button size="sm" className="gap-1" onClick={() => {
+                            if (window.confirm(`Approve listing "${listing.title}"? It will become visible to buyers.`)) {
+                              approve.mutate({ id: listing.id });
+                            }
+                          }}>
                             <CheckCircle className="w-3 h-3" /> Approve
                           </Button>
                           <div className="flex gap-1">
@@ -110,7 +114,12 @@ export function AdminListingsPage() {
                               size="sm"
                               variant="outline"
                               className="gap-1 text-destructive"
-                              onClick={() => reject.mutate({ id: listing.id, data: { reason: rejectReason[listing.id] || "Does not meet standards" } })}
+                              onClick={() => {
+                                const reason = rejectReason[listing.id] || "Does not meet standards";
+                                if (window.confirm(`Reject listing "${listing.title}"?\nReason: ${reason}`)) {
+                                  reject.mutate({ id: listing.id, data: { reason } });
+                                }
+                              }}
                             >
                               <XCircle className="w-3 h-3" /> Reject
                             </Button>

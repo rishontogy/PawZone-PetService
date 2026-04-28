@@ -225,7 +225,11 @@ export function AdminUsersPage() {
                             size="sm"
                             variant="outline"
                             className="gap-1 text-red-600 border-red-200 hover:bg-red-50 rounded-lg h-8 text-xs"
-                            onClick={() => block.mutate({ id: u.id })}
+                            onClick={() => {
+                              if (window.confirm(`Block ${u.name}? They will lose access to PawZone until unblocked.`)) {
+                                block.mutate({ id: u.id });
+                              }
+                            }}
                           >
                             <XCircle className="w-3.5 h-3.5" /> Block
                           </Button>
@@ -236,7 +240,11 @@ export function AdminUsersPage() {
                           size="sm"
                           variant="outline"
                           className="rounded-lg h-8 text-xs"
-                          onClick={() => approve.mutate({ id: u.id })}
+                          onClick={() => {
+                            if (window.confirm(`Unblock ${u.name} and restore their access?`)) {
+                              approve.mutate({ id: u.id });
+                            }
+                          }}
                         >
                           Unblock
                         </Button>

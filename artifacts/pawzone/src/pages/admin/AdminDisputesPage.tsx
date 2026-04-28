@@ -69,30 +69,36 @@ export function AdminDisputesPage() {
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          onClick={() => resolve.mutate({
-                            id: dispute.id,
-                            data: { resolution: "resolved_buyer", note: resolutions[dispute.id] || "Resolved in favour of buyer" }
-                          })}
+                          onClick={() => {
+                            const note = resolutions[dispute.id] || "Resolved in favour of buyer";
+                            if (window.confirm(`Resolve dispute in favour of the BUYER?\nNote: ${note}`)) {
+                              resolve.mutate({ id: dispute.id, data: { resolution: "resolved_buyer", note } });
+                            }
+                          }}
                         >
                           Favour Buyer
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => resolve.mutate({
-                            id: dispute.id,
-                            data: { resolution: "resolved_seller", note: resolutions[dispute.id] || "Resolved in favour of seller" }
-                          })}
+                          onClick={() => {
+                            const note = resolutions[dispute.id] || "Resolved in favour of seller";
+                            if (window.confirm(`Resolve dispute in favour of the SELLER?\nNote: ${note}`)) {
+                              resolve.mutate({ id: dispute.id, data: { resolution: "resolved_seller", note } });
+                            }
+                          }}
                         >
                           Favour Seller
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => resolve.mutate({
-                            id: dispute.id,
-                            data: { resolution: "refunded", note: resolutions[dispute.id] || "Refund approved" }
-                          })}
+                          onClick={() => {
+                            const note = resolutions[dispute.id] || "Refund approved";
+                            if (window.confirm(`Approve REFUND for this dispute?\nNote: ${note}`)) {
+                              resolve.mutate({ id: dispute.id, data: { resolution: "refunded", note } });
+                            }
+                          }}
                         >
                           Refund
                         </Button>
