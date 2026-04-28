@@ -142,8 +142,12 @@ router.post("/orders", authMiddleware, async (req, res): Promise<void> => {
       unitPrice: listing.price,
       subtotal: listing.price * cart.quantity,
     });
+    const newAvailable = listing.availableQuantity - cart.quantity;
     await db.update(listingsTable)
-      .set({ availableQuantity: listing.availableQuantity - cart.quantity })
+      .set({
+        availableQuantity: newAvailable,
+        ...(newAvailable <= 0 ? { status: "sold_out" as const } : {}),
+      })
       .where(eq(listingsTable.id, listing.id));
   }
 

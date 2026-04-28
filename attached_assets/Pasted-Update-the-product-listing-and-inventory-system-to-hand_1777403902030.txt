@@ -1,0 +1,247 @@
+Update the product listing and inventory system to handle stock depletion and visibility correctly.
+
+This is a CRITICAL marketplace behavior update.
+
+---
+
+# 🧠 1. CORE REQUIREMENT
+
+---
+
+When a product’s stock reaches **0**:
+
+→ It must be **hidden from buyer view (marketplace)**
+→ But NOT deleted from the system
+
+---
+
+# ❌ CURRENT PROBLEM
+
+---
+
+* Products still visible even when out of stock
+* Buyers try to purchase unavailable pets
+* Poor user experience
+
+---
+
+# ✅ 2. REQUIRED BEHAVIOR
+
+---
+
+## 📦 When Order Completes:
+
+* Reduce product quantity
+
+---
+
+## 🔻 If Quantity = 0:
+
+---
+
+### Buyer Side:
+
+* REMOVE product card from:
+
+  * Dashboard
+  * Category pages
+  * Search results
+
+---
+
+### ❗ DO NOT DELETE PRODUCT
+
+---
+
+## 🗂 3. DATA RETENTION (IMPORTANT)
+
+---
+
+Even after stock = 0:
+
+Product must still exist in database for:
+
+---
+
+### Admin:
+
+* Full order history
+* Financial tracking
+* Audit logs
+
+---
+
+### Seller:
+
+* Listing history
+* Performance analytics
+
+---
+
+# 🔄 4. RESTOCK LOGIC
+
+---
+
+## When seller adds stock again:
+
+---
+
+### Condition:
+
+```id="stock01"
+IF quantity > 0:
+    product.is_active = true
+```
+
+---
+
+## Result:
+
+* Product becomes visible again to buyers
+* Reappears in:
+
+  * Dashboard
+  * Categories
+  * Search
+
+---
+
+# ⚙️ 5. IMPLEMENTATION RULE
+
+---
+
+## Add a field in product database:
+
+```id="stock02"
+is_active (boolean)
+```
+
+---
+
+## Logic:
+
+```id="stock03"
+IF quantity <= 0:
+    is_active = false
+ELSE:
+    is_active = true
+```
+
+---
+
+## Buyer queries must ONLY fetch:
+
+```id="stock04"
+WHERE is_active = true
+```
+
+---
+
+# 🧪 6. VALIDATION CASES
+
+---
+
+## Case 1:
+
+* Product quantity = 5
+  ✔ Visible
+
+---
+
+## Case 2:
+
+* Product purchased → quantity = 0
+  ✔ Disappears from buyer view
+
+---
+
+## Case 3:
+
+* Seller restocks → quantity = 3
+  ✔ Product reappears
+
+---
+
+## Case 4:
+
+* Admin checks product
+  ✔ Still exists in system
+
+---
+
+# ⚠️ 7. IMPORTANT EDGE CASE
+
+---
+
+## Multi-seller scenario:
+
+If same pet breed exists from multiple sellers:
+
+* Only THAT seller’s card disappears
+* Others remain visible
+
+---
+
+# 🎯 8. UI BEHAVIOR
+
+---
+
+## DO NOT show:
+
+* “Out of stock” cards
+
+---
+
+## Instead:
+
+* Completely hide them from buyers
+
+---
+
+# 🔐 9. ADMIN VISIBILITY
+
+---
+
+Admin must still see:
+
+* All products (including out of stock)
+* With status:
+
+  * Active
+  * Out of Stock
+
+---
+
+# 📊 10. SELLER DASHBOARD
+
+---
+
+Seller must see:
+
+* Their products (including out of stock)
+* Option to:
+
+  * Restock
+  * Edit
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+✔ Buyers ONLY see available pets
+✔ No out-of-stock confusion
+✔ Products not deleted
+✔ Admin retains full records
+✔ Seller can restock anytime
+
+---
+
+## FINAL RULE:
+
+Inventory visibility ≠ Data deletion
+
+Products must be hidden, not removed.
