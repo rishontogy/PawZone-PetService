@@ -78,13 +78,7 @@ export function SettingsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-2xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <button
-            onClick={() => window.history.back()}
-            className="w-9 h-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-100"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+        <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <SettingsIcon className="w-6 h-6 text-teal-600" /> Settings
           </h1>

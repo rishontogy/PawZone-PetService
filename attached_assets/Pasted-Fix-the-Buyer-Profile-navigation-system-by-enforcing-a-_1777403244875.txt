@@ -1,0 +1,218 @@
+Fix the Buyer Profile navigation system by enforcing a GLOBAL Back Button across ALL pages.
+
+This is a SYSTEM-WIDE FIX — not a per-page patch.
+
+---
+
+# 🔙 1. CORE PROBLEM
+
+Many pages inside Buyer Profile and related flows:
+
+* Do NOT have a Back button
+* Navigation is inconsistent
+* Users get stuck in deep pages
+
+---
+
+# ✅ 2. REQUIRED SOLUTION (MANDATORY)
+
+---
+
+## Implement a GLOBAL BACK BUTTON SYSTEM
+
+---
+
+### 🔹 Rule:
+
+EVERY page except Dashboard MUST have a Back button automatically.
+
+---
+
+## 📍 Apply to ALL Buyer Pages:
+
+---
+
+### Profile Section:
+
+* Profile main page
+* Edit profile
+* Address page
+* Add address page
+* Account details page
+
+---
+
+### Orders Section:
+
+* Orders list
+* Order details
+* Any sub-pages
+
+---
+
+### Other Pages:
+
+* Cart page
+* Product details page
+* Search page
+* Settings page
+* Notification page
+* Report issue page
+
+---
+
+# ⚙️ 3. IMPLEMENTATION METHOD (IMPORTANT)
+
+---
+
+## DO NOT manually add buttons page-by-page
+
+Instead:
+
+### Create a reusable component:
+
+```
+HeaderComponent / NavigationBar
+```
+
+---
+
+## This component must include:
+
+* Back Button (top-left)
+* Page Title (center optional)
+* Dashboard Button (top-right)
+
+---
+
+## Then:
+
+Inject this component into ALL pages automatically
+
+---
+
+# 🔁 4. BACK BUTTON BEHAVIOR
+
+---
+
+## Must:
+
+* Navigate to previous page
+* Maintain state (no reload/reset)
+
+---
+
+## Edge Case:
+
+If no history exists:
+
+→ Redirect to Dashboard
+
+---
+
+# 🧠 5. LOGIC RULE
+
+---
+
+```
+IF current_page != Dashboard:
+    SHOW Back Button
+ELSE:
+    HIDE Back Button
+```
+
+---
+
+# 🎨 6. UI REQUIREMENTS
+
+---
+
+* Same design everywhere
+* Same position (top-left)
+* Same size and color
+* Clearly visible
+* Not overlapping
+
+---
+
+# 🧪 7. VALIDATION (VERY IMPORTANT)
+
+---
+
+Test ALL flows:
+
+---
+
+### Case 1:
+
+Profile → Edit Profile → Back
+✔ Works
+
+---
+
+### Case 2:
+
+Order → Order Details → Back
+✔ Works
+
+---
+
+### Case 3:
+
+Search → Product → Back
+✔ Works
+
+---
+
+### Case 4:
+
+Cart → Back
+✔ Works
+
+---
+
+### Case 5:
+
+Notification → Back
+✔ Works
+
+---
+
+### Case 6:
+
+Deep navigation (4–5 levels)
+✔ Back works step-by-step
+
+---
+
+# ⚠️ 8. ERROR PREVENTION
+
+---
+
+Ensure:
+
+* No duplicate back buttons
+* No broken navigation
+* No infinite loops
+* No blank page on back
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this fix:
+
+✔ 100% pages have Back button
+✔ No page is missing navigation
+✔ Navigation is consistent
+✔ User never gets stuck
+
+---
+
+## FINAL RULE:
+
+Back button must be part of SYSTEM DESIGN, not manual UI.
+
+If a new page is created in future → Back button must appear automatically.

@@ -33,13 +33,6 @@ export function ListingsPage() {
     <div className="min-h-screen bg-background">
       <div className="bg-muted/30 py-8 px-4 border-b">
         <div className="max-w-6xl mx-auto">
-          <button
-            onClick={() => window.history.back()}
-            className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground mb-3"
-            data-testid="link-back"
-          >
-            <ChevronLeft className="w-4 h-4" /> Back
-          </button>
           <h1 className="text-2xl font-bold mb-4">Browse Pets</h1>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">

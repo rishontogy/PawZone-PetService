@@ -64,11 +64,6 @@ export function SellerOrdersPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-6 py-8">
         <div className="max-w-5xl mx-auto">
-          <Link href="/seller">
-            <button className="flex items-center gap-1.5 text-teal-100 hover:text-white text-sm mb-4 transition-colors">
-              <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-            </button>
-          </Link>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <Package className="w-6 h-6" /> Seller Orders
           </h1>

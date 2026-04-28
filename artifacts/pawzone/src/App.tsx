@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
+import { GlobalBackBar } from "@/components/GlobalBackBar";
 import NotFound from "@/pages/not-found";
 
 import { LoginPage } from "@/pages/LoginPage";
@@ -66,6 +67,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <GlobalBackBar />
       {children}
     </div>
   );

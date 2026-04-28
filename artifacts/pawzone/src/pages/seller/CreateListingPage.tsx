@@ -152,13 +152,6 @@ export function CreateListingPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-2xl mx-auto">
-        <button
-          onClick={() => setLocation("/seller/listings")}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4" /> Back to listings
-        </button>
-
         <Card className="shadow-lg border-0 rounded-2xl overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-teal-600 to-emerald-500 text-white p-6">
             <CardTitle className="text-xl">Create New Listing</CardTitle>

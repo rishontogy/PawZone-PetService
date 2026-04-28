@@ -55,13 +55,6 @@ export function ListingDetailPage() {
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-5xl mx-auto">
-        <button
-          onClick={() => setLocation("/listings")}
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"
-        >
-          <ChevronLeft className="w-4 h-4" /> Back to listings
-        </button>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Photos */}
           <div className="space-y-3">

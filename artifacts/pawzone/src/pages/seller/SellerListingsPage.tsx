@@ -30,11 +30,6 @@ export function SellerListingsPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-6 py-8">
-        <div className="max-w-5xl mx-auto">
-          <Link href="/seller" className="text-white/80 hover:text-white text-sm font-medium inline-flex items-center gap-1 mb-3" data-testid="link-back-dashboard">
-            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-          </Link>
-        </div>
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">

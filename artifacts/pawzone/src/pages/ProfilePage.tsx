@@ -40,15 +40,6 @@ export function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-3xl mx-auto mb-4">
-        <button
-          onClick={() => window.history.back()}
-          className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
-          data-testid="link-back"
-        >
-          <ChevronLeft className="w-4 h-4" /> Back
-        </button>
-      </div>
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
           <User className="w-6 h-6" /> My Profile
