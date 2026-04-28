@@ -3,26 +3,90 @@ import { useGetOrder, useProcessPayment, useReportIssue } from "@workspace/api-c
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { formatPrice, getStatusColor, statusLabel, platformFee } from "@/lib/api";
+import { formatPrice, getStatusColor, statusLabel } from "@/lib/api";
 import {
   ChevronLeft, Shield, AlertCircle, Package, CheckCircle,
-  Truck, Clock, MapPin, Phone, Star, User
+  Truck, Clock, MapPin, Phone, User, ShoppingBag, CreditCard,
+  PackageCheck, PackageOpen, Video, Upload
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
-const STATUS_STEPS = [
-  { key: "pending", label: "Order Placed", icon: <Package className="w-4 h-4" /> },
-  { key: "confirmed", label: "Seller Accepted", icon: <CheckCircle className="w-4 h-4" /> },
-  { key: "paid", label: "Paid", icon: <CheckCircle className="w-4 h-4" /> },
-  { key: "ready", label: "Ready for Pickup", icon: <Package className="w-4 h-4" /> },
-  { key: "in_transit", label: "In Transit", icon: <Truck className="w-4 h-4" /> },
-  { key: "delivered", label: "Delivered", icon: <CheckCircle className="w-4 h-4" /> },
+type Stage = {
+  key: string;
+  label: string;
+  icon: JSX.Element;
+  isDone: (o: any) => boolean;
+  doneAt: (o: any) => string | null;
+};
+
+const STAGES: Stage[] = [
+  {
+    key: "requested",
+    label: "Order Requested",
+    icon: <ShoppingBag className="w-4 h-4" />,
+    isDone: (o) => !!o.createdAt,
+    doneAt: (o) => o.createdAt ?? null,
+  },
+  {
+    key: "seller_confirmed",
+    label: "Seller Confirmed",
+    icon: <CheckCircle className="w-4 h-4" />,
+    isDone: (o) => ["confirmed", "ready", "picked_up", "in_transit", "delivered", "completed"].includes(o.status),
+    doneAt: (o) => findTimelineAt(o, ["confirmed"]),
+  },
+  {
+    key: "payment_completed",
+    label: "Payment Completed",
+    icon: <CreditCard className="w-4 h-4" />,
+    isDone: (o) => o.paymentStatus === "paid",
+    doneAt: (o) => findTimelineAt(o, ["paid", "payment"]) ?? o.paidAt ?? null,
+  },
+  {
+    key: "transport_assigned",
+    label: "Transport Assigned",
+    icon: <Truck className="w-4 h-4" />,
+    isDone: (o) => !!o.transporterId,
+    doneAt: (o) => findTimelineAt(o, ["ready", "transporter_assigned", "accepted"]) ?? null,
+  },
+  {
+    key: "picked_up",
+    label: "Picked Up",
+    icon: <Package className="w-4 h-4" />,
+    isDone: (o) => !!o.pickedUpAt || ["picked_up", "in_transit", "delivered", "completed"].includes(o.status),
+    doneAt: (o) => o.pickedUpAt ?? findTimelineAt(o, ["picked_up"]) ?? null,
+  },
+  {
+    key: "in_transit",
+    label: "In Transit",
+    icon: <Truck className="w-4 h-4" />,
+    isDone: (o) => !!o.inTransitAt || ["in_transit", "delivered", "completed"].includes(o.status),
+    doneAt: (o) => o.inTransitAt ?? findTimelineAt(o, ["in_transit"]) ?? null,
+  },
+  {
+    key: "delivered",
+    label: "Delivered",
+    icon: <PackageCheck className="w-4 h-4" />,
+    isDone: (o) => !!o.deliveredAt || ["delivered", "completed"].includes(o.status),
+    doneAt: (o) => o.deliveredAt ?? findTimelineAt(o, ["delivered"]) ?? null,
+  },
+  {
+    key: "received",
+    label: "Received Confirmation",
+    icon: <PackageOpen className="w-4 h-4" />,
+    isDone: (o) => !!o.receivedAt || o.status === "completed",
+    doneAt: (o) => o.receivedAt ?? findTimelineAt(o, ["completed", "received"]) ?? null,
+  },
 ];
 
-const STEP_ORDER = ["pending", "confirmed", "paid", "ready", "picked_up", "in_transit", "delivered"];
+function findTimelineAt(o: any, statuses: string[]): string | null {
+  const tl = Array.isArray(o?.timeline) ? o.timeline : [];
+  const found = tl
+    .filter((t: any) => statuses.includes(String(t.status)))
+    .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())[0];
+  return found?.createdAt ?? null;
+}
 
 function getEffectiveStatus(status: string, paymentStatus: string): string {
-  // "paid" is a virtual progress step: order is "confirmed" AND payment received.
   if (status === "confirmed" && paymentStatus === "paid") return "paid";
   return status;
 }
@@ -103,10 +167,13 @@ export function OrderDetailPage() {
   const isAwaitingSeller = rawStatus === "pending";
   const canReportIssue = ["paid", "ready", "picked_up", "in_transit", "delivered", "confirmed"].includes(rawStatus);
 
-  // Progress tracker
-  const currentStepIdx = STEP_ORDER.indexOf(currentStatus);
-  const isDelivered = currentStatus === "delivered";
-  const isCancelled = currentStatus === "cancelled";
+  // 8-stage progress tracker
+  const stageStates = STAGES.map((s) => ({ ...s, done: s.isDone(o), at: s.doneAt(o) }));
+  const lastDoneIdx = stageStates.reduce((acc, s, i) => (s.done ? i : acc), -1);
+  const currentStageKey = lastDoneIdx >= 0 ? stageStates[lastDoneIdx].key : "requested";
+  const isCancelled = rawStatus === "cancelled";
+  const isDelivered = !!o.deliveredAt || ["delivered", "completed"].includes(rawStatus);
+  const isReceived = !!o.receivedAt || rawStatus === "completed";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -175,36 +242,90 @@ export function OrderDetailPage() {
           </div>
         )}
 
-        {/* Order Progress */}
+        {/* 8-Stage Order Progress */}
         {!isCancelled && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h2 className="font-bold text-gray-900 mb-4">Order Progress</h2>
-            <div className="flex items-center gap-0">
-              {STATUS_STEPS.map((step, idx) => {
-                const stepIdx = STEP_ORDER.indexOf(step.key);
-                const done = currentStepIdx >= stepIdx && !isCancelled;
-                const active = currentStepIdx === stepIdx;
-                const isLast = idx === STATUS_STEPS.length - 1;
+            <div className="hidden md:flex items-start gap-0">
+              {stageStates.map((step, idx) => {
+                const isCurrent = step.key === currentStageKey;
+                const isLast = idx === stageStates.length - 1;
+                const nextDone = stageStates[idx + 1]?.done;
                 return (
-                  <div key={step.key} className="flex-1 flex flex-col items-center">
+                  <div key={step.key} className="flex-1 flex flex-col items-center min-w-0">
                     <div className="flex items-center w-full">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all ${
-                        done ? "bg-teal-600 text-white shadow-md" :
-                        active ? "bg-teal-100 text-teal-600 border-2 border-teal-600" :
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 z-10 transition-all ${
+                        step.done && !isCurrent ? "bg-teal-600 text-white shadow-md" :
+                        isCurrent ? "bg-green-500 text-white shadow-md ring-4 ring-green-200 animate-pulse" :
                         "bg-gray-100 text-gray-400"
                       }`}>
                         {step.icon}
                       </div>
                       {!isLast && (
-                        <div className={`flex-1 h-0.5 ${done && currentStepIdx > stepIdx ? "bg-teal-600" : "bg-gray-200"}`} />
+                        <div className={`flex-1 h-0.5 ${nextDone ? "bg-teal-600" : "bg-gray-200"}`} />
                       )}
                     </div>
-                    <p className={`text-xs mt-2 text-center leading-tight ${done ? "text-teal-700 font-semibold" : "text-gray-400"}`}>
+                    <p className={`text-[11px] mt-2 text-center leading-tight px-1 ${
+                      isCurrent ? "text-green-700 font-bold" :
+                      step.done ? "text-teal-700 font-semibold" : "text-gray-400"
+                    }`}>
                       {step.label}
                     </p>
+                    {step.at && !isNaN(new Date(step.at).getTime()) && (
+                      <p className="text-[10px] text-gray-400 mt-0.5 text-center">
+                        {new Date(step.at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    )}
                   </div>
                 );
               })}
+            </div>
+
+            {/* Mobile vertical view */}
+            <div className="md:hidden space-y-3">
+              {stageStates.map((step) => {
+                const isCurrent = step.key === currentStageKey;
+                return (
+                  <div key={step.key} className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      step.done && !isCurrent ? "bg-teal-600 text-white" :
+                      isCurrent ? "bg-green-500 text-white ring-4 ring-green-200" :
+                      "bg-gray-100 text-gray-400"
+                    }`}>{step.icon}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm ${
+                        isCurrent ? "text-green-700 font-bold" :
+                        step.done ? "text-teal-700 font-semibold" : "text-gray-400"
+                      }`}>{step.label}</p>
+                      {step.at && !isNaN(new Date(step.at).getTime()) && (
+                        <p className="text-[10px] text-gray-400">
+                          {new Date(step.at).toLocaleString("en-IN")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Received Video Upload (buyer confirmation step) */}
+        {isDelivered && !isReceived && (
+          <ReceivedVideoCard orderId={parseInt(id!)} onDone={() => refetch()} />
+        )}
+
+        {/* Show videos uploaded throughout the journey */}
+        {(o.preparedVideoUrl || o.pickupVideoUrl || o.deliveryVideoUrl || o.receivedVideoUrl) && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <Video className="w-4 h-4 text-teal-600" /> Journey Videos
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {o.preparedVideoUrl && <VideoTile label="Prepared by Seller" url={o.preparedVideoUrl} />}
+              {o.pickupVideoUrl && <VideoTile label="Picked Up by Transporter" url={o.pickupVideoUrl} />}
+              {o.deliveryVideoUrl && <VideoTile label="Delivered" url={o.deliveryVideoUrl} />}
+              {o.receivedVideoUrl && <VideoTile label="Your Received Confirmation" url={o.receivedVideoUrl} />}
             </div>
           </div>
         )}
@@ -381,3 +502,124 @@ export function OrderDetailPage() {
   );
 }
 
+function VideoTile({ label, url }: { label: string; url: string }) {
+  return (
+    <div className="border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+      <video src={url} controls className="w-full h-40 object-cover bg-black" />
+      <p className="text-xs text-gray-600 px-3 py-2">{label}</p>
+    </div>
+  );
+}
+
+function ReceivedVideoCard({ orderId, onDone }: { orderId: number; onDone: () => void }) {
+  const { toast } = useToast();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+
+  const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith("video/")) {
+      toast({ variant: "destructive", title: "Please select a video file" });
+      return;
+    }
+    setBusy(true);
+    setPreview(URL.createObjectURL(f));
+    try {
+      const token = localStorage.getItem("pawzone_token");
+      const fd = new FormData();
+      fd.append("file", f);
+      const up = await fetch("/api/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token ?? ""}` },
+        body: fd,
+      });
+      const upJson = await up.json();
+      if (!up.ok) throw new Error(upJson?.error || "Upload failed");
+      setUploadedUrl(upJson.url);
+      toast({ title: "Video uploaded", description: "Click Confirm Receipt to complete the order." });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Upload failed", description: err?.message ?? "" });
+      setPreview(null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submit = async () => {
+    if (!uploadedUrl) return;
+    setBusy(true);
+    try {
+      const token = localStorage.getItem("pawzone_token");
+      const res = await fetch(`/api/orders/${orderId}/received-video`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token ?? ""}`,
+        },
+        body: JSON.stringify({ videoUrl: uploadedUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to confirm receipt");
+      toast({ title: "🎉 Order completed!", description: "Thank you for confirming receipt." });
+      onDone();
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Failed", description: err?.message ?? "" });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0">
+          <Video className="w-5 h-5" />
+        </div>
+        <div className="flex-1">
+          <p className="font-bold text-emerald-900">Confirm you received your pet</p>
+          <p className="text-sm text-emerald-800 mt-0.5">
+            Upload a short video of your new pet to complete the order. This helps us verify safe delivery.
+          </p>
+
+          {preview && (
+            <video src={preview} controls className="w-full max-w-xs h-40 object-cover rounded-xl bg-black mt-3" />
+          )}
+
+          <div className="flex gap-2 mt-3 flex-wrap">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="video/*"
+              className="hidden"
+              data-testid="input-received-video"
+              onChange={onPick}
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              className="rounded-xl"
+              onClick={() => fileRef.current?.click()}
+              disabled={busy}
+              data-testid="button-pick-received-video"
+            >
+              <Upload className="w-4 h-4 mr-1.5" />
+              {uploadedUrl ? "Replace Video" : busy ? "Uploading…" : "Choose Video"}
+            </Button>
+            <Button
+              size="sm"
+              className="rounded-xl bg-emerald-600 hover:bg-emerald-700"
+              onClick={submit}
+              disabled={!uploadedUrl || busy}
+              data-testid="button-confirm-received"
+            >
+              {busy ? "Submitting…" : "Confirm Receipt"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

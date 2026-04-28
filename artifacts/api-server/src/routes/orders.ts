@@ -257,6 +257,10 @@ router.patch("/orders/:id", authMiddleware, async (req, res): Promise<void> => {
     console.log(`[orders] Order ${order.orderNumber} placed at IST hour ${istHour}. Timer starts: ${timerStart.toISOString()}, deadline: ${updates.paymentDeadline.toISOString()}`);
   }
   if (parsed.data.status === "ready") {
+    if (!order.preparedVideoUrl) {
+      res.status(400).json({ error: "Upload the prepared video before marking the order ready for pickup." });
+      return;
+    }
     const petCode = generatePetCode();
     updates.petCode = petCode;
   }
@@ -316,6 +320,96 @@ router.post("/orders/:id/payment", authMiddleware, async (req, res): Promise<voi
   const [buyer] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, updated.buyerId));
   const [seller] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, updated.sellerId));
   res.json(formatOrder(updated, buyer?.name ?? "", seller?.name ?? ""));
+});
+
+router.post("/orders/:id/prepared-video", authMiddleware, async (req, res): Promise<void> => {
+  const user = (req as any).user;
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  const url = typeof req.body?.url === "string" ? req.body.url : null;
+  if (!url) {
+    res.status(400).json({ error: "url is required" });
+    return;
+  }
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order) {
+    res.status(404).json({ error: "Order not found" });
+    return;
+  }
+  if (order.sellerId !== user.id && user.role !== "admin") {
+    res.status(403).json({ error: "Only the seller can upload the prepared video" });
+    return;
+  }
+  const [updated] = await db.update(ordersTable)
+    .set({ preparedVideoUrl: url })
+    .where(eq(ordersTable.id, id))
+    .returning();
+  await db.insert(orderTimelineTable).values({
+    orderId: id,
+    status: "prepared_video_uploaded",
+    note: "Seller uploaded prepared video",
+    timestamp: new Date(),
+  });
+  await db.insert(notificationsTable).values({
+    userId: order.buyerId,
+    type: "order_update",
+    title: "Pet Prepared",
+    message: `Seller uploaded a prepared video for order ${order.orderNumber}`,
+    orderId: id,
+  });
+  res.json(updated);
+});
+
+router.post("/orders/:id/received-video", authMiddleware, async (req, res): Promise<void> => {
+  const user = (req as any).user;
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  const url = typeof req.body?.url === "string" ? req.body.url : null;
+  if (!url) {
+    res.status(400).json({ error: "url is required" });
+    return;
+  }
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order) {
+    res.status(404).json({ error: "Order not found" });
+    return;
+  }
+  if (order.buyerId !== user.id && user.role !== "admin") {
+    res.status(403).json({ error: "Only the buyer can confirm receipt" });
+    return;
+  }
+  if (order.status !== "delivered") {
+    res.status(400).json({ error: "Order is not yet delivered" });
+    return;
+  }
+  const now = new Date();
+  const [updated] = await db.update(ordersTable)
+    .set({ receivedVideoUrl: url, receivedAt: now, status: "completed" })
+    .where(eq(ordersTable.id, id))
+    .returning();
+  await db.insert(orderTimelineTable).values({
+    orderId: id,
+    status: "completed",
+    note: "Buyer confirmed receipt with video",
+    timestamp: now,
+  });
+  await db.insert(notificationsTable).values({
+    userId: order.sellerId,
+    type: "order_update",
+    title: "Order Completed",
+    message: `Buyer confirmed receipt for order ${order.orderNumber}`,
+    orderId: id,
+  });
+  if (order.transporterId) {
+    await db.insert(notificationsTable).values({
+      userId: order.transporterId,
+      type: "order_update",
+      title: "Delivery Confirmed",
+      message: `Buyer confirmed receipt for order ${order.orderNumber}`,
+      orderId: id,
+    });
+  }
+  res.json(updated);
 });
 
 router.post("/orders/:id/issue", authMiddleware, async (req, res): Promise<void> => {

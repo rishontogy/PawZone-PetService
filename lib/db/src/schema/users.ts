@@ -19,6 +19,7 @@ export const usersTable = pgTable("users", {
   status: text("status").notNull().default("pending").$type<"pending" | "approved" | "blocked">(),
   sellerId: text("seller_id"),
   sellerScore: real("seller_score").default(5),
+  platformSharePercent: real("platform_share_percent"),
   profilePhoto: text("profile_photo"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

@@ -1,0 +1,465 @@
+Update and finalize the PawZone Windows desktop application.
+
+This is the FINAL SYSTEM PERFECTION phase.
+
+Your goal is to:
+
+* Fix all UI issues
+* Correct all logic errors
+* Complete missing features
+* Ensure all roles (Buyer, Seller, Transporter, Admin) work perfectly
+* Make the system production-ready
+
+---
+
+# 🧭 1. BUYER DASHBOARD FIXES
+
+---
+
+## ❌ Issue 1: Notification Button Wrong Redirect
+
+### Fix:
+
+* Clicking **Notification button** must open:
+  → Notification Page
+* NOT Profile page
+
+---
+
+## ❌ Issue 2: Settings Redirect Wrong
+
+### Fix:
+
+* Settings button must open **Settings Page**
+
+---
+
+## ✅ Create Settings Page with:
+
+* Change Name
+* Change Email
+* Change Phone
+* Change Password
+* Manage Address
+* Logout
+
+---
+
+# 🛒 2. BUYER ORDER PAGE – TIMELINE FIX
+
+---
+
+## ❌ Problems:
+
+* Timeline colors incorrect
+* Dates not updating
+* Status flow not clear
+
+---
+
+## ✅ Fix Timeline:
+
+Stages:
+
+1. Order Requested
+2. Seller Confirmed
+3. Payment Completed
+4. Transport Assigned
+5. Picked Up
+6. In Transit
+7. Delivered
+8. Received Confirmation
+
+---
+
+## Requirements:
+
+* Active step → highlighted (green)
+* Completed → grey/green
+* Pending → light/disabled
+* Dates must update dynamically
+* Sync with real order events
+
+---
+
+# 💰 3. SELLER REVENUE CORRECTION
+
+---
+
+## ❌ Problem:
+
+Platform fee NOT deducted from seller revenue
+
+---
+
+## ✅ Fix:
+
+For each item sold:
+
+* If price > ₹100 → deduct ₹20
+* If ≤ ₹100 → deduct ₹5
+
+---
+
+## Example:
+
+```id="sellerfix"
+seller_revenue = (price × quantity) - platform_fee
+```
+
+---
+
+## Ensure:
+
+* Seller dashboard shows **net earnings only**
+* Admin still records full transaction
+
+---
+
+# 📊 4. SELLER DASHBOARD – RECENT ORDERS FIX
+
+---
+
+## ❌ Problem:
+
+Amounts not showing properly
+
+---
+
+## ✅ Fix:
+
+Each recent order must show:
+
+* Order ID
+* Product
+* Quantity
+* Total amount
+* Status
+
+---
+
+Ensure:
+
+* Correct calculations
+* No missing values
+* No NaN
+
+---
+
+# 🎥 5. SELLER ORDER PAGE – VIDEO FLOW
+
+---
+
+## ✅ Add:
+
+For accepted orders:
+
+* Upload “Prepared Video” option
+
+---
+
+## Logic:
+
+* ONLY after video upload:
+  → “Ready for Pickup” becomes active
+
+---
+
+## Ensure:
+
+* Cannot proceed without video
+* Status updates everywhere
+
+---
+
+# 🚚 6. TRANSPORTER ORDER FLOW (MAJOR FIX)
+
+---
+
+## In Active Orders:
+
+Add redirect to **Detailed Order Page**
+
+---
+
+## Detailed Page MUST include:
+
+---
+
+### 🔹 Section 1: Pickup
+
+* Upload Pickup Video
+* After upload:
+  → Status = Picked Up
+  → Buyer notified
+
+---
+
+### 🔹 Section 2: Delivery
+
+* Upload Delivery Video
+* After upload:
+  → Status = Delivered
+
+---
+
+### 🔹 Section 3: Buyer Confirmation
+
+* Buyer uploads “Received Video”
+* Then:
+  → Final status = Completed
+
+---
+
+## Ensure:
+
+* Timeline updates properly
+* Sync across:
+
+  * Buyer
+  * Seller
+  * Transporter
+  * Admin
+
+---
+
+# 📞 7. TRANSPORTER INPUT FIELDS (NEW FEATURE)
+
+---
+
+## While accepting order:
+
+Add fields:
+
+* Pickup Time
+* Delivery Time
+* Transport Rate
+
+---
+
+## Profile Update:
+
+Transporter must define:
+
+* Platform Share %
+
+---
+
+## RULE:
+
+* Minimum = 10%
+* Mandatory after admin approval
+* Without this → dashboard access blocked
+
+---
+
+## Calculation:
+
+```id="transportfix"
+platform_share = transport_amount × percentage
+```
+
+---
+
+## Ensure:
+
+* Platform revenue updated
+* Admin ledger updated
+
+---
+
+# 🚚 8. TRANSPORTER STATUS FIX
+
+---
+
+## ❌ Problem:
+
+Active status not updating
+
+---
+
+## ✅ Fix:
+
+Ensure real-time updates:
+
+* Accepted
+* Picked
+* In Transit
+* Delivered
+
+---
+
+## Must sync with:
+
+* Buyer
+* Seller
+* Admin
+
+---
+
+# 🚚 9. TRANSPORTER ROUTE MANAGEMENT
+
+---
+
+## Add:
+
+* Edit Route
+* Delete Route
+
+---
+
+## Ensure:
+
+* Unlimited stops
+* Proper saving
+* Real-time updates
+* Used in order filtering
+
+---
+
+# 🛠 10. ADMIN SYSTEM – FULL IMPLEMENTATION
+
+---
+
+## Ensure ALL admin features exist:
+
+---
+
+### Dashboard:
+
+* Users count
+* Active users
+* Orders
+* Revenue
+* Pending approvals
+
+---
+
+### Alerts:
+
+* Seller delay
+* Payment delay
+* Transport delay
+* Fraud alerts
+* Reports
+
+---
+
+### User Management:
+
+* View all users
+* Block / Unblock
+* Delete
+
+---
+
+### Approvals:
+
+* Seller approval
+* Transporter approval
+* Listing approval (within 12 hr)
+
+---
+
+### Order Monitoring:
+
+* Full order lifecycle
+* Status tracking
+
+---
+
+### Accounting:
+
+* Platform revenue
+* Seller payouts
+* Transport payouts
+* Ledger system
+
+---
+
+### Reports & Disputes:
+
+* View reports
+* Take action
+* Refund system
+
+---
+
+### Refund System:
+
+* Admin approval
+* Auto refund within 6 hr
+
+---
+
+### Logistics Control:
+
+* Assign transporter manually
+* Handle delays
+
+---
+
+### Fraud Detection:
+
+* Flag suspicious activity
+* Apply penalties
+
+---
+
+# 🔁 11. FULL SYSTEM VALIDATION
+
+---
+
+After all fixes:
+
+---
+
+## Verify:
+
+✔ Buyer flow works
+✔ Seller flow works
+✔ Transporter flow works
+✔ Admin panel complete
+✔ Order timeline correct
+✔ Revenue correct
+✔ Transport logic correct
+✔ No broken UI
+✔ No missing data
+
+---
+
+# 🧪 12. AUTO FIX RULE
+
+---
+
+During testing:
+
+* If ANY issue found → FIX immediately
+* Re-test that module
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+* App must be COMPLETE
+* All features must work
+* All roles must sync
+* All calculations must be accurate
+* No UI bugs
+* No logic errors
+
+---
+
+## FINAL RULE:
+
+This must behave like a REAL production-level marketplace + logistics application.
+
+No shortcuts.
+No incomplete features.
+No inconsistencies.
+
+Everything must be PERFECT.

@@ -38,7 +38,7 @@ export function SellerDashboard() {
   const listings = (data as any)?.listings ?? [];
 
   const statCards = [
-    { icon: <TrendingUp className="w-6 h-6 text-teal-600" />, label: "Total Revenue", value: formatPrice(Number(stats.totalRevenue ?? 0)), bg: "bg-teal-50", border: "border-teal-200", text: "text-teal-700" },
+    { icon: <TrendingUp className="w-6 h-6 text-teal-600" />, label: "Net Revenue (after fee)", value: formatPrice(Number(stats.totalRevenue ?? 0)), bg: "bg-teal-50", border: "border-teal-200", text: "text-teal-700" },
     { icon: <Package className="w-6 h-6 text-blue-600" />, label: "Active Listings", value: stats.activeListings ?? 0, bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-700" },
     { icon: <ShoppingBag className="w-6 h-6 text-amber-600" />, label: "Pending Orders", value: stats.pendingOrders ?? 0, bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700" },
     { icon: <Star className="w-6 h-6 text-yellow-500" />, label: "Seller Rating", value: `${(user?.sellerScore ?? 5).toFixed(1)} ⭐`, bg: "bg-yellow-50", border: "border-yellow-200", text: "text-yellow-700" },

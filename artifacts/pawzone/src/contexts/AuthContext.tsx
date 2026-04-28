@@ -15,6 +15,9 @@ export interface UserInfo {
   status: string;
   city?: string;
   address?: string;
+  pincode?: string;
+  state?: string;
+  platformSharePercent?: number;
 }
 
 interface AuthContextType {
@@ -23,6 +26,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (token: string, user: UserInfo) => void;
   logout: () => void;
+  refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,12 +41,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error } = useGetMe({
+  const { data, isLoading, error, refetch } = useGetMe({
     query: {
       enabled: !!token,
       retry: false,
     },
   });
+
+  const refresh = async () => {
+    try { await refetch(); } catch { /* noop */ }
+  };
 
   useEffect(() => {
     if (data) {
@@ -74,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, logout, refresh }}>
       {children}
     </AuthContext.Provider>
   );

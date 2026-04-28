@@ -2,20 +2,56 @@ import { Router } from "express";
 import { eq } from "drizzle-orm";
 import { db, usersTable, addressesTable } from "@workspace/db";
 import { UpdateProfileBody, AddUserAddressBody } from "@workspace/api-zod";
-import { authMiddleware } from "../lib/auth";
+import { authMiddleware, hashPassword } from "../lib/auth";
 
 const router = Router();
 
 router.put("/users/profile", authMiddleware, async (req, res): Promise<void> => {
   const user = (req as any).user;
 
-  const parsed = UpdateProfileBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+  // Build a sanitized update payload (allow extended profile fields beyond legacy schema).
+  const allowedKeys = [
+    "name", "phone", "profilePhoto", "address", "city", "state", "pincode",
+  ] as const;
+  const updates: any = {};
+  for (const k of allowedKeys) {
+    const v = (req.body ?? {})[k];
+    if (typeof v === "string" && v.length > 0) updates[k] = v;
+  }
+
+  // Email change
+  if (typeof req.body?.email === "string" && req.body.email.length > 0 && req.body.email !== user.email) {
+    updates.email = req.body.email.toLowerCase();
+  }
+
+  // Password change (requires currentPassword + newPassword)
+  if (typeof req.body?.newPassword === "string" && req.body.newPassword.length >= 6) {
+    const [me] = await db.select().from(usersTable).where(eq(usersTable.id, user.id));
+    if (!me) { res.status(404).json({ error: "User not found" }); return; }
+    const currentPw = String(req.body.currentPassword ?? "");
+    if (me.passwordHash !== hashPassword(currentPw)) {
+      res.status(400).json({ error: "Current password is incorrect" });
+      return;
+    }
+    updates.passwordHash = hashPassword(req.body.newPassword);
+  }
+
+  // Transporter platform share %
+  if (user.role === "transporter" && req.body?.platformSharePercent !== undefined) {
+    const pct = Number(req.body.platformSharePercent);
+    if (!Number.isFinite(pct) || pct < 10 || pct > 100) {
+      res.status(400).json({ error: "Platform share % must be between 10 and 100" });
+      return;
+    }
+    updates.platformSharePercent = pct;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No valid fields to update" });
     return;
   }
 
-  const [updated] = await db.update(usersTable).set(parsed.data)
+  const [updated] = await db.update(usersTable).set(updates)
     .where(eq(usersTable.id, user.id)).returning();
 
   const { passwordHash, ...u } = updated as any;

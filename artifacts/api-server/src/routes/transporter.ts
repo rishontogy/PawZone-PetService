@@ -258,16 +258,28 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
     return;
   }
 
+  const transportFee = Number(req.body?.transportFee ?? 0);
+  if (!Number.isFinite(transportFee) || transportFee < 0) {
+    res.status(400).json({ error: "transportFee is required and must be a non-negative number" });
+    return;
+  }
+
+  const [me] = await db.select().from(usersTable).where(eq(usersTable.id, user.id));
+  const sharePercent = Math.max(10, Number(me?.platformSharePercent ?? 10));
+  const transporterShareAmount = Math.round(transportFee * (sharePercent / 100));
+
   const [updated] = await db.update(ordersTable).set({
     transporterId: user.id,
     pickupTime: parsed.data.pickupTime,
     deliveryTime: parsed.data.deliveryTime,
+    transportFee,
+    transporterShareAmount,
   }).where(eq(ordersTable.id, id)).returning();
 
   await db.insert(orderTimelineTable).values({
     orderId: id,
     status: "transporter_assigned",
-    note: `Transporter ${user.name} assigned`,
+    note: `Transporter ${user.name} assigned. Rate: ₹${transportFee}`,
     timestamp: new Date(),
   });
 
@@ -297,9 +309,9 @@ router.post("/transporter/orders/:id/pickup", authMiddleware, async (req, res): 
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
 
-  const parsed = ConfirmPickupBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+  const pickupVideoUrl = typeof req.body?.pickupVideoUrl === "string" ? req.body.pickupVideoUrl : null;
+  if (!pickupVideoUrl) {
+    res.status(400).json({ error: "pickupVideoUrl is required" });
     return;
   }
 
@@ -308,13 +320,14 @@ router.post("/transporter/orders/:id/pickup", authMiddleware, async (req, res): 
     res.status(404).json({ error: "Order not found" });
     return;
   }
-  if (order.petCode && order.petCode !== parsed.data.petCode) {
-    res.status(400).json({ error: "Invalid pet code" });
+  if (order.transporterId !== user.id && user.role !== "admin") {
+    res.status(403).json({ error: "Not your delivery" });
     return;
   }
 
+  const now = new Date();
   const [updated] = await db.update(ordersTable)
-    .set({ status: "picked_up" })
+    .set({ status: "picked_up", pickupVideoUrl, pickedUpAt: now })
     .where(eq(ordersTable.id, id))
     .returning();
 
@@ -322,7 +335,7 @@ router.post("/transporter/orders/:id/pickup", authMiddleware, async (req, res): 
     orderId: id,
     status: "picked_up",
     note: "Package picked up by transporter",
-    timestamp: new Date(),
+    timestamp: now,
   });
 
   await db.insert(notificationsTable).values({
@@ -332,10 +345,60 @@ router.post("/transporter/orders/:id/pickup", authMiddleware, async (req, res): 
     message: `Your order ${order.orderNumber} has been picked up`,
     orderId: id,
   });
+  await db.insert(notificationsTable).values({
+    userId: order.sellerId,
+    type: "order_update",
+    title: "Picked Up",
+    message: `Order ${order.orderNumber} was picked up by transporter`,
+    orderId: id,
+  });
 
   const [buyer] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, updated.buyerId));
   const [seller] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, updated.sellerId));
   res.json({ ...updated, buyerName: buyer?.name ?? "", sellerName: seller?.name ?? "" });
+});
+
+router.post("/transporter/orders/:id/in-transit", authMiddleware, async (req, res): Promise<void> => {
+  const user = (req as any).user;
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order) {
+    res.status(404).json({ error: "Order not found" });
+    return;
+  }
+  if (order.transporterId !== user.id && user.role !== "admin") {
+    res.status(403).json({ error: "Not your delivery" });
+    return;
+  }
+  if (order.status !== "picked_up") {
+    res.status(400).json({ error: "Mark pickup first" });
+    return;
+  }
+
+  const now = new Date();
+  const [updated] = await db.update(ordersTable)
+    .set({ status: "in_transit", inTransitAt: now })
+    .where(eq(ordersTable.id, id))
+    .returning();
+
+  await db.insert(orderTimelineTable).values({
+    orderId: id,
+    status: "in_transit",
+    note: "Package in transit",
+    timestamp: now,
+  });
+
+  await db.insert(notificationsTable).values({
+    userId: order.buyerId,
+    type: "order_update",
+    title: "In Transit",
+    message: `Your order ${order.orderNumber} is on the way`,
+    orderId: id,
+  });
+
+  res.json(updated);
 });
 
 router.post("/transporter/orders/:id/deliver", authMiddleware, async (req, res): Promise<void> => {
@@ -343,9 +406,9 @@ router.post("/transporter/orders/:id/deliver", authMiddleware, async (req, res):
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
 
-  const parsed = ConfirmDeliveryBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+  const deliveryVideoUrl = typeof req.body?.deliveryVideoUrl === "string" ? req.body.deliveryVideoUrl : null;
+  if (!deliveryVideoUrl) {
+    res.status(400).json({ error: "deliveryVideoUrl is required" });
     return;
   }
 
@@ -354,24 +417,36 @@ router.post("/transporter/orders/:id/deliver", authMiddleware, async (req, res):
     res.status(404).json({ error: "Order not found" });
     return;
   }
+  if (order.transporterId !== user.id && user.role !== "admin") {
+    res.status(403).json({ error: "Not your delivery" });
+    return;
+  }
 
+  const now = new Date();
   const [updated] = await db.update(ordersTable)
-    .set({ status: "delivered" })
+    .set({ status: "delivered", deliveryVideoUrl, deliveredAt: now })
     .where(eq(ordersTable.id, id))
     .returning();
 
   await db.insert(orderTimelineTable).values({
     orderId: id,
     status: "delivered",
-    note: `Delivered at ${parsed.data.location}`,
-    timestamp: new Date(),
+    note: "Delivered to buyer",
+    timestamp: now,
   });
 
   await db.insert(notificationsTable).values({
     userId: order.buyerId,
     type: "delivered",
     title: "Order Delivered",
-    message: `Your order ${order.orderNumber} has been delivered!`,
+    message: `Your order ${order.orderNumber} has been delivered. Please confirm with a video.`,
+    orderId: id,
+  });
+  await db.insert(notificationsTable).values({
+    userId: order.sellerId,
+    type: "delivered",
+    title: "Delivered",
+    message: `Order ${order.orderNumber} was delivered`,
     orderId: id,
   });
 

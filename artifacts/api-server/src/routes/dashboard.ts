@@ -61,7 +61,7 @@ router.get("/dashboard/seller", authMiddleware, async (req, res): Promise<void> 
   const orders = await db.select().from(ordersTable).where(eq(ordersTable.sellerId, user.id));
   const totalEarnings = orders
     .filter(o => o.paymentStatus === "paid")
-    .reduce((s, o) => s + (o.subtotal || 0), 0);
+    .reduce((s, o) => s + ((o.subtotal || 0) - (o.platformFee || 0)), 0);
   const pendingOrders = orders.filter(o => o.status === "pending").length;
 
   const listings = await db.select().from(listingsTable).where(eq(listingsTable.sellerId, user.id));

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useGetOrders, useUpdateOrderStatus } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor, statusLabel } from "@/lib/api";
 import {
   Package, MapPin, Clock, User, CheckCircle,
-  AlertCircle, ArrowLeft, X, Check
+  AlertCircle, ArrowLeft, X, Check, Video, Upload
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -197,17 +197,13 @@ export function SellerOrdersPage() {
                     )}
 
                     {isPaid && (
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <Button
-                          size="sm"
-                          className="rounded-xl bg-purple-600 hover:bg-purple-700 text-white"
-                          disabled={isActing}
-                          onClick={() => handleAction(order.id, "ready")}
-                        >
-                          <Package className="w-4 h-4 mr-1" />
-                          {isActing ? "Updating..." : "Mark Ready for Pickup"}
-                        </Button>
-                      </div>
+                      <PreparedVideoBlock
+                        orderId={order.id}
+                        existingUrl={order.preparedVideoUrl}
+                        isActing={isActing}
+                        onMarkReady={() => handleAction(order.id, "ready")}
+                        onUploaded={() => refetch()}
+                      />
                     )}
 
                     {isReady && (
@@ -233,6 +229,124 @@ export function SellerOrdersPage() {
               Next
             </Button>
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PreparedVideoBlock({
+  orderId,
+  existingUrl,
+  isActing,
+  onMarkReady,
+  onUploaded,
+}: {
+  orderId: number;
+  existingUrl?: string | null;
+  isActing: boolean;
+  onMarkReady: () => void;
+  onUploaded: () => void;
+}) {
+  const { toast } = useToast();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [localUrl, setLocalUrl] = useState<string | null>(existingUrl ?? null);
+
+  const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith("video/")) {
+      toast({ variant: "destructive", title: "Please select a video file" });
+      return;
+    }
+    setBusy(true);
+    try {
+      const token = localStorage.getItem("pawzone_token");
+      const fd = new FormData();
+      fd.append("file", f);
+      const up = await fetch("/api/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token ?? ""}` },
+        body: fd,
+      });
+      const upJson = await up.json();
+      if (!up.ok) throw new Error(upJson?.error || "Upload failed");
+
+      const save = await fetch(`/api/orders/${orderId}/prepared-video`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token ?? ""}`,
+        },
+        body: JSON.stringify({ videoUrl: upJson.url }),
+      });
+      const saveJson = await save.json();
+      if (!save.ok) throw new Error(saveJson?.error || "Failed to save prepared video");
+
+      setLocalUrl(upJson.url);
+      toast({ title: "Prepared video uploaded", description: "You can now mark this order ready." });
+      onUploaded();
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Upload failed", description: err?.message ?? "" });
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
+      <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
+        <div className="flex items-start gap-2">
+          <Video className="w-4 h-4 text-purple-700 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-purple-900">Prepared Video Required</p>
+            <p className="text-xs text-purple-700">
+              Upload a short video showing the pet ready for handover before marking ready for transport.
+            </p>
+          </div>
+        </div>
+        {localUrl && (
+          <div className="mt-2">
+            <video src={localUrl} controls className="w-full max-w-xs h-32 object-cover rounded-lg bg-black" />
+          </div>
+        )}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="video/*"
+          className="hidden"
+          data-testid={`input-prepared-video-${orderId}`}
+          onChange={onPick}
+        />
+        <div className="flex gap-2 mt-2 flex-wrap">
+          <Button
+            size="sm"
+            variant="outline"
+            className="rounded-xl"
+            disabled={busy}
+            onClick={() => fileRef.current?.click()}
+            data-testid={`button-upload-prepared-${orderId}`}
+          >
+            <Upload className="w-4 h-4 mr-1.5" />
+            {busy ? "Uploading…" : localUrl ? "Replace Prepared Video" : "Upload Prepared Video"}
+          </Button>
+          <Button
+            size="sm"
+            className="rounded-xl bg-purple-600 hover:bg-purple-700 text-white"
+            disabled={isActing || !localUrl}
+            onClick={onMarkReady}
+            data-testid={`button-mark-ready-${orderId}`}
+          >
+            <Package className="w-4 h-4 mr-1" />
+            {isActing ? "Updating..." : "Mark Ready for Pickup"}
+          </Button>
+        </div>
+        {!localUrl && (
+          <p className="text-xs text-purple-600 mt-2">
+            Upload a video first to enable Mark Ready.
+          </p>
         )}
       </div>
     </div>

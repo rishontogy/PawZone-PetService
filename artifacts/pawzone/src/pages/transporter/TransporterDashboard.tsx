@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { useGetTransporterDashboard, useGetTransporterRoutes, useGetTransporterOrders, useAcceptDelivery, useConfirmPickup, useConfirmDelivery } from "@workspace/api-client-react";
+import { useGetTransporterDashboard, useGetTransporterRoutes, useGetTransporterOrders, useAcceptDelivery } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,16 +9,18 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Truck, MapPin, Package, PlusCircle, ArrowRight, Clock, CheckCircle, AlertCircle, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Truck, MapPin, Package, PlusCircle, ArrowRight, Clock, CheckCircle, AlertCircle, Pencil, Trash2, Video, Upload, IndianRupee } from "lucide-react";
+import { useRef, useState } from "react";
 
 export function TransporterDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [acceptingId, setAcceptingId] = useState<number | null>(null);
-  const [acceptForm, setAcceptForm] = useState({ pickupTime: "", deliveryTime: "" });
+  const [acceptForm, setAcceptForm] = useState({ pickupTime: "", deliveryTime: "", transportFee: "" });
   const [deleteRouteId, setDeleteRouteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const sharePct = Number((user as any)?.platformSharePercent ?? 0);
 
   const { data: dash } = useGetTransporterDashboard({ query: { enabled: !!user } });
   const { data: routesData, refetch: refetchRoutes } = useGetTransporterRoutes({ query: { enabled: !!user } });
@@ -40,26 +42,20 @@ export function TransporterDashboard() {
     },
   });
 
-  const confirmPickup = useConfirmPickup({
-    mutation: {
-      onSuccess: () => { toast({ title: "Pickup confirmed!" }); refetch(); },
-      onError: (err: any) => { toast({ variant: "destructive", title: "Error", description: err?.data?.error || "Failed to confirm pickup" }); },
-    },
-  });
-
-  const confirmDelivery = useConfirmDelivery({
-    mutation: {
-      onSuccess: () => { toast({ title: "Delivery completed!" }); refetch(); },
-      onError: (err: any) => { toast({ variant: "destructive", title: "Error", description: err?.data?.error || "Failed to confirm delivery" }); },
-    },
-  });
-
   const handleOpenAccept = (orderId: number) => {
+    if (sharePct < 10) {
+      toast({
+        variant: "destructive",
+        title: "Set your platform share %",
+        description: "Add a Platform Share % (≥10) in Settings before accepting deliveries.",
+      });
+      return;
+    }
     const now = new Date();
     const fmt = (d: Date) => d.toISOString().slice(0, 16);
     const pickupDefault = fmt(new Date(now.getTime() + 2 * 3600000));
     const deliveryDefault = fmt(new Date(now.getTime() + 6 * 3600000));
-    setAcceptForm({ pickupTime: pickupDefault, deliveryTime: deliveryDefault });
+    setAcceptForm({ pickupTime: pickupDefault, deliveryTime: deliveryDefault, transportFee: "" });
     setAcceptingId(orderId);
   };
 
@@ -68,12 +64,18 @@ export function TransporterDashboard() {
       toast({ variant: "destructive", title: "Required", description: "Please set both pickup and delivery times." });
       return;
     }
+    const fee = Number(acceptForm.transportFee);
+    if (!Number.isFinite(fee) || fee <= 0) {
+      toast({ variant: "destructive", title: "Transport rate required", description: "Enter a positive transport fee in ₹." });
+      return;
+    }
     acceptDelivery.mutate({
       id: orderId,
       data: {
         pickupTime: new Date(acceptForm.pickupTime) as any,
         deliveryTime: new Date(acceptForm.deliveryTime) as any,
-      },
+        transportFee: fee,
+      } as any,
     });
   };
 
@@ -293,6 +295,7 @@ export function TransporterDashboard() {
                               className="w-full text-sm border border-blue-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
                               value={acceptForm.pickupTime}
                               onChange={(e) => setAcceptForm({ ...acceptForm, pickupTime: e.target.value })}
+                              data-testid={`input-pickup-time-${order.id}`}
                             />
                           </div>
                           <div>
@@ -302,8 +305,30 @@ export function TransporterDashboard() {
                               className="w-full text-sm border border-blue-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
                               value={acceptForm.deliveryTime}
                               onChange={(e) => setAcceptForm({ ...acceptForm, deliveryTime: e.target.value })}
+                              data-testid={`input-delivery-time-${order.id}`}
                             />
                           </div>
+                        </div>
+                        <div>
+                          <label className="text-xs text-blue-700 font-medium block mb-1 flex items-center gap-1">
+                            <IndianRupee className="w-3 h-3" /> Transport Rate (₹)
+                          </label>
+                          <input
+                            type="number"
+                            min={1}
+                            step="1"
+                            className="w-full text-sm border border-blue-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            value={acceptForm.transportFee}
+                            onChange={(e) => setAcceptForm({ ...acceptForm, transportFee: e.target.value })}
+                            placeholder="e.g. 250"
+                            data-testid={`input-transport-fee-${order.id}`}
+                          />
+                          {Number(acceptForm.transportFee) > 0 && sharePct >= 10 && (
+                            <p className="text-[11px] text-blue-700 mt-1">
+                              Platform share ({sharePct}%): {formatPrice((Number(acceptForm.transportFee) * sharePct) / 100)} •
+                              You earn: {formatPrice(Number(acceptForm.transportFee) - (Number(acceptForm.transportFee) * sharePct) / 100)}
+                            </p>
+                          )}
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -311,6 +336,7 @@ export function TransporterDashboard() {
                             className="rounded-lg bg-blue-600 hover:bg-blue-700"
                             disabled={acceptDelivery.isPending}
                             onClick={() => handleAcceptSubmit(order.id)}
+                            data-testid={`button-confirm-accept-${order.id}`}
                           >
                             {acceptDelivery.isPending ? "Accepting..." : "Confirm Accept"}
                           </Button>
@@ -331,34 +357,43 @@ export function TransporterDashboard() {
                     )
                   )}
 
-                  {/* Confirm Pickup — after I've accepted, before pickup is done */}
-                  {isAssignedToMeAndPending(order) && order.status !== "ready" && (
-                    <Button
-                      size="sm"
-                      className="rounded-lg bg-green-600 hover:bg-green-700"
-                      disabled={confirmPickup.isPending}
-                      onClick={() => confirmPickup.mutate({
-                        id: order.id,
-                        data: { petCode: order.petCode || "SCAN" } as any,
-                      })}
-                    >
-                      {confirmPickup.isPending ? "Confirming..." : "Confirm Pickup"}
-                    </Button>
+                  {/* Pickup video upload — when assigned and order ready/awaiting pickup */}
+                  {order.transporterId === user?.id && order.status === "ready" && (
+                    <PickupVideoBlock
+                      orderId={order.id}
+                      existingUrl={order.pickupVideoUrl}
+                      onDone={refetch}
+                    />
                   )}
 
-                  {/* Complete Delivery */}
-                  {(order.status === "in_transit" || order.status === "picked_up") && order.transporterId === user?.id && (
-                    <Button
-                      size="sm"
-                      className="rounded-lg bg-teal-600 hover:bg-teal-700 ml-2"
-                      disabled={confirmDelivery.isPending}
-                      onClick={() => confirmDelivery.mutate({
-                        id: order.id,
-                        data: { location: order.deliveryAddress || order.deliveryCity || "Delivered" } as any,
-                      })}
-                    >
-                      {confirmDelivery.isPending ? "Completing..." : "Complete Delivery"}
-                    </Button>
+                  {/* Start In Transit */}
+                  {order.transporterId === user?.id && order.status === "picked_up" && (
+                    <StartInTransitBlock orderId={order.id} onDone={refetch} />
+                  )}
+
+                  {/* Delivery video upload */}
+                  {order.transporterId === user?.id && order.status === "in_transit" && (
+                    <DeliveryVideoBlock
+                      orderId={order.id}
+                      existingUrl={order.deliveryVideoUrl}
+                      onDone={refetch}
+                    />
+                  )}
+
+                  {/* Active stage badge */}
+                  {order.transporterId === user?.id && (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {order.transportFee && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium">
+                          Rate: {formatPrice(Number(order.transportFee))}
+                        </span>
+                      )}
+                      {order.transporterShareAmount != null && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">
+                          Platform share: {formatPrice(Number(order.transporterShareAmount))}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
@@ -389,6 +424,176 @@ export function TransporterDashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+async function uploadVideoFile(f: File): Promise<string> {
+  const token = localStorage.getItem("pawzone_token");
+  const fd = new FormData();
+  fd.append("file", f);
+  const up = await fetch("/api/upload", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token ?? ""}` },
+    body: fd,
+  });
+  const upJson = await up.json();
+  if (!up.ok) throw new Error(upJson?.error || "Upload failed");
+  return upJson.url as string;
+}
+
+async function postJson(path: string, body: any) {
+  const token = localStorage.getItem("pawzone_token");
+  const res = await fetch(path, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token ?? ""}`,
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error || "Request failed");
+  return data;
+}
+
+function PickupVideoBlock({
+  orderId, existingUrl, onDone,
+}: { orderId: number; existingUrl?: string | null; onDone: () => void }) {
+  const { toast } = useToast();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [url, setUrl] = useState<string | null>(existingUrl ?? null);
+
+  const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith("video/")) {
+      toast({ variant: "destructive", title: "Please select a video file" });
+      return;
+    }
+    setBusy(true);
+    try {
+      const videoUrl = await uploadVideoFile(f);
+      await postJson(`/api/transporter/orders/${orderId}/pickup`, { pickupVideoUrl: videoUrl, petCode: "SCAN" });
+      setUrl(videoUrl);
+      toast({ title: "Pickup confirmed", description: "Order moved to picked up." });
+      onDone();
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Upload failed", description: err?.message ?? "" });
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="mt-3 bg-green-50 border border-green-200 rounded-xl p-3">
+      <div className="flex items-start gap-2">
+        <Video className="w-4 h-4 text-green-700 mt-0.5" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-green-900">Confirm Pickup with Video</p>
+          <p className="text-xs text-green-700">Upload a short video at pickup. This advances the order to Picked Up.</p>
+        </div>
+      </div>
+      {url && <video src={url} controls className="w-full max-w-xs h-32 object-cover rounded-lg bg-black mt-2" />}
+      <input ref={fileRef} type="file" accept="video/*" className="hidden"
+        data-testid={`input-pickup-video-${orderId}`} onChange={onPick} />
+      <Button
+        size="sm"
+        className="rounded-lg bg-green-600 hover:bg-green-700 mt-2"
+        disabled={busy}
+        onClick={() => fileRef.current?.click()}
+        data-testid={`button-pickup-video-${orderId}`}
+      >
+        <Upload className="w-4 h-4 mr-1.5" />
+        {busy ? "Uploading…" : url ? "Replace Pickup Video" : "Upload Pickup Video"}
+      </Button>
+    </div>
+  );
+}
+
+function StartInTransitBlock({ orderId, onDone }: { orderId: number; onDone: () => void }) {
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(false);
+  const start = async () => {
+    setBusy(true);
+    try {
+      await postJson(`/api/orders/${orderId}/in-transit`, {});
+      toast({ title: "In transit", description: "Order is now en-route to the buyer." });
+      onDone();
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Failed", description: err?.message ?? "" });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Button
+      size="sm"
+      className="rounded-lg bg-indigo-600 hover:bg-indigo-700 mt-3"
+      disabled={busy}
+      onClick={start}
+      data-testid={`button-in-transit-${orderId}`}
+    >
+      <Truck className="w-4 h-4 mr-1.5" />
+      {busy ? "Starting…" : "Start In Transit"}
+    </Button>
+  );
+}
+
+function DeliveryVideoBlock({
+  orderId, existingUrl, onDone,
+}: { orderId: number; existingUrl?: string | null; onDone: () => void }) {
+  const { toast } = useToast();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [url, setUrl] = useState<string | null>(existingUrl ?? null);
+
+  const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith("video/")) {
+      toast({ variant: "destructive", title: "Please select a video file" });
+      return;
+    }
+    setBusy(true);
+    try {
+      const videoUrl = await uploadVideoFile(f);
+      await postJson(`/api/transporter/orders/${orderId}/deliver`, { deliveryVideoUrl: videoUrl, location: "Delivered" });
+      setUrl(videoUrl);
+      toast({ title: "Delivery completed", description: "Buyer can now confirm receipt." });
+      onDone();
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Upload failed", description: err?.message ?? "" });
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="mt-3 bg-teal-50 border border-teal-200 rounded-xl p-3">
+      <div className="flex items-start gap-2">
+        <Video className="w-4 h-4 text-teal-700 mt-0.5" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-teal-900">Confirm Delivery with Video</p>
+          <p className="text-xs text-teal-700">Upload a short delivery proof video. This advances the order to Delivered.</p>
+        </div>
+      </div>
+      {url && <video src={url} controls className="w-full max-w-xs h-32 object-cover rounded-lg bg-black mt-2" />}
+      <input ref={fileRef} type="file" accept="video/*" className="hidden"
+        data-testid={`input-delivery-video-${orderId}`} onChange={onPick} />
+      <Button
+        size="sm"
+        className="rounded-lg bg-teal-600 hover:bg-teal-700 mt-2"
+        disabled={busy}
+        onClick={() => fileRef.current?.click()}
+        data-testid={`button-delivery-video-${orderId}`}
+      >
+        <Upload className="w-4 h-4 mr-1.5" />
+        {busy ? "Uploading…" : url ? "Replace Delivery Video" : "Upload Delivery Video"}
+      </Button>
     </div>
   );
 }

@@ -55,9 +55,9 @@ export function BuyerDashboard() {
             { icon: <PawPrint className="w-4 h-4" />, label: "Browse Pets", href: "/listings" },
             { icon: <ShoppingCart className="w-4 h-4" />, label: `Cart${cartCount > 0 ? ` (${cartCount})` : ""}`, href: "/buyer/cart", badge: cartCount },
             { icon: <Package className="w-4 h-4" />, label: "My Orders", href: "/buyer/orders" },
-            { icon: <Bell className="w-4 h-4" />, label: "Notifications", href: "/profile" },
+            { icon: <Bell className="w-4 h-4" />, label: "Notifications", href: "/notifications" },
             { icon: <User className="w-4 h-4" />, label: "Profile", href: "/profile" },
-            { icon: <Settings className="w-4 h-4" />, label: "Settings", href: "/profile" },
+            { icon: <Settings className="w-4 h-4" />, label: "Settings", href: "/settings" },
           ].map((item) => (
             <Link key={item.href + item.label} href={item.href}>
               <div className="flex items-center justify-between px-3 py-2.5 rounded-xl text-gray-600 hover:bg-teal-50 hover:text-teal-700 transition-colors group cursor-pointer">

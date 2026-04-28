@@ -1,0 +1,182 @@
+Update the PawZone Windows desktop application to CORRECT the seller revenue calculation logic.
+
+This is a CRITICAL FINANCIAL FIX and must be implemented accurately across the entire system.
+
+---
+
+# 💰 1. PLATFORM FEE LOGIC (STRICT RULE)
+
+---
+
+## Per Item Rule:
+
+* If item price > ₹100 → Platform fee = ₹20 per item
+* If item price ≤ ₹100 → Platform fee = ₹5 per item
+
+---
+
+## ❗ Correct Calculation:
+
+Platform fee must ALWAYS be multiplied by quantity.
+
+---
+
+## ✅ Final Formula:
+
+```js id="revfix01"
+if (price > 100) {
+  platform_fee = 20 * quantity;
+} else {
+  platform_fee = 5 * quantity;
+}
+
+seller_revenue = (price * quantity) - platform_fee;
+```
+
+---
+
+# 🧾 2. MULTI-SELLER SCENARIO (IMPORTANT)
+
+---
+
+Each seller must be calculated separately.
+
+---
+
+## Example:
+
+* Dog A (Seller A): ₹7000 × 1 → Fee = ₹20 → Seller gets ₹6980
+* Dog B (Seller B): ₹8000 × 1 → Fee = ₹20 → Seller gets ₹7980
+
+---
+
+## ❗ Rule:
+
+* DO NOT combine sellers
+* DO NOT apply total fee globally
+* Calculate per item per seller
+
+---
+
+# 📊 3. WHERE THIS MUST BE FIXED
+
+---
+
+Apply this logic in ALL places:
+
+---
+
+## Seller Dashboard:
+
+* Revenue shown must be AFTER deduction
+
+---
+
+## Seller Orders Page:
+
+* Each order must show:
+
+  * Gross amount
+  * Platform fee
+  * Net earning
+
+---
+
+## Admin Panel:
+
+* Platform revenue must reflect:
+
+  * Sum of all platform fees
+
+---
+
+## Buyer Order Page:
+
+* Platform fee must match same calculation
+
+---
+
+# ⚠️ 4. VALIDATION RULES
+
+---
+
+Ensure:
+
+* No NaN values
+* No mismatch between pages
+* No rounding errors
+
+---
+
+## Test Cases:
+
+---
+
+### Case 1:
+
+1 item (₹7000)
+→ Fee = 20
+→ Seller = 6980
+
+---
+
+### Case 2:
+
+2 items (₹7000 each)
+→ Fee = 40
+→ Seller = 13960
+
+---
+
+### Case 3:
+
+Low cost items (₹50 × 3)
+→ Fee = 5 × 3 = 15
+→ Seller = 135
+
+---
+
+---
+
+# 🔁 5. CONSISTENCY CHECK
+
+---
+
+Values must MATCH in:
+
+* Cart
+* Order page
+* Seller dashboard
+* Admin panel
+
+---
+
+# 🧠 6. IMPORTANT IMPLEMENTATION RULE
+
+---
+
+* Do NOT hardcode values
+* Always calculate dynamically
+* Ensure calculation is done in backend logic
+* UI should only display computed values
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this fix:
+
+* Seller revenue must ALWAYS be correct
+* Platform fee must ALWAYS scale with quantity
+* No mismatch anywhere in system
+
+---
+
+## FINAL RULE:
+
+This is a financial system — accuracy must be 100%.
+
+No incorrect deduction allowed.
+No inconsistency allowed.

@@ -13,6 +13,8 @@ import { ListingsPage } from "@/pages/ListingsPage";
 import { ListingDetailPage } from "@/pages/ListingDetailPage";
 import { CartPage } from "@/pages/CartPage";
 import { ProfilePage } from "@/pages/ProfilePage";
+import { NotificationsPage } from "@/pages/NotificationsPage";
+import { SettingsPage } from "@/pages/SettingsPage";
 
 import { BuyerDashboard } from "@/pages/buyer/BuyerDashboard";
 import { BuyerOrdersPage } from "@/pages/buyer/OrdersPage";
@@ -89,6 +91,16 @@ function Router() {
       <Route path="/profile">
         <RequireAuth>
           <AppLayout><ProfilePage /></AppLayout>
+        </RequireAuth>
+      </Route>
+      <Route path="/notifications">
+        <RequireAuth>
+          <AppLayout><NotificationsPage /></AppLayout>
+        </RequireAuth>
+      </Route>
+      <Route path="/settings">
+        <RequireAuth>
+          <AppLayout><SettingsPage /></AppLayout>
         </RequireAuth>
       </Route>
 
