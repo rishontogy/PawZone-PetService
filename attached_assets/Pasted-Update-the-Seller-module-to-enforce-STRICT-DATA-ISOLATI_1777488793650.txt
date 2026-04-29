@@ -1,0 +1,263 @@
+Update the Seller module to enforce STRICT DATA ISOLATION and ACCESS CONTROL.
+
+This is a CRITICAL SECURITY FIX.
+
+---
+
+# 🔐 1. CORE PROBLEM
+
+---
+
+Currently:
+
+* Sellers can see orders/listings of other sellers
+* Approval/rejection visible to all sellers
+* Data is NOT isolated
+
+---
+
+❌ This is a **major security issue**
+
+---
+
+# ✅ 2. REQUIRED SECURITY RULE
+
+---
+
+## 🔒 Each Seller must ONLY see:
+
+* Their own listings
+* Their own orders
+* Their own customers (only those who purchased from them)
+
+---
+
+## ❌ Sellers MUST NOT see:
+
+* Other sellers’ products
+* Other sellers’ orders
+* Other sellers’ customers
+
+---
+
+# 🧠 3. DATA ISOLATION LOGIC (MANDATORY)
+
+---
+
+## Every product must include:
+
+```js
+seller_id
+```
+
+---
+
+## Every order must include:
+
+```js
+seller_id
+```
+
+---
+
+## 🔐 Query Rule:
+
+```js
+FETCH data WHERE seller_id = current_logged_in_seller
+```
+
+---
+
+## ❗ NEVER fetch global data for sellers
+
+---
+
+# 🏪 4. SELLER ORDER PAGE FIX
+
+---
+
+## ❌ Current Problem:
+
+* All sellers see all orders
+
+---
+
+## ✅ Fix:
+
+---
+
+### Seller should ONLY see:
+
+* Orders for THEIR products
+
+---
+
+## Example:
+
+If Seller A posted Dog A:
+
+✔ Only Seller A sees orders for Dog A
+❌ Seller B should NOT see it
+
+---
+
+# ✔️ 5. APPROVAL / REJECTION CONTROL
+
+---
+
+## ❌ Current Problem:
+
+* All sellers can approve/reject
+
+---
+
+## ✅ Fix:
+
+---
+
+### Only the product owner can:
+
+* Accept order
+* Reject order
+
+---
+
+## Rule:
+
+```js
+IF order.seller_id == current_user_id:
+    SHOW Accept/Reject buttons
+ELSE:
+    HIDE buttons
+```
+
+---
+
+# 🔐 6. CUSTOMER DATA SECURITY
+
+---
+
+## Seller can ONLY see:
+
+* Buyer details related to THEIR orders
+
+---
+
+## ❌ Must NOT access:
+
+* Other buyers
+* Global customer data
+
+---
+
+# 🛡 7. BACKEND VALIDATION (VERY IMPORTANT)
+
+---
+
+## Do NOT rely only on UI hiding
+
+---
+
+## Enforce at backend:
+
+```js
+IF request.seller_id != logged_in_seller_id:
+    DENY access
+```
+
+---
+
+## Applies to:
+
+* View requests
+* Update requests
+* Order actions
+
+---
+
+# 🔍 8. ADMIN EXCEPTION
+
+---
+
+## Admin can:
+
+✔ View ALL sellers
+✔ View ALL orders
+✔ Approve/reject listings
+
+---
+
+## Sellers cannot override this
+
+---
+
+# 🧪 9. VALIDATION TESTS
+
+---
+
+## Case 1:
+
+Login as Seller A
+→ Only see own products
+✔ Pass
+
+---
+
+## Case 2:
+
+Login as Seller B
+→ Cannot see Seller A data
+✔ Pass
+
+---
+
+## Case 3:
+
+Seller tries to access another seller’s order via API
+→ Access denied
+✔ Pass
+
+---
+
+## Case 4:
+
+Only correct seller sees Accept/Reject
+✔ Pass
+
+---
+
+# ⚠️ 10. ERROR HANDLING
+
+---
+
+If unauthorized access attempted:
+
+* Show: “Access Denied”
+* Log in system (for admin review)
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this fix:
+
+✔ Full seller data isolation
+✔ No cross-seller visibility
+✔ Secure order handling
+✔ Proper approval ownership
+
+---
+
+## FINAL RULE:
+
+Seller data must be **PRIVATE BY DEFAULT**
+
+No shared visibility
+No accidental exposure
+No security loopholes
+
+---
+
+This must behave like a real secure marketplace system.

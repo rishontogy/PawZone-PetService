@@ -173,12 +173,24 @@ router.post("/orders", authMiddleware, async (req, res): Promise<void> => {
 });
 
 router.get("/orders/:id", authMiddleware, async (req, res): Promise<void> => {
+  const user = (req as any).user;
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
 
   const [orderRow] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
   if (!orderRow) {
     res.status(404).json({ error: "Order not found" });
+    return;
+  }
+
+  // Strict isolation: only the buyer, seller, assigned transporter, or admin can view this order.
+  const isParticipant =
+    orderRow.buyerId === user.id ||
+    orderRow.sellerId === user.id ||
+    (orderRow.transporterId != null && orderRow.transporterId === user.id);
+  if (!isParticipant && user.role !== "admin") {
+    req.log?.warn({ userId: user.id, orderId: id, role: user.role }, "Unauthorized order view attempt");
+    res.status(403).json({ error: "Access Denied" });
     return;
   }
 
@@ -234,6 +246,13 @@ router.patch("/orders/:id", authMiddleware, async (req, res): Promise<void> => {
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
   if (!order) {
     res.status(404).json({ error: "Order not found" });
+    return;
+  }
+
+  // Strict isolation: only the seller who owns the order (or admin) can change its status.
+  if (order.sellerId !== user.id && user.role !== "admin") {
+    req.log?.warn({ userId: user.id, orderId: id, role: user.role }, "Unauthorized order status change attempt");
+    res.status(403).json({ error: "Access Denied" });
     return;
   }
 
@@ -450,6 +469,17 @@ router.post("/orders/:id/issue", authMiddleware, async (req, res): Promise<void>
   const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
   if (!order) {
     res.status(404).json({ error: "Order not found" });
+    return;
+  }
+
+  // Only participants on this order can report an issue against it.
+  const isParticipant =
+    order.buyerId === user.id ||
+    order.sellerId === user.id ||
+    (order.transporterId != null && order.transporterId === user.id);
+  if (!isParticipant && user.role !== "admin") {
+    req.log?.warn({ userId: user.id, orderId: id, role: user.role }, "Unauthorized issue report attempt");
+    res.status(403).json({ error: "Access Denied" });
     return;
   }
 
