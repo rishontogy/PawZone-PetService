@@ -54,7 +54,13 @@ function addressMatchesRouteKeywords(address: string | null | undefined, keyword
   return false;
 }
 
-const PLATFORM_FEE_PER_ORDER = 40;
+// Tiered platform fee: ≥₹200 transport fee → ₹40 platform; otherwise → ₹20 platform.
+const PLATFORM_FEE_HIGH = 40;
+const PLATFORM_FEE_LOW = 20;
+const PLATFORM_FEE_THRESHOLD = 200;
+function computeTransportPlatformFee(transportFee: number): number {
+  return transportFee >= PLATFORM_FEE_THRESHOLD ? PLATFORM_FEE_HIGH : PLATFORM_FEE_LOW;
+}
 const MAX_ROUTES_PER_TRANSPORTER = 7;
 
 router.get("/transporter/routes", authMiddleware, async (req, res): Promise<void> => {
@@ -295,18 +301,22 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
     return;
   }
 
-  const transportFee = Number(req.body?.transportFee ?? 0);
+  const rawFee = req.body?.transportFee;
+  const transportFee = typeof rawFee === "number" ? rawFee : Number(rawFee);
   if (!Number.isFinite(transportFee) || transportFee <= 0) {
-    res.status(400).json({ error: "transportFee is required and must be a positive number" });
+    res.status(400).json({ error: "Enter a valid transport amount (must be greater than ₹0)." });
     return;
   }
-  if (transportFee <= PLATFORM_FEE_PER_ORDER) {
-    res.status(400).json({ error: `Transport fee must be greater than ₹${PLATFORM_FEE_PER_ORDER} (flat platform fee).` });
+  const transportFeeInt = Math.floor(transportFee);
+  // Tiered platform fee: ≥₹200 → ₹40, otherwise ₹20.
+  const transportPlatformFee = computeTransportPlatformFee(transportFeeInt);
+  if (transportFeeInt <= transportPlatformFee) {
+    res.status(400).json({
+      error: `Transport amount must be greater than the platform fee (₹${transportPlatformFee}).`,
+    });
     return;
   }
-
-  // Flat platform fee model: transporter earns (fee - ₹40) per order, no percentage.
-  const transporterShareAmount = Math.max(0, transportFee - PLATFORM_FEE_PER_ORDER);
+  const transporterShareAmount = transportFeeInt - transportPlatformFee;
 
   // Recompute total to include transport fee, so the buyer's payment includes it.
   const newTotal = Number(order.subtotal) + Number(order.platformFee) + transportFee;

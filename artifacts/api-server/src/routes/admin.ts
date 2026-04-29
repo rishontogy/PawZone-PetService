@@ -234,9 +234,18 @@ router.get("/admin/dashboard", async (req, res): Promise<void> => {
 
   const allOrders = await db.select().from(ordersTable);
   const totalOrders = allOrders.length;
-  const platformRevenue = allOrders
-    .filter(o => o.paymentStatus === "paid")
-    .reduce((s, o) => s + (o.platformFee || 0), 0);
+  const paidOrders = allOrders.filter(o => o.paymentStatus === "paid");
+  const sellerCommission = paidOrders.reduce((s, o) => s + Number(o.platformFee || 0), 0);
+  // Transport commission = transportFee - transporterShareAmount per paid order with transporter assigned.
+  const transportCommission = paidOrders.reduce((s, o) => {
+    const fee = Number((o as any).transportFee ?? 0);
+    if (fee <= 0) return s;
+    const stored = Number((o as any).transporterShareAmount ?? 0);
+    if (stored > 0) return s + Math.max(0, fee - stored);
+    const platform = fee >= 200 ? 40 : 20;
+    return s + platform;
+  }, 0);
+  const platformRevenue = sellerCommission + transportCommission;
 
   const allDisputes = await db.select().from(disputesTable);
   const activeDisputes = allDisputes.filter(d => d.status === "open" || d.status === "in_review").length;

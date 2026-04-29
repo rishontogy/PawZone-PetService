@@ -313,12 +313,23 @@ export function TransporterDashboard() {
                             placeholder="e.g. 250"
                             data-testid={`input-transport-fee-${order.id}`}
                           />
-                          {Number(acceptForm.transportFee) > 0 && sharePct >= 10 && (
-                            <p className="text-[11px] text-blue-700 mt-1">
-                              Platform share ({sharePct}%): {formatPrice((Number(acceptForm.transportFee) * sharePct) / 100)} •
-                              You earn: {formatPrice(Number(acceptForm.transportFee) - (Number(acceptForm.transportFee) * sharePct) / 100)}
-                            </p>
-                          )}
+                          {(() => {
+                            const amt = Number(acceptForm.transportFee);
+                            if (!Number.isFinite(amt) || amt <= 0) {
+                              return (
+                                <p className="text-[11px] text-gray-500 mt-1">
+                                  Enter a positive amount. Platform fee: ₹20 if rate &lt; ₹200, ₹40 if rate ≥ ₹200.
+                                </p>
+                              );
+                            }
+                            const platformFee = amt >= 200 ? 40 : 20;
+                            const earn = Math.max(0, amt - platformFee);
+                            return (
+                              <p className="text-[11px] text-blue-700 mt-1">
+                                Platform fee: {formatPrice(platformFee)} • You earn: <span className="font-semibold">{formatPrice(earn)}</span>
+                              </p>
+                            );
+                          })()}
                         </div>
                         <div className="flex gap-2">
                           <Button

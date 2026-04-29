@@ -130,18 +130,21 @@ router.get("/dashboard/seller", authMiddleware, async (req, res): Promise<void> 
 router.get("/dashboard/transporter", authMiddleware, async (req, res): Promise<void> => {
   const user = (req as any).user;
 
-  const PLATFORM_FEE_PER_ORDER = 40;
-
   const orders = await db.select().from(ordersTable).where(eq(ordersTable.transporterId, user.id));
   // Active = assigned to me but not yet finished
   const activeDeliveries = orders.filter(o => !["delivered", "completed", "cancelled", "refunded"].includes(o.status)).length;
   // Completed = delivered OR buyer-confirmed completed
   const completedOrders = orders.filter(o => ["delivered", "completed"].includes(o.status));
   const completedDeliveries = completedOrders.length;
-  // Earnings: sum(transportFee - flat ₹40 platform fee) per completed order
+  // Earnings: sum of stored transporterShareAmount per completed order.
+  // Falls back to (transportFee - tiered platform fee) for legacy rows that pre-date the field.
   const totalEarnings = completedOrders.reduce((sum, o) => {
+    const stored = Number((o as any).transporterShareAmount ?? 0);
+    if (stored > 0) return sum + stored;
     const fee = Number((o as any).transportFee ?? 0);
-    return sum + Math.max(0, fee - PLATFORM_FEE_PER_ORDER);
+    if (fee <= 0) return sum;
+    const platform = fee >= 200 ? 40 : 20;
+    return sum + Math.max(0, fee - platform);
   }, 0);
   const routes = await db.select().from(transporterRoutesTable)
     .where(eq(transporterRoutesTable.transporterId, user.id));
