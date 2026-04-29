@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, platformFee } from "@/lib/api";
-import { PawPrint, MapPin, ShoppingCart, Shield, ChevronLeft, Star } from "lucide-react";
+import { PawPrint, MapPin, ShoppingCart, Shield, ChevronLeft, Star, Play } from "lucide-react";
+
+type MediaItem = { kind: "image" | "video"; url: string };
 
 export function ListingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -56,36 +58,66 @@ export function ListingDetailPage() {
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-5xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Photos */}
-          <div className="space-y-3">
-            <div className="aspect-square bg-muted rounded-xl overflow-hidden">
-              {listing.photos?.[photoIdx] ? (
-                <img
-                  src={listing.photos[photoIdx]}
-                  alt={listing.breed}
-                  className="w-full h-full object-cover"
-                  onError={(e) => { (e.target as HTMLImageElement).src = "https://via.placeholder.com/600x600?text=Pet"; }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <PawPrint className="w-16 h-16 text-muted-foreground" />
+          {/* Media gallery (photos + optional video) */}
+          {(() => {
+            const media: MediaItem[] = [
+              ...(listing.photos ?? []).map((url) => ({ kind: "image" as const, url })),
+              ...(listing.videoUrl ? [{ kind: "video" as const, url: listing.videoUrl }] : []),
+            ];
+            const safeIdx = Math.min(photoIdx, Math.max(0, media.length - 1));
+            const active = media[safeIdx];
+            return (
+              <div className="space-y-3">
+                <div className="aspect-square bg-muted rounded-xl overflow-hidden flex items-center justify-center">
+                  {active ? (
+                    active.kind === "image" ? (
+                      <img
+                        src={active.url}
+                        alt={listing.breed}
+                        className="w-full h-full object-cover"
+                        data-testid="img-listing-main"
+                        onError={(e) => { (e.target as HTMLImageElement).src = "https://via.placeholder.com/600x600?text=Pet"; }}
+                      />
+                    ) : (
+                      <video
+                        key={active.url}
+                        src={active.url}
+                        controls
+                        playsInline
+                        className="w-full h-full object-cover bg-black"
+                        data-testid="video-listing-main"
+                      />
+                    )
+                  ) : (
+                    <PawPrint className="w-16 h-16 text-muted-foreground" />
+                  )}
                 </div>
-              )}
-            </div>
-            {listing.photos && listing.photos.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto">
-                {listing.photos.map((photo, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setPhotoIdx(i)}
-                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${i === photoIdx ? "border-primary" : "border-transparent"}`}
-                  >
-                    <img src={photo} alt="" className="w-full h-full object-cover" />
-                  </button>
-                ))}
+                {media.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto" data-testid="gallery-thumbnails">
+                    {media.map((m, i) => (
+                      <button
+                        key={`${m.kind}-${i}`}
+                        onClick={() => setPhotoIdx(i)}
+                        className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${i === safeIdx ? "border-primary" : "border-transparent"}`}
+                        data-testid={`thumb-${m.kind}-${i}`}
+                      >
+                        {m.kind === "image" ? (
+                          <img src={m.url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <>
+                            <video src={m.url} className="w-full h-full object-cover bg-black" muted preload="metadata" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                              <Play className="w-5 h-5 text-white" fill="currentColor" />
+                            </div>
+                          </>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Details */}
           <div className="space-y-4">

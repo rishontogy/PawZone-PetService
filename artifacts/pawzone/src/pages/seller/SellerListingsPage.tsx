@@ -39,9 +39,13 @@ export function SellerListingsPage() {
     }
     setRestocking(true);
     try {
+      const token = localStorage.getItem("pawzone_token");
       const res = await fetch(`/api/listings/${restockId}/restock`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token ?? ""}`,
+        },
         credentials: "include",
         body: JSON.stringify({ quantityToAdd: qty }),
       });

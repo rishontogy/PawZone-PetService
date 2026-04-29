@@ -1,0 +1,297 @@
+Fix Seller Restock Authorization, Media Visibility, and Buyer Cart Auto-Restore System.
+
+This is a CRITICAL FIX affecting inventory, UI, and user experience.
+
+---
+
+# 🔐 1. SELLER RESTOCK – UNAUTHORIZED ERROR
+
+---
+
+## ❌ Problem:
+
+* Seller cannot restock
+* Showing: “Unauthorized”
+
+---
+
+## ✅ Required Fix:
+
+---
+
+### 🔹 Root Cause:
+
+Backend is not verifying correct seller ownership
+
+---
+
+### 🔹 Fix Logic:
+
+```js
+IF product.seller_id != logged_in_user_id:
+    DENY access
+ELSE:
+    ALLOW restock
+```
+
+---
+
+### 🔹 Ensure:
+
+* Only the **owner seller** can restock
+* Admin can also override (optional)
+
+---
+
+## 🧪 Validation:
+
+* Seller A can restock their product ✔
+* Seller B cannot restock others’ product ✔
+
+---
+
+---
+
+# 🖼 2. MEDIA UPLOAD & VISIBILITY FIX
+
+---
+
+## ❌ Problems:
+
+* Uploaded images not visible
+* Videos not loading
+* No slider/gallery for multiple media
+
+---
+
+## ✅ Required Fix:
+
+---
+
+### 🔹 A. Media Storage
+
+Ensure:
+
+* Images/videos saved with correct path
+* Stored in database as:
+
+```js
+product.media = [
+  { type: "image", url: "..." },
+  { type: "video", url: "..." }
+]
+```
+
+---
+
+### 🔹 B. Media Rendering
+
+* Load media properly in:
+
+  * Seller listing page
+  * Buyer product page
+
+---
+
+### 🔹 C. Add Media Slider (IMPORTANT)
+
+---
+
+## UI Requirement:
+
+* Add horizontal slider / carousel
+
+---
+
+## Behavior:
+
+* Swipe / scroll through:
+
+  * Multiple images
+  * Video preview
+
+---
+
+## Example:
+
+```
+[ Image 1 ] [ Image 2 ] [ Video ▶ ]
+```
+
+---
+
+### 🔹 D. Fallback Handling:
+
+If media fails:
+
+* Show placeholder image
+* Do NOT leave blank
+
+---
+
+---
+
+# 🛒 3. CART AUTO-RESTORE SYSTEM (INVENTORY LOCK FIX)
+
+---
+
+## ❌ Problem:
+
+* Items added to cart are locked indefinitely
+* Blocks inventory
+
+---
+
+## ✅ Required Behavior:
+
+---
+
+## ⏱ Cart Lock Duration:
+
+* **3 Hours**
+
+---
+
+## 🔹 Logic:
+
+---
+
+### When item added to cart:
+
+```js
+cart_item.lock_time = current_time
+cart_item.expiry_time = current_time + 3 hours
+```
+
+---
+
+---
+
+### Background Job:
+
+Run check periodically:
+
+```js
+IF current_time > expiry_time AND order_not_placed:
+    REMOVE item from cart
+    RESTORE product quantity
+```
+
+---
+
+---
+
+## 🔁 Restore Behavior:
+
+* Product quantity increases back
+* Product becomes visible again if needed
+
+---
+
+---
+
+# 🔔 4. USER NOTIFICATION (IMPORTANT UX)
+
+---
+
+## Before removal:
+
+At ~2.5 hours:
+
+* Notify buyer:
+
+“Your cart item will expire soon. Complete your order.”
+
+---
+
+---
+
+## After removal:
+
+* Notify:
+
+“Item removed from cart due to inactivity”
+
+---
+
+---
+
+# 🧪 5. VALIDATION TESTS
+
+---
+
+## Case 1:
+
+Seller restocks → works
+✔ Authorized
+
+---
+
+## Case 2:
+
+Seller uploads image → visible
+✔ Works
+
+---
+
+## Case 3:
+
+Multiple media → slider works
+✔ Works
+
+---
+
+## Case 4:
+
+Add to cart → wait 3 hrs
+✔ Item removed
+
+---
+
+## Case 5:
+
+Stock restored correctly
+✔ Works
+
+---
+
+---
+
+# ⚠️ 6. ERROR HANDLING
+
+---
+
+* No broken image links
+* No blank UI
+* No unauthorized actions
+* No inventory mismatch
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+✔ Seller can restock without error
+✔ Media visible across app
+✔ Product gallery works smoothly
+✔ Cart auto-clears after 3 hrs
+✔ Inventory restored correctly
+
+---
+
+## FINAL RULE:
+
+Inventory, media, and access must ALWAYS be:
+
+→ Accurate
+→ Secure
+→ Consistent
+
+No broken UI
+No stuck inventory
+No unauthorized access

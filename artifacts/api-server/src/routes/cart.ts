@@ -72,10 +72,19 @@ router.post("/cart", authMiddleware, async (req, res): Promise<void> => {
   const [existing] = await db.select().from(cartTable)
     .where(and(eq(cartTable.userId, user.id), eq(cartTable.listingId, listingId)));
 
+  // Each add/update resets the 3-hour expiry timer and clears any prior warning state.
   if (existing) {
-    await db.update(cartTable).set({ quantity }).where(eq(cartTable.id, existing.id));
+    await db.update(cartTable)
+      .set({ quantity, addedAt: new Date(), expiringNotified: false })
+      .where(eq(cartTable.id, existing.id));
   } else {
-    await db.insert(cartTable).values({ userId: user.id, listingId, quantity });
+    await db.insert(cartTable).values({
+      userId: user.id,
+      listingId,
+      quantity,
+      addedAt: new Date(),
+      expiringNotified: false,
+    });
   }
 
   const cart = await getCartForUser(user.id);
