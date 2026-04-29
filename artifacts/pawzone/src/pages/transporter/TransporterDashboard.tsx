@@ -20,8 +20,6 @@ export function TransporterDashboard() {
   const [deleteRouteId, setDeleteRouteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const sharePct = Number((user as any)?.platformSharePercent ?? 0);
-
   const { data: dash } = useGetTransporterDashboard({ query: { enabled: !!user } });
   const { data: routesData, refetch: refetchRoutes } = useGetTransporterRoutes({ query: { enabled: !!user } });
   const { data: ordersData, refetch } = useGetTransporterOrders({ query: { enabled: !!user } });
@@ -43,14 +41,6 @@ export function TransporterDashboard() {
   });
 
   const handleOpenAccept = (orderId: number) => {
-    if (sharePct < 10) {
-      toast({
-        variant: "destructive",
-        title: "Set your platform share %",
-        description: "Add a Platform Share % (≥10) in Settings before accepting deliveries.",
-      });
-      return;
-    }
     const now = new Date();
     const fmt = (d: Date) => d.toISOString().slice(0, 16);
     const pickupDefault = fmt(new Date(now.getTime() + 2 * 3600000));

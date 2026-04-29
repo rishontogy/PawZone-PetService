@@ -42,6 +42,21 @@ function extractCity(text: string | null | undefined, knownCities: string[]): st
   return null;
 }
 
+// Returns true if `address` contains ANY of the route's keywords (case-insensitive,
+// partial match). Keyword priority is the order they appear in the keywords array.
+function addressMatchesRouteKeywords(address: string | null | undefined, keywords: string[]): boolean {
+  if (!address || keywords.length === 0) return false;
+  const lower = address.toLowerCase();
+  for (const kw of keywords) {
+    const k = kw?.trim().toLowerCase();
+    if (k && k.length >= 2 && lower.includes(k)) return true;
+  }
+  return false;
+}
+
+const PLATFORM_FEE_PER_ORDER = 40;
+const MAX_ROUTES_PER_TRANSPORTER = 7;
+
 router.get("/transporter/routes", authMiddleware, async (req, res): Promise<void> => {
   const user = (req as any).user;
   const routes = await db.select().from(transporterRoutesTable)
@@ -66,6 +81,18 @@ router.post("/transporter/routes", authMiddleware, async (req, res): Promise<voi
   const stops: string[] = Array.isArray(rawStops)
     ? rawStops.filter((s: any) => typeof s === "string" && s.trim() !== "")
     : [];
+
+  // Enforce: max 7 routes per transporter, and only 1 route per day
+  const existing = await db.select().from(transporterRoutesTable)
+    .where(eq(transporterRoutesTable.transporterId, user.id));
+  if (existing.length >= MAX_ROUTES_PER_TRANSPORTER) {
+    res.status(400).json({ error: `You can have at most ${MAX_ROUTES_PER_TRANSPORTER} routes (one per weekday).` });
+    return;
+  }
+  if (existing.some(r => r.dayOfWeek?.toLowerCase() === parsed.data.dayOfWeek.toLowerCase())) {
+    res.status(400).json({ error: "Route already exists for this day" });
+    return;
+  }
 
   const [route] = await db.insert(transporterRoutesTable).values({
     transporterId: user.id,
@@ -112,6 +139,14 @@ router.patch("/transporter/routes/:id", authMiddleware, async (req, res): Promis
     ? rawStops.filter((s: any) => typeof s === "string" && s.trim() !== "")
     : [];
 
+  // Enforce: only 1 route per day (excluding this route)
+  const others = await db.select().from(transporterRoutesTable)
+    .where(eq(transporterRoutesTable.transporterId, user.id));
+  if (others.some(r => r.id !== id && r.dayOfWeek?.toLowerCase() === parsed.data.dayOfWeek.toLowerCase())) {
+    res.status(400).json({ error: "Route already exists for this day" });
+    return;
+  }
+
   const [updated] = await db.update(transporterRoutesTable).set({
     ...parsed.data,
     stops,
@@ -153,19 +188,22 @@ router.delete("/transporter/routes/:id", authMiddleware, async (req, res): Promi
 router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void> => {
   const user = (req as any).user;
 
-  // Load this transporter's routes and gather all cities they service
+  // Load this transporter's routes. Keywords come from startCity, endCity, AND stops
+  // (in route-input order) — the matching algorithm walks them as priority list.
   const myRoutes = await db.select().from(transporterRoutesTable)
     .where(eq(transporterRoutesTable.transporterId, user.id));
 
-  const routeCities = new Set<string>();
+  const routeKeywords: string[] = [];
   const routeDays = new Set<string>();
+  const seen = new Set<string>();
   for (const r of myRoutes) {
-    if (r.startCity) routeCities.add(r.startCity);
-    if (r.endCity) routeCities.add(r.endCity);
-    for (const s of (r.stops ?? [])) if (s) routeCities.add(s);
+    const tokens = [r.startCity, ...(r.stops ?? []), r.endCity].filter((s): s is string => !!s);
+    for (const t of tokens) {
+      const key = t.trim().toLowerCase();
+      if (key && !seen.has(key)) { seen.add(key); routeKeywords.push(t.trim()); }
+    }
     if (r.dayOfWeek) routeDays.add(r.dayOfWeek);
   }
-  const cityList = Array.from(routeCities);
 
   // Days within next 2 days (today, tomorrow, day-after)
   const upcomingDays = new Set(nextNDays(3));
@@ -186,47 +224,44 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
     );
 
   const result = await Promise.all(candidates.map(async (order) => {
-    const [buyer] = await db.select({ name: usersTable.name, city: usersTable.city })
+    const [buyer] = await db.select({ name: usersTable.name, city: usersTable.city, address: usersTable.address })
       .from(usersTable).where(eq(usersTable.id, order.buyerId));
-    const [seller] = await db.select({ name: usersTable.name, city: usersTable.city })
+    const [seller] = await db.select({ name: usersTable.name, city: usersTable.city, address: usersTable.address })
       .from(usersTable).where(eq(usersTable.id, order.sellerId));
 
-    // Determine pickup city from the order's first listing (fallback to seller.city)
-    const items = await db.select({ city: listingsTable.city })
+    // Build full address text for both ends (for keyword matching)
+    const items = await db.select({ city: listingsTable.city, address: listingsTable.address })
       .from(orderItemsTable)
       .innerJoin(listingsTable, eq(orderItemsTable.listingId, listingsTable.id))
       .where(eq(orderItemsTable.orderId, order.id));
-    const pickupCity = items[0]?.city ?? seller?.city ?? null;
-
-    // Buyer's delivery city: try to extract from delivery address using known route cities,
-    // otherwise fall back to buyer.city
-    const deliveryCity =
-      extractCity(order.deliveryAddress, cityList) ??
-      extractCity(order.deliveryAddress, ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kollam", "Palakkad", "Alappuzha", "Malappuram", "Kottayam", "Kannur", "Kasaragod", "Wayanad", "Idukki", "Pathanamthitta"]) ??
-      buyer?.city ??
-      null;
+    const pickupAddress = [items[0]?.address, items[0]?.city, seller?.address, seller?.city]
+      .filter(Boolean).join(" ");
+    const deliveryAddress = [order.deliveryAddress, buyer?.address, buyer?.city]
+      .filter(Boolean).join(" ");
 
     return {
       ...order,
       buyerName: buyer?.name ?? "",
       sellerName: seller?.name ?? "",
-      pickupCity,
-      deliveryCity,
+      pickupCity: items[0]?.city ?? seller?.city ?? null,
+      deliveryCity: extractCity(order.deliveryAddress, routeKeywords) ?? buyer?.city ?? null,
+      _pickupAddress: pickupAddress,
+      _deliveryAddress: deliveryAddress,
     };
   }));
 
-  // Filter: keep orders assigned to me always, plus available orders that match my route cities
+  // Filter: assigned orders always show. For unassigned, BOTH pickup and delivery
+  // addresses must contain at least one of the transporter's route keywords.
   const filtered = result.filter((o) => {
     if (o.transporterId === user.id) return true;
-    if (cityList.length === 0) return false; // No routes set up → no available orders
-    const pickupOk = o.pickupCity && routeCities.has(o.pickupCity);
-    const deliveryOk = o.deliveryCity && routeCities.has(o.deliveryCity);
-    if (!pickupOk || !deliveryOk) return false;
-    // Only show if any of my routes runs in the next 2 days (today/tomorrow/day-after)
-    return hasUpcomingRoute;
+    if (routeKeywords.length === 0) return false;
+    if (!hasUpcomingRoute) return false;
+    return addressMatchesRouteKeywords(o._pickupAddress, routeKeywords)
+        && addressMatchesRouteKeywords(o._deliveryAddress, routeKeywords);
   });
 
-  res.json(filtered);
+  // Strip internal helper fields before returning
+  res.json(filtered.map(({ _pickupAddress, _deliveryAddress, ...rest }) => rest));
 });
 
 router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): Promise<void> => {
@@ -265,10 +300,13 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
     res.status(400).json({ error: "transportFee is required and must be a positive number" });
     return;
   }
+  if (transportFee <= PLATFORM_FEE_PER_ORDER) {
+    res.status(400).json({ error: `Transport fee must be greater than ₹${PLATFORM_FEE_PER_ORDER} (flat platform fee).` });
+    return;
+  }
 
-  const [me] = await db.select().from(usersTable).where(eq(usersTable.id, user.id));
-  const sharePercent = Math.max(10, Number(me?.platformSharePercent ?? 10));
-  const transporterShareAmount = Math.round(transportFee * (sharePercent / 100));
+  // Flat platform fee model: transporter earns (fee - ₹40) per order, no percentage.
+  const transporterShareAmount = Math.max(0, transportFee - PLATFORM_FEE_PER_ORDER);
 
   // Recompute total to include transport fee, so the buyer's payment includes it.
   const newTotal = Number(order.subtotal) + Number(order.platformFee) + transportFee;

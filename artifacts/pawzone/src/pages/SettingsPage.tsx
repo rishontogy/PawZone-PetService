@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, ChevronLeft, User, Mail, Phone, Lock, MapPin, LogOut, Percent, AlertCircle } from "lucide-react";
+import { Settings as SettingsIcon, ChevronLeft, User, Mail, Phone, Lock, MapPin, LogOut, Truck, AlertCircle } from "lucide-react";
 
 export function SettingsPage() {
   const { user, logout, refresh } = useAuth() as any;
@@ -25,9 +25,6 @@ export function SettingsPage() {
   const [reportOpen, setReportOpen] = useState(false);
   const [reportText, setReportText] = useState("");
   const [submittingReport, setSubmittingReport] = useState(false);
-  const [sharePct, setSharePct] = useState<string>(
-    String((user as any)?.platformSharePercent ?? "")
-  );
 
   useEffect(() => {
     if (!user) return;
@@ -37,7 +34,6 @@ export function SettingsPage() {
     setAddress((user as any)?.address ?? "");
     setCity((user as any)?.city ?? "");
     setPincode((user as any)?.pincode ?? "");
-    setSharePct(String((user as any)?.platformSharePercent ?? ""));
   }, [user]);
 
   const callUpdate = async (payload: any, label: string) => {
@@ -280,36 +276,19 @@ export function SettingsPage() {
           </Card>
 
           {role === "transporter" && (
-            <Card className="border-amber-200 bg-amber-50/40">
+            <Card className="border-blue-200 bg-blue-50/40">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Percent className="w-4 h-4 text-amber-700" /> Platform Share %
+                  <Truck className="w-4 h-4 text-blue-700" /> Transporter Earnings
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-xs text-amber-900">
-                  Share of each transport fee paid to the platform (minimum 10%). Required after admin approval to receive deliveries.
+              <CardContent className="space-y-2">
+                <p className="text-sm text-blue-900">
+                  PawZone charges a flat <span className="font-bold">₹40 platform fee</span> per delivered order. You keep the rest of the transport fee you set when accepting an order.
                 </p>
-                <div>
-                  <Label htmlFor="share-pct" className="text-xs">Share (%)</Label>
-                  <Input
-                    id="share-pct"
-                    data-testid="input-platform-share"
-                    type="number"
-                    min={10}
-                    max={100}
-                    value={sharePct}
-                    onChange={(e) => setSharePct(e.target.value)}
-                  />
-                </div>
-                <Button
-                  size="sm"
-                  data-testid="button-save-share"
-                  disabled={!sharePct || Number(sharePct) < 10 || saving === "Platform Share"}
-                  onClick={() => callUpdate({ platformSharePercent: Number(sharePct) }, "Platform Share")}
-                >
-                  {saving === "Platform Share" ? "Saving…" : "Save platform share"}
-                </Button>
+                <p className="text-xs text-blue-700">
+                  Example: Set ₹150 transport fee → you earn ₹110 per delivery.
+                </p>
               </CardContent>
             </Card>
           )}

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { getStatusColor } from "@/lib/api";
-import { User, Shield, Percent, Settings as SettingsIcon, ChevronLeft } from "lucide-react";
+import { User, Shield, Settings as SettingsIcon, ChevronLeft } from "lucide-react";
 import { Link } from "wouter";
 
 export function ProfilePage() {
@@ -91,19 +91,6 @@ export function ProfilePage() {
                   <p className="text-xs text-muted-foreground">City</p>
                   <p className="text-sm font-medium">{(profileUser as any)?.city}, Kerala</p>
                 </div>
-                {(profileUser as any)?.role === "transporter" && (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
-                    <Percent className="w-4 h-4 text-amber-700" />
-                    <div className="flex-1">
-                      <p className="text-xs text-amber-800 font-medium">Platform Share %</p>
-                      <p className="text-sm font-semibold text-amber-900">
-                        {(profileUser as any)?.platformSharePercent
-                          ? `${(profileUser as any).platformSharePercent}%`
-                          : "Not set — required to accept deliveries"}
-                      </p>
-                    </div>
-                  </div>
-                )}
 
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => {

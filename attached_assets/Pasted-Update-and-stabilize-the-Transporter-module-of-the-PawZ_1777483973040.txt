@@ -1,0 +1,386 @@
+Update and stabilize the Transporter module of the PawZone Windows desktop application.
+
+This is a CRITICAL FIX + LOGIC IMPROVEMENT phase.
+
+Fix all issues and enforce the following rules strictly.
+
+If ANY issue is found:
+→ Fix immediately
+→ Re-test that feature
+
+---
+
+# 📊 1. TRANSPORTER DASHBOARD METRICS FIX
+
+---
+
+## ❌ Problem:
+
+The following are NOT updating correctly:
+
+* Deliveries Done
+* Active Orders
+* Total Earnings
+
+---
+
+## ✅ Required Fix:
+
+---
+
+### 🔹 Deliveries Done
+
+Increase count when:
+
+* Delivery completed
+* Buyer confirms delivery
+
+---
+
+### 🔹 Active Orders
+
+Count all orders where:
+
+* Assigned but NOT delivered
+
+---
+
+### 🔹 Total Earnings
+
+---
+
+## Calculation:
+
+```js
+earning_per_order = transporter_charge - 40
+```
+
+---
+
+### Explanation:
+
+* Flat ₹20 platform fee per order
+* Deduct from transporter earnings
+
+---
+
+## Ensure:
+
+* Real-time updates
+* Correct after refresh
+* Consistent across all pages
+
+---
+
+# 💰 2. REMOVE PERCENTAGE SYSTEM
+
+---
+
+## ❌ Remove completely:
+
+* Percentage input
+* Percentage logic
+* Percentage display
+
+---
+
+## ✅ Replace with:
+
+Flat system:
+
+```js
+platform_fee_transporter = 40 * number_of_orders
+```
+
+---
+
+## Result:
+
+* Simple
+* Consistent
+* Matches PRD
+
+---
+
+# 🗺 3. ROUTE SYSTEM UPDATE (TEXT-BASED)
+
+---
+
+## ❌ Current Problem:
+
+* District dropdown too limited
+* Cannot capture real routes
+
+---
+
+## ✅ New System:
+
+---
+
+### 🔹 Route Input:
+
+* Use TEXT INPUT instead of dropdown
+
+---
+
+### Example Input:
+
+```
+puthumana(H) peroor PO ettumanoor kottayam
+```
+
+---
+
+## 🧠 4. ROUTE MATCHING LOGIC (IMPORTANT)
+
+---
+
+When matching orders:
+
+---
+
+## Step-by-step filtering:
+
+```text
+1. Extract keywords from address
+2. Check in order:
+
+   → peroor
+   → ettumanoor
+   → kottayam
+```
+
+---
+
+## Matching Rule:
+
+* First match found → assign order
+* If no match → move to next keyword
+
+---
+
+## Example 1:
+
+Input:
+
+```
+puthumana peroor ettumanoor kottayam
+```
+
+Match priority:
+
+1. peroor
+2. ettumanoor
+3. kottayam
+
+---
+
+## Example 2:
+
+Input:
+
+```
+puthumana kottayam
+```
+
+Match:
+→ kottayam
+
+---
+
+## Ensure:
+
+* Case-insensitive matching
+* Partial match allowed
+* Works for both:
+
+  * Seller location
+  * Buyer location
+
+---
+
+# 📅 5. ROUTE LIMIT SYSTEM
+
+---
+
+## Rule:
+
+Each transporter can only have:
+
+* **1 route per day**
+* Maximum **7 routes (1 per weekday)**
+
+---
+
+## ❌ Prevent:
+
+* Multiple routes for same day
+* More than 7 routes total
+
+---
+
+## ✅ On Save:
+
+---
+
+### Check:
+
+```js
+IF route_exists_for_day:
+    BLOCK save
+    SHOW "Route already exists for this day"
+```
+
+---
+
+### Also:
+
+```js
+IF total_routes >= 7:
+    BLOCK new route
+```
+
+---
+
+---
+
+# 🗑 6. ROUTE MANAGEMENT
+
+---
+
+Ensure transporter can:
+
+---
+
+### ✅ Edit route
+
+### ✅ Delete route
+
+---
+
+## On Delete:
+
+* Remove from DB
+* Update UI instantly
+
+---
+
+---
+
+# 🔁 7. ORDER FILTERING BASED ON ROUTE
+
+---
+
+Orders should appear ONLY if:
+
+---
+
+✔ Transporter route matches:
+
+* Seller location
+  AND
+* Buyer location
+
+---
+
+✔ Within delivery timeframe
+
+---
+
+## Ensure:
+
+* No unrelated orders shown
+* Filtering is accurate
+
+---
+
+---
+
+# 🧪 8. VALIDATION TESTS
+
+---
+
+## Case 1:
+
+Add route → saved
+✔ Works
+
+---
+
+## Case 2:
+
+Add second route same day
+❌ Blocked
+
+---
+
+## Case 3:
+
+Add more than 7 routes
+❌ Blocked
+
+---
+
+## Case 4:
+
+Accept order → earnings updated
+✔ Works
+
+---
+
+## Case 5:
+
+Complete delivery
+✔ Deliveries count increases
+
+---
+
+## Case 6:
+
+Route matching works with partial address
+✔ Works
+
+---
+
+---
+
+# ⚠️ 9. ERROR HANDLING
+
+---
+
+* No empty route input
+* No duplicate entries
+* No broken filtering
+* No incorrect earnings
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+✔ Dashboard stats accurate
+✔ Flat ₹40 fee applied
+✔ Percentage system removed
+✔ Route input flexible (text-based)
+✔ Smart location filtering working
+✔ Route limits enforced (7 max)
+✔ Orders matched correctly
+
+---
+
+## FINAL RULE:
+
+Transport system must be:
+
+→ Accurate
+→ Simple
+→ Reliable
+
+No wrong assignments
+No wrong earnings
+No broken routes
