@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { eq, and, gt, gte, lte, ilike, or, sql, ne, inArray } from "drizzle-orm";
+import { eq, and, gt, gte, lte, ilike, or, sql, ne } from "drizzle-orm";
 import { db, listingsTable, usersTable, reviewsTable, ordersTable, orderItemsTable, cartTable } from "@workspace/db";
 import {
   GetListingsQueryParams,
@@ -204,8 +204,6 @@ router.put("/listings/:id", authMiddleware, async (req, res): Promise<void> => {
   res.json({ ...updated, sellerName: seller.name });
 });
 
-const ACTIVE_ORDER_STATUSES = ["pending", "confirmed", "ready", "picked_up", "in_transit", "delivered"];
-
 router.delete("/listings/:id", authMiddleware, async (req, res): Promise<void> => {
   const user = (req as any).user;
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
@@ -221,27 +219,23 @@ router.delete("/listings/:id", authMiddleware, async (req, res): Promise<void> =
     return;
   }
 
-  const activeOrderItems = await db
+  // Soft-delete if this listing has ANY order history (active or past)
+  const anyOrderItems = await db
     .select({ orderId: orderItemsTable.orderId })
     .from(orderItemsTable)
-    .innerJoin(ordersTable, eq(orderItemsTable.orderId, ordersTable.id))
-    .where(
-      and(
-        eq(orderItemsTable.listingId, id),
-        inArray(ordersTable.status, ACTIVE_ORDER_STATUSES)
-      )
-    );
+    .where(eq(orderItemsTable.listingId, id))
+    .limit(1);
 
-  if (activeOrderItems.length > 0) {
+  if (anyOrderItems.length > 0) {
     await db.update(listingsTable)
       .set({ status: "inactive" })
       .where(eq(listingsTable.id, id));
-    res.json({ success: true, message: "Listing deactivated (has active orders)", softDeleted: true });
+    res.json({ success: true, message: "Listing archived (has order history)", softDeleted: true });
   } else {
-    // Remove cart items referencing this listing before hard delete
+    // No order history — safe to hard delete; clear cart references first
     await db.delete(cartTable).where(eq(cartTable.listingId, id));
     await db.delete(listingsTable).where(eq(listingsTable.id, id));
-    res.json({ success: true, message: "Deleted", softDeleted: false });
+    res.json({ success: true, message: "Listing deleted", softDeleted: false });
   }
 });
 

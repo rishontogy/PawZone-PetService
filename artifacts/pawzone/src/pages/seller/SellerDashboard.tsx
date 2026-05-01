@@ -115,18 +115,31 @@ export function SellerDashboard() {
             </div>
             {recentOrders.length ? (
               <div className="divide-y divide-gray-50">
-                {recentOrders.slice(0, 5).map((order: any) => (
-                  <div key={order.id} className="px-5 py-3.5 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">#{order.orderNumber}</p>
-                      <p className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</p>
+                {recentOrders.slice(0, 5).map((order: any) => {
+                  const firstItem = order.items?.[0];
+                  const sellerEarning = Number(order.sellerNet ?? 0);
+                  return (
+                    <div key={order.id} className="px-5 py-3.5 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-gray-900">#{order.orderNumber}</p>
+                          {firstItem && (
+                            <p className="text-xs text-gray-500 mt-0.5 truncate">
+                              {firstItem.breed ?? "Pet"} × {firstItem.quantity}
+                              {order.items?.length > 1 && ` +${order.items.length - 1} more`}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-sm font-bold text-teal-700">{formatPrice(sellerEarning)}</p>
+                          <p className="text-[10px] text-gray-400">your earning</p>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusColor(order.status)}`}>{order.status}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-gray-800">{formatPrice(Number(order.totalAmount ?? 0))}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusColor(order.status)}`}>{order.status}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="py-12 text-center">

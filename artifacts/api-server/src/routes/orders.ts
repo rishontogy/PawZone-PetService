@@ -17,15 +17,26 @@ function calcPlatformFee(price: number): number {
   return price > 100 ? 20 : 5;
 }
 
-function formatOrder(order: any, buyerName: string, sellerName: string, transporterName?: string | null, transporterPhone?: string | null) {
+function formatOrder(
+  order: any,
+  buyerName: string,
+  sellerName: string,
+  transporterName?: string | null,
+  transporterPhone?: string | null,
+  buyerPhone?: string | null,
+  orderItems?: any[] | null,
+) {
   return {
     ...order,
     // Frontend uses `totalAmount` historically; DB column is `total`. Expose both to avoid mismatches.
     totalAmount: order.total,
     buyerName,
+    buyerPhone: buyerPhone ?? null,
     sellerName,
     transporterName: transporterName ?? null,
     transporterPhone: transporterPhone ?? null,
+    orderItems: orderItems ?? [],
+    itemCount: orderItems?.length ?? order.itemCount ?? 0,
   };
 }
 
@@ -61,6 +72,9 @@ router.get("/orders", authMiddleware, async (req, res): Promise<void> => {
     .orderBy(desc(ordersTable.createdAt));
 
   const result = await Promise.all(orders.map(async ({ order, buyerName }) => {
+    const [buyer] = await db.select({ phone: usersTable.phone })
+      .from(usersTable).where(eq(usersTable.id, order.buyerId));
+    const buyerPhone = buyer?.phone ?? null;
     const [seller] = await db.select({ name: usersTable.name, phone: usersTable.phone })
       .from(usersTable).where(eq(usersTable.id, order.sellerId));
     let transporterName = null, transporterPhone = null;
@@ -70,7 +84,28 @@ router.get("/orders", authMiddleware, async (req, res): Promise<void> => {
       transporterName = t?.name;
       transporterPhone = t?.phone;
     }
-    return formatOrder(order, buyerName, seller?.name ?? "", transporterName, transporterPhone);
+    const rawItems = await db
+      .select({
+        id: orderItemsTable.id,
+        listingId: orderItemsTable.listingId,
+        quantity: orderItemsTable.quantity,
+        unitPrice: orderItemsTable.unitPrice,
+        subtotal: orderItemsTable.subtotal,
+      })
+      .from(orderItemsTable)
+      .where(eq(orderItemsTable.orderId, order.id));
+
+    const orderItems = await Promise.all(rawItems.map(async (item) => {
+      if (!item.listingId) return { ...item, breed: null };
+      const [listing] = await db.select({
+        breed: listingsTable.breed,
+      }).from(listingsTable).where(eq(listingsTable.id, item.listingId)).limit(1);
+      return {
+        ...item,
+        breed: listing?.breed ?? null,
+      };
+    }));
+    return formatOrder(order, buyerName, seller?.name ?? "", transporterName, transporterPhone, buyerPhone, orderItems);
   }));
 
   const page = parseInt((req.query.page as string) || "1", 10);

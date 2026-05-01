@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor, statusLabel } from "@/lib/api";
 import {
-  Package, MapPin, Clock, User, CheckCircle,
-  AlertCircle, ArrowLeft, X, Check, Video, Upload
+  Package, MapPin, Clock, User, CheckCircle, ChevronDown, ChevronUp,
+  AlertCircle, X, Check, Video, Upload, Phone, Truck, IndianRupee
 } from "lucide-react";
-import { Link } from "wouter";
 
 export function SellerOrdersPage() {
   const { user } = useAuth();
@@ -16,6 +15,7 @@ export function SellerOrdersPage() {
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState("all");
   const [actingId, setActingId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const { data, refetch } = useGetOrders(
     { page, limit: 20 } as any,
@@ -27,9 +27,9 @@ export function SellerOrdersPage() {
       onSuccess: (_data, vars: any) => {
         const action = vars?.data?.status;
         const messages: Record<string, string> = {
-          confirmed: "✅ Order accepted! Buyer notified to pay.",
+          confirmed: "Order accepted! Buyer notified to pay.",
           cancelled: "Order rejected. Buyer has been notified.",
-          ready: "📦 Order marked ready for transporter pickup.",
+          ready: "Order marked ready for transporter pickup.",
         };
         toast({ title: messages[action] || "Order updated" });
         setActingId(null);
@@ -61,7 +61,6 @@ export function SellerOrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-6 py-8">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -72,7 +71,6 @@ export function SellerOrdersPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-6 -mt-4 pb-12">
-        {/* Filter Tabs */}
         <div className="flex gap-1.5 bg-white border border-gray-200 rounded-2xl p-1.5 mb-6 shadow-sm overflow-x-auto w-fit max-w-full">
           {tabs.map(tab => (
             <button
@@ -96,7 +94,6 @@ export function SellerOrdersPage() {
           ))}
         </div>
 
-        {/* Orders List */}
         {!filtered.length ? (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
             <Package className="w-12 h-12 text-gray-200 mx-auto mb-4" />
@@ -111,9 +108,17 @@ export function SellerOrdersPage() {
               const isReady = order.status === "ready";
               const isDelivered = order.status === "delivered";
               const isActing = actingId === order.id;
+              const isExpanded = expandedId === order.id;
+
+              const orderItems: any[] = order.orderItems ?? [];
+              const itemSubtotal = orderItems.reduce((s: number, it: any) => s + Number(it.subtotal ?? 0), 0);
+              const platformFee = Number(order.platformFee ?? 0);
+              const sellerEarning = itemSubtotal - platformFee;
+              const transportCharge = Number(order.deliveryFee ?? order.transportFee ?? 0);
 
               return (
                 <div key={order.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+                  {/* Header row — always visible */}
                   <div className="p-5">
                     <div className="flex items-start justify-between mb-3 gap-3">
                       <div className="flex-1 min-w-0">
@@ -134,7 +139,7 @@ export function SellerOrdersPage() {
                           )}
                           {isPaid && (
                             <span className="text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded-full font-medium">
-                              💰 Paid — prepare pet
+                              Paid — prepare pet
                             </span>
                           )}
                         </div>
@@ -145,7 +150,7 @@ export function SellerOrdersPage() {
                           <span className="flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5" /> {new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                           </span>
-                          <span>{order.itemCount} pet{order.itemCount !== 1 ? "s" : ""}</span>
+                          <span>{orderItems.length || order.itemCount || "?"} pet{(orderItems.length || order.itemCount) !== 1 ? "s" : ""}</span>
                         </div>
                         {order.deliveryAddress && (
                           <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
@@ -155,14 +160,137 @@ export function SellerOrdersPage() {
                         )}
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="font-bold text-gray-900 text-lg">{formatPrice(Number(order.totalAmount ?? order.total ?? 0))}</p>
+                        <p className="font-bold text-teal-700 text-lg">{formatPrice(sellerEarning > 0 ? sellerEarning : Number(order.totalAmount ?? 0))}</p>
+                        <p className="text-[10px] text-gray-400">{sellerEarning > 0 ? "your earning" : "order total"}</p>
                         {isDelivered && (
-                          <p className="text-xs text-green-600 flex items-center gap-1 justify-end">
+                          <p className="text-xs text-green-600 flex items-center gap-1 justify-end mt-1">
                             <CheckCircle className="w-3 h-3" /> Delivered
                           </p>
                         )}
                       </div>
                     </div>
+
+                    {/* View Details toggle */}
+                    <button
+                      onClick={() => setExpandedId(isExpanded ? null : order.id)}
+                      className="flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-700 font-medium mt-1"
+                      data-testid={`button-toggle-order-${order.id}`}
+                    >
+                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      {isExpanded ? "Hide Details" : "View Details"}
+                    </button>
+
+                    {/* Expanded Details */}
+                    {isExpanded && (
+                      <div className="mt-4 pt-4 border-t border-gray-100 space-y-4">
+                        {/* Order Items */}
+                        {orderItems.length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Pets Ordered</p>
+                            <div className="space-y-2">
+                              {orderItems.map((item: any, idx: number) => (
+                                <div key={item.id ?? idx} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-3 py-2.5">
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-semibold text-gray-900 truncate">{item.breed ?? item.name ?? "Pet"}</p>
+                                      <p className="text-xs text-gray-500">
+                                        {formatPrice(Number(item.unitPrice ?? 0))} × {item.quantity}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <p className="font-semibold text-gray-900 text-sm flex-shrink-0">{formatPrice(Number(item.subtotal ?? 0))}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Financial Breakdown */}
+                        <div className="bg-teal-50 border border-teal-100 rounded-xl p-3">
+                          <p className="text-xs font-semibold text-teal-800 uppercase tracking-wide mb-2 flex items-center gap-1">
+                            <IndianRupee className="w-3 h-3" /> Earnings Breakdown
+                          </p>
+                          <div className="space-y-1.5 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Pet subtotal</span>
+                              <span className="font-medium">{formatPrice(itemSubtotal)}</span>
+                            </div>
+                            <div className="flex justify-between text-red-600">
+                              <span>Platform fee</span>
+                              <span>− {formatPrice(platformFee)}</span>
+                            </div>
+                            {transportCharge > 0 && (
+                              <div className="flex justify-between text-blue-600">
+                                <span className="flex items-center gap-1"><Truck className="w-3 h-3" /> Transport charge</span>
+                                <span>{formatPrice(transportCharge)}</span>
+                              </div>
+                            )}
+                            <div className="border-t border-teal-200 pt-1.5 flex justify-between font-bold text-teal-800">
+                              <span>Your earnings</span>
+                              <span>{formatPrice(Math.max(0, sellerEarning))}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Buyer Info */}
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Buyer Info</p>
+                          <div className="space-y-1">
+                            <p className="text-sm text-gray-800 flex items-center gap-2">
+                              <User className="w-3.5 h-3.5 text-gray-400" /> {order.buyerName || "Unknown"}
+                            </p>
+                            {order.buyerPhone && (
+                              <p className="text-sm text-gray-800 flex items-center gap-2">
+                                <Phone className="w-3.5 h-3.5 text-gray-400" />
+                                <a href={`tel:${order.buyerPhone}`} className="text-blue-600 hover:underline">{order.buyerPhone}</a>
+                              </p>
+                            )}
+                            {order.deliveryAddress && (
+                              <p className="text-xs text-gray-500 flex items-start gap-2 mt-1">
+                                <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-gray-400" />
+                                <span>{order.deliveryAddress}</span>
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Transporter Info */}
+                        {order.transporterId ? (
+                          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                            <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2 flex items-center gap-1">
+                              <Truck className="w-3 h-3" /> Transporter Info
+                            </p>
+                            <div className="space-y-1">
+                              <p className="text-sm text-gray-800 flex items-center gap-2">
+                                <User className="w-3.5 h-3.5 text-blue-400" /> {order.transporterName || "Assigned"}
+                              </p>
+                              {order.transporterPhone && (
+                                <p className="text-sm text-gray-800 flex items-center gap-2">
+                                  <Phone className="w-3.5 h-3.5 text-blue-400" />
+                                  <a href={`tel:${order.transporterPhone}`} className="text-blue-600 hover:underline">{order.transporterPhone}</a>
+                                </p>
+                              )}
+                              {order.pickupTime && (
+                                <p className="text-xs text-gray-600 flex items-center gap-2 mt-1">
+                                  <Clock className="w-3.5 h-3.5 text-blue-400" />
+                                  Pickup: {new Date(order.pickupTime).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                </p>
+                              )}
+                              {order.deliveryTime && (
+                                <p className="text-xs text-gray-600 flex items-center gap-2">
+                                  <CheckCircle className="w-3.5 h-3.5 text-blue-400" />
+                                  Est. delivery: {new Date(order.deliveryTime).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-400 italic flex items-center gap-1">
+                            <Truck className="w-3.5 h-3.5" /> No transporter assigned yet
+                          </p>
+                        )}
+                      </div>
+                    )}
 
                     {/* Action buttons */}
                     {isPending && (
@@ -214,7 +342,6 @@ export function SellerOrdersPage() {
           </div>
         )}
 
-        {/* Pagination */}
         {(data as any)?.totalPages > 1 && (
           <div className="flex justify-center gap-2 mt-6">
             <Button variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="rounded-xl">
@@ -325,7 +452,7 @@ function PreparedVideoBlock({
             data-testid={`button-upload-prepared-${orderId}`}
           >
             <Upload className="w-4 h-4 mr-1.5" />
-            {busy ? "Uploading…" : localUrl ? "Replace Prepared Video" : "Upload Prepared Video"}
+            {busy ? "Uploading…" : localUrl ? "Replace Video" : "Upload Prepared Video"}
           </Button>
           <Button
             size="sm"
