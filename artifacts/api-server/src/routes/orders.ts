@@ -25,6 +25,7 @@ function formatOrder(
   transporterPhone?: string | null,
   buyerPhone?: string | null,
   orderItems?: any[] | null,
+  sellerPhone?: string | null,
 ) {
   return {
     ...order,
@@ -33,6 +34,7 @@ function formatOrder(
     buyerName,
     buyerPhone: buyerPhone ?? null,
     sellerName,
+    sellerPhone: sellerPhone ?? null,
     transporterName: transporterName ?? null,
     transporterPhone: transporterPhone ?? null,
     orderItems: orderItems ?? [],
@@ -105,7 +107,7 @@ router.get("/orders", authMiddleware, async (req, res): Promise<void> => {
         breed: listing?.breed ?? null,
       };
     }));
-    const formatted = formatOrder(order, buyerName, seller?.name ?? "", transporterName, transporterPhone, buyerPhone, orderItems);
+    const formatted = formatOrder(order, buyerName, seller?.name ?? "", transporterName, transporterPhone, buyerPhone, orderItems, seller?.phone ?? null);
     // Sellers must not see buyer personal details — strip before returning
     if (user.role === "seller") {
       formatted.buyerName = null;

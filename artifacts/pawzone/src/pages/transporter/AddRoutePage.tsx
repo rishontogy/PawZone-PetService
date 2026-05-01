@@ -195,17 +195,17 @@ export function AddRoutePage() {
                   <MapPin className="w-3.5 h-3.5 text-gray-400" /> Route *
                 </Label>
                 <p className="text-xs text-gray-500">
-                  Type all the places you cover, separated by spaces. The first is the starting point, the last is the destination, and everything in between are stops.
+                  Type your stops separated by spaces — first stop is your starting point, last stop is your destination, everything in between are waypoints.
                 </p>
                 <Input
                   data-testid="input-route-text"
                   value={routeText}
                   onChange={(e) => setRouteText(e.target.value)}
-                  placeholder="puthumana peroor ettumanoor kottayam"
+                  placeholder="thiruvananthapuram kazhakuttom varkala kottayam"
                   className="rounded-xl border-gray-200"
                 />
                 <p className="text-xs text-gray-400">
-                  Example: <span className="font-mono">puthumana(H) peroor PO ettumanoor kottayam</span>
+                  Example: <span className="font-mono text-blue-600">puthumana peroor ettumanoor kottayam</span>
                 </p>
               </div>
 
