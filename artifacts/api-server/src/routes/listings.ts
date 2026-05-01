@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { eq, and, gt, gte, lte, ilike, or, sql } from "drizzle-orm";
-import { db, listingsTable, usersTable, reviewsTable } from "@workspace/db";
+import { eq, and, gt, gte, lte, ilike, or, sql, ne, inArray } from "drizzle-orm";
+import { db, listingsTable, usersTable, reviewsTable, ordersTable, orderItemsTable, cartTable } from "@workspace/db";
 import {
   GetListingsQueryParams,
   CreateListingBody,
@@ -27,6 +27,7 @@ router.get("/listings", async (req, res): Promise<void> => {
   const conditions: any[] = [];
   if (sellerId != null) {
     conditions.push(eq(listingsTable.sellerId, sellerId));
+    conditions.push(ne(listingsTable.status, "inactive"));
   } else {
     conditions.push(eq(listingsTable.status, "approved"));
     conditions.push(gt(listingsTable.availableQuantity, 0));
@@ -86,11 +87,23 @@ router.post("/listings", authMiddleware, async (req, res): Promise<void> => {
     return;
   }
 
+  const { maleQuantity, femaleQuantity } = req.body as any;
+  const male = parseInt(String(maleQuantity ?? 0), 10) || 0;
+  const female = parseInt(String(femaleQuantity ?? 0), 10) || 0;
+  const total = male + female;
+  if (total <= 0) {
+    res.status(400).json({ error: "Add valid quantity: male + female must be > 0" });
+    return;
+  }
+
   const petCode = generatePetCode();
   const [listing] = await db.insert(listingsTable).values({
     ...parsed.data,
     sellerId: user.id,
-    availableQuantity: parsed.data.quantity,
+    quantity: total,
+    availableQuantity: total,
+    maleQuantity: male,
+    femaleQuantity: female,
     status: "pending",
     petCode,
     photos: parsed.data.photos ?? [],
@@ -115,6 +128,11 @@ router.get("/listings/:id", async (req, res): Promise<void> => {
     .where(eq(listingsTable.id, id));
 
   if (!row) {
+    res.status(404).json({ error: "Listing not found" });
+    return;
+  }
+
+  if (row.listing.status === "inactive") {
     res.status(404).json({ error: "Listing not found" });
     return;
   }
@@ -160,14 +178,33 @@ router.put("/listings/:id", authMiddleware, async (req, res): Promise<void> => {
     return;
   }
 
+  const updateData: any = { ...parsed.data, status: "pending" };
+
+  const { maleQuantity, femaleQuantity } = req.body as any;
+  if (maleQuantity !== undefined || femaleQuantity !== undefined) {
+    const male = parseInt(String(maleQuantity ?? listing.maleQuantity), 10) || 0;
+    const female = parseInt(String(femaleQuantity ?? listing.femaleQuantity), 10) || 0;
+    const total = male + female;
+    if (total <= 0) {
+      res.status(400).json({ error: "Add valid quantity: male + female must be > 0" });
+      return;
+    }
+    updateData.maleQuantity = male;
+    updateData.femaleQuantity = female;
+    updateData.quantity = total;
+    updateData.availableQuantity = total;
+  }
+
   const [updated] = await db.update(listingsTable)
-    .set({ ...parsed.data, status: "pending" })
+    .set(updateData)
     .where(eq(listingsTable.id, id))
     .returning();
 
   const [seller] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, updated.sellerId));
   res.json({ ...updated, sellerName: seller.name });
 });
+
+const ACTIVE_ORDER_STATUSES = ["pending", "confirmed", "ready", "picked_up", "in_transit", "delivered"];
 
 router.delete("/listings/:id", authMiddleware, async (req, res): Promise<void> => {
   const user = (req as any).user;
@@ -184,8 +221,28 @@ router.delete("/listings/:id", authMiddleware, async (req, res): Promise<void> =
     return;
   }
 
-  await db.delete(listingsTable).where(eq(listingsTable.id, id));
-  res.json({ success: true, message: "Deleted" });
+  const activeOrderItems = await db
+    .select({ orderId: orderItemsTable.orderId })
+    .from(orderItemsTable)
+    .innerJoin(ordersTable, eq(orderItemsTable.orderId, ordersTable.id))
+    .where(
+      and(
+        eq(orderItemsTable.listingId, id),
+        inArray(ordersTable.status, ACTIVE_ORDER_STATUSES)
+      )
+    );
+
+  if (activeOrderItems.length > 0) {
+    await db.update(listingsTable)
+      .set({ status: "inactive" })
+      .where(eq(listingsTable.id, id));
+    res.json({ success: true, message: "Listing deactivated (has active orders)", softDeleted: true });
+  } else {
+    // Remove cart items referencing this listing before hard delete
+    await db.delete(cartTable).where(eq(cartTable.listingId, id));
+    await db.delete(listingsTable).where(eq(listingsTable.id, id));
+    res.json({ success: true, message: "Deleted", softDeleted: false });
+  }
 });
 
 router.post("/listings/:id/restock", authMiddleware, async (req, res): Promise<void> => {
@@ -194,12 +251,6 @@ router.post("/listings/:id/restock", authMiddleware, async (req, res): Promise<v
   const id = parseInt(raw, 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid ID" });
-    return;
-  }
-
-  const quantityToAdd = parseInt(String(req.body?.quantityToAdd ?? req.body?.quantity ?? 0), 10);
-  if (!Number.isFinite(quantityToAdd) || quantityToAdd <= 0) {
-    res.status(400).json({ error: "quantityToAdd must be a positive integer" });
     return;
   }
 
@@ -213,15 +264,36 @@ router.post("/listings/:id/restock", authMiddleware, async (req, res): Promise<v
     return;
   }
 
-  const newAvailable = listing.availableQuantity + quantityToAdd;
-  const newTotal = listing.quantity + quantityToAdd;
+  const maleAdd = parseInt(String(req.body?.maleAdd ?? req.body?.male_add ?? 0), 10) || 0;
+  const femaleAdd = parseInt(String(req.body?.femaleAdd ?? req.body?.female_add ?? 0), 10) || 0;
+  const quantityToAdd = parseInt(String(req.body?.quantityToAdd ?? req.body?.quantity ?? 0), 10);
+
+  let totalAdd: number;
+  let newMale = listing.maleQuantity;
+  let newFemale = listing.femaleQuantity;
+
+  if (maleAdd > 0 || femaleAdd > 0) {
+    newMale = listing.maleQuantity + maleAdd;
+    newFemale = listing.femaleQuantity + femaleAdd;
+    totalAdd = maleAdd + femaleAdd;
+  } else if (Number.isFinite(quantityToAdd) && quantityToAdd > 0) {
+    totalAdd = quantityToAdd;
+    newMale = listing.maleQuantity + Math.floor(quantityToAdd / 2);
+    newFemale = listing.femaleQuantity + (quantityToAdd - Math.floor(quantityToAdd / 2));
+  } else {
+    res.status(400).json({ error: "Provide maleAdd/femaleAdd or quantityToAdd > 0" });
+    return;
+  }
+
+  const newAvailable = listing.availableQuantity + totalAdd;
+  const newTotal = listing.quantity + totalAdd;
   const nextStatus =
-    listing.status === "sold_out" || (listing.status === "approved" && listing.availableQuantity <= 0)
+    listing.status === "sold_out" || listing.status === "inactive" || (listing.status === "approved" && listing.availableQuantity <= 0)
       ? "approved"
       : listing.status;
 
   const [updated] = await db.update(listingsTable)
-    .set({ availableQuantity: newAvailable, quantity: newTotal, status: nextStatus })
+    .set({ availableQuantity: newAvailable, quantity: newTotal, maleQuantity: newMale, femaleQuantity: newFemale, status: nextStatus })
     .where(eq(listingsTable.id, id))
     .returning();
 

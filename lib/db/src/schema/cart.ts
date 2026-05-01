@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, timestamp, boolean, text } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -9,6 +9,7 @@ export const cartTable = pgTable("cart", {
   userId: integer("user_id").notNull().references(() => usersTable.id),
   listingId: integer("listing_id").notNull().references(() => listingsTable.id),
   quantity: integer("quantity").notNull().default(1),
+  gender: text("gender").$type<"male" | "female">(),
   addedAt: timestamp("added_at", { withTimezone: true }).notNull().defaultNow(),
   expiringNotified: boolean("expiring_notified").notNull().default(false),
 });

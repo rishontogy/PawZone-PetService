@@ -41,20 +41,21 @@ PawZone is a full-featured pet marketplace web application serving Kerala, India
 - Transporter: `saji@example.com` / `transport123`
 - Admin: `PAWZONE_A2005` / `PawZone2005`
 
-## Recent Updates (v2)
-- **Open Signup**: All users can sign up worldwide. Country + State fields added (India/Kerala default). Non-Kerala users shown informational message.
-- **Buyer Instant Access**: Buyers get immediate dashboard access. Sellers/Transporters still require admin approval.
-- **Buyer Dashboard Redesign**: Amazon/Swiggy-style with sidebar, category pills (Dogs/Cats/Birds/Fish), live pet grid, welcome banner.
-- **Image Upload**: Drag & drop image upload on CreateListingPage with POST `/api/upload` endpoint (multer).
-- **Persistent Media Storage**: All uploads now go to Replit Object Storage (GCS-backed). `/api/upload` streams files to GCS via `@google-cloud/storage` and returns `/api/storage/objects/uploads/<uuid>.<ext>`. `/api/storage/objects/*` serves them back from GCS (permanent, survives restarts).
-- **Media Gallery/Slider**: Listing detail page shows unified photos+video gallery. Photo and video thumbnails in strip; click to switch main viewer. Video thumb shows Play icon overlay. Video plays inline with controls.
-- **Cart 3-hour Auto-Expiry**: Cart items expire after 3h inactivity. `addedAt` and `expiringNotified` columns on cart table. Background sweeper runs every 60s: sends `cart_expiring` notification at 2.5h, deletes item and sends `cart_expired` notification at 3h.
-- **Seller Restock Auth**: Fixed missing Authorization header in `submitRestock()` on SellerListingsPage.
-- **Multi-stop Routes**: Transporter AddRoutePage now supports multiple intermediate stops with visual route preview.
-- **Admin User Notifications**: WhatsApp button opens wa.me link with approval message for sellers/transporters.
-- **UI/UX Overhaul**: New teal gradient hero, search bar, stats bar, improved cards, rounded-2xl design system.
-- **Login/Signup Redesigned**: Modern cards, icon inputs, role selector buttons with emoji.
-- **DB Schema**: Added `stops` JSON column to `transporter_routes` table.
+## Recent Updates (PRD v2 Final System Perfection)
+- **Gender Inventory System**: Listings now track `maleQuantity` + `femaleQuantity` separately. CreateListingPage and EditListingPage have ♂ Male / ♀ Female quantity inputs. ListingDetailPage shows gender selection buttons with available counts. Cart stores gender preference. Order creation deducts gender-specific stock.
+- **Safe Listing Delete**: DELETE /listings/:id checks for active orders. If active orders exist → soft delete (status=inactive, hidden from buyers). Otherwise → hard delete (clears cart items first to avoid FK constraint). Seller listings page shows no inactive listings.
+- **Vaccination UI Fix**: CreateListingPage and EditListingPage use consistent flex layout for the vaccination toggle with label + optional detail text.
+- **Missing Order Video Endpoints**: Added POST /orders/:id/pickup-video (transporter), POST /orders/:id/in-transit (transporter), POST /orders/:id/delivery-video (transporter). Existing: prepared-video (seller), received-video (buyer).
+- **Buyer Order Detail 8-Stage Timeline**: OrderDetailPage shows all 8 stages with timestamps: Order Requested → Seller Confirmed → Payment Completed → Transport Assigned → Picked Up → In Transit → Delivered → Received Confirmation.
+- **Seller Prepared Video**: SellerOrdersPage has PreparedVideoBlock — upload video before marking order "ready for pickup".
+- **Transporter Dashboard Complete**: Accept delivery dialog with transport fee input + earnings preview. PickupVideoBlock (status=ready), StartInTransitBlock (status=picked_up), DeliveryVideoBlock (status=in_transit).
+- **Admin Platform Share % Management**: Admin users page shows Platform Share % numeric input for each transporter. PATCH /admin/users/:id endpoint to update. Inline save with success toast.
+- **Notifications Page**: Full notifications list with mark-as-read, mark-all-read, clickable notifications routing to relevant order pages.
+- **Settings Page**: Name, email, phone, password, address update. Report an Issue to Admin form. Transporter earnings info block. Logout.
+- **Open Signup**: All users can sign up. Buyers get instant access, sellers/transporters need admin approval.
+- **Persistent Media Storage**: Uploads to Replit Object Storage (GCS). Upload accepts image/* and video/* up to 50MB.
+- **Cart 3-hour Auto-Expiry**: Background sweeper sends notifications at 2.5h, clears cart at 3h.
+- **Multi-stop Routes**: Transporter routes support intermediate stops.
 
 ## Business Logic
 

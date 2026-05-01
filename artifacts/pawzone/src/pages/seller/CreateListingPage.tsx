@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { useCreateListing } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +23,8 @@ export function CreateListingPage() {
     category: "",
     breed: "",
     price: "",
-    quantity: "1",
+    maleQuantity: "0",
+    femaleQuantity: "0",
     vaccinated: false,
     vaccinationDetails: "",
     description: "",
@@ -118,35 +118,47 @@ export function CreateListingPage() {
 
   const removePhoto = (idx: number) => setPhotos((prev) => prev.filter((_, i) => i !== idx));
 
-  const createListing = useCreateListing({
-    mutation: {
-      onSuccess: () => {
-        toast({ title: "Listing submitted!", description: "Your listing is pending admin approval." });
-        setLocation("/seller/listings");
-      },
-      onError: (err: any) => {
-        toast({ variant: "destructive", title: "Error", description: err?.data?.error || "Failed to create listing" });
-      },
-    },
-  });
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    createListing.mutate({
-      data: {
-        category: form.category as any,
-        breed: form.breed,
-        price: parseFloat(form.price),
-        quantity: parseInt(form.quantity),
-        vaccinated: form.vaccinated,
-        vaccinationDetails: form.vaccinationDetails || undefined,
-        description: form.description || undefined,
-        photos: photos.length > 0 ? photos : undefined,
-        videoUrl: videoUrl || undefined,
-        address: form.address,
-        city: form.city,
-      },
-    });
+    const male = parseInt(form.maleQuantity) || 0;
+    const female = parseInt(form.femaleQuantity) || 0;
+    if (male + female <= 0) {
+      toast({ variant: "destructive", title: "Invalid quantity", description: "Add at least 1 male or female." });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${getApiBase()}/listings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          category: form.category,
+          breed: form.breed,
+          price: parseFloat(form.price),
+          quantity: male + female,
+          maleQuantity: male,
+          femaleQuantity: female,
+          vaccinated: form.vaccinated,
+          vaccinationDetails: form.vaccinationDetails || undefined,
+          description: form.description || "—",
+          photos: photos.length > 0 ? photos : undefined,
+          videoUrl: videoUrl || undefined,
+          address: form.address,
+          city: form.city,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ variant: "destructive", title: "Error", description: data.error || "Failed to create listing" });
+        return;
+      }
+      toast({ title: "Listing submitted!", description: "Your listing is pending admin approval." });
+      setLocation("/seller/listings");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -186,31 +198,53 @@ export function CreateListingPage() {
                 </div>
               </div>
 
-              {/* Price + Quantity */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="font-semibold text-gray-700">Price (₹) *</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    className="rounded-xl border-gray-200"
-                    value={form.price}
-                    onChange={(e) => setForm({ ...form, price: e.target.value })}
-                    required
-                    placeholder="e.g. 15000"
-                  />
+              {/* Price */}
+              <div className="space-y-1.5">
+                <Label className="font-semibold text-gray-700">Price per pet (₹) *</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  className="rounded-xl border-gray-200"
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  required
+                  placeholder="e.g. 15000"
+                />
+              </div>
+
+              {/* Gender Inventory */}
+              <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <Label className="font-semibold text-gray-700 block">Gender-based Inventory *</Label>
+                <p className="text-xs text-gray-500">Set how many males and females are available. At least one must be &gt; 0.</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium text-blue-700">♂ Male Count</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      className="rounded-xl border-blue-200 bg-white"
+                      value={form.maleQuantity}
+                      onChange={(e) => setForm({ ...form, maleQuantity: e.target.value })}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium text-pink-600">♀ Female Count</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      className="rounded-xl border-pink-200 bg-white"
+                      value={form.femaleQuantity}
+                      onChange={(e) => setForm({ ...form, femaleQuantity: e.target.value })}
+                      placeholder="0"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="font-semibold text-gray-700">Quantity *</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    className="rounded-xl border-gray-200"
-                    value={form.quantity}
-                    onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-                    required
-                  />
-                </div>
+                {(parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0) > 0 && (
+                  <p className="text-xs text-blue-600 font-medium">
+                    Total: {(parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0)} pet(s)
+                  </p>
+                )}
               </div>
 
               {/* Description */}
@@ -376,9 +410,9 @@ export function CreateListingPage() {
               <Button
                 type="submit"
                 className="w-full h-12 rounded-xl text-base font-bold"
-                disabled={createListing.isPending || !form.category || !form.breed || !form.price || !form.city}
+                disabled={submitting || !form.category || !form.breed || !form.price || !form.city || ((parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0) <= 0)}
               >
-                {createListing.isPending ? "Submitting..." : "Submit for Approval"}
+                {submitting ? "Submitting..." : "Submit for Approval"}
               </Button>
             </form>
           </CardContent>

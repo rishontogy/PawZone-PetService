@@ -1,0 +1,333 @@
+Fix Seller Listing Deletion, Add Gender-Based Inventory System, and Resolve Vaccination UI Overlap.
+
+This is a CORE FEATURE + BUG FIX update.
+
+---
+
+# 🗑 1. SELLER LISTING DELETE – ERROR FIX
+
+---
+
+## ❌ Problem:
+
+* Seller cannot delete listing
+* Shows error (likely authorization or DB issue)
+
+---
+
+## ✅ Required Fix:
+
+---
+
+### 🔹 A. Authorization Check
+
+```js
+IF listing.seller_id !== logged_in_user_id:
+    RETURN "Unauthorized"
+ELSE:
+    ALLOW delete
+```
+
+---
+
+### 🔹 B. Safe Delete Logic
+
+---
+
+## Before deleting:
+
+Check:
+
+* If listing is part of active orders
+
+---
+
+### Rule:
+
+* If NO active orders → DELETE directly
+* If active orders exist →
+  → Mark as **inactive (soft delete)**
+
+---
+
+```js
+listing.status = "inactive"
+```
+
+---
+
+### 🔹 C. UI Update
+
+* Remove deleted/inactive listing from:
+
+  * Buyer pages
+  * Seller listing view
+
+---
+
+---
+
+# 🧬 2. GENDER-BASED INVENTORY SYSTEM (NEW FEATURE)
+
+---
+
+## 🎯 Requirement:
+
+Seller must define:
+
+* Male count
+* Female count
+
+Buyer must choose:
+
+* Male OR Female
+
+---
+
+---
+
+## 🗂 Database Update:
+
+---
+
+Add fields:
+
+```js
+male_quantity: number
+female_quantity: number
+```
+
+---
+
+---
+
+## 🧾 Seller Listing Form:
+
+---
+
+Add inputs:
+
+* Male Count
+* Female Count
+
+---
+
+## Validation:
+
+```js
+IF male_quantity + female_quantity <= 0:
+    SHOW error "Add valid quantity"
+```
+
+---
+
+---
+
+## 🛒 Buyer Product Page:
+
+---
+
+Add selection:
+
+```
+Select Gender:
+( ) Male
+( ) Female
+```
+
+---
+
+## Behavior:
+
+* Show available count per gender
+* Disable option if out of stock
+
+---
+
+---
+
+## 🧮 Cart Logic:
+
+---
+
+When adding to cart:
+
+```js
+IF selected_gender == "male":
+    use male_quantity
+ELSE:
+    use female_quantity
+```
+
+---
+
+---
+
+## 📦 Order Logic:
+
+---
+
+Reduce ONLY selected gender:
+
+```js
+male_quantity -= quantity
+OR
+female_quantity -= quantity
+```
+
+---
+
+---
+
+## 🚫 Out of Stock Handling:
+
+---
+
+If:
+
+```js
+male_quantity == 0 AND female_quantity == 0:
+```
+
+→ Remove listing from buyer view
+
+---
+
+---
+
+# 🎨 3. VACCINATION BUTTON UI FIX
+
+---
+
+## ❌ Problem:
+
+* Vaccinated toggle overlaps text
+
+---
+
+## ✅ Fix UI Layout:
+
+---
+
+### 🔹 A. Use Proper Spacing
+
+---
+
+Ensure:
+
+* Label and button separated
+
+---
+
+### Example Layout:
+
+```
+Vaccinated:   [✔ Yes]   [✖ No]
+```
+
+---
+
+---
+
+### 🔹 B. CSS Fix:
+
+---
+
+```css
+.vaccination-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+```
+
+---
+
+---
+
+### 🔹 C. Responsive Fix:
+
+---
+
+* Ensure no overlap on smaller screens
+* Use wrap if needed
+
+---
+
+---
+
+# 🧪 4. VALIDATION TESTS
+
+---
+
+## Delete Listing:
+
+* Seller deletes own listing → works ✔
+* Other seller → blocked ✔
+
+---
+
+## Gender System:
+
+* Add male/female → saved ✔
+* Buyer selects gender → works ✔
+* Correct stock reduces ✔
+
+---
+
+## Vaccination UI:
+
+* No overlap ✔
+* Clean layout ✔
+
+---
+
+---
+
+# ⚠️ 5. EDGE CASE HANDLING
+
+---
+
+* Prevent negative stock
+* Prevent selection without gender
+* Prevent delete if order active
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+✔ Seller can delete listings properly
+✔ Gender-based inventory fully functional
+✔ Buyer can select Male/Female
+✔ Stock updates correctly
+✔ Vaccination UI clean and readable
+
+---
+
+## FINAL RULE:
+
+Inventory must be:
+
+→ Accurate
+→ Controlled
+→ User-friendly
+
+UI must be:
+
+→ Clean
+→ Non-overlapping
+→ Responsive
+
+No broken delete
+No wrong stock
+No UI glitches
+
+---
+
+This must behave like a real marketplace system.

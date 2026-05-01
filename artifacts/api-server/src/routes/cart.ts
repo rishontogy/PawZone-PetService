@@ -30,6 +30,7 @@ async function getCartForUser(userId: number) {
       listingId: cart.listingId,
       listing: { ...listing, sellerName },
       quantity: cart.quantity,
+      gender: cart.gender ?? null,
       subtotal: sub,
       platformFee: fee,
     };
@@ -58,13 +59,23 @@ router.post("/cart", authMiddleware, async (req, res): Promise<void> => {
     return;
   }
   const { listingId, quantity } = parsed.data;
+  const gender = (req.body?.gender === "male" || req.body?.gender === "female") ? req.body.gender as "male" | "female" : undefined;
 
   const [listing] = await db.select().from(listingsTable).where(eq(listingsTable.id, listingId));
   if (!listing || listing.status !== "approved") {
     res.status(404).json({ error: "Listing not available" });
     return;
   }
-  if (quantity > listing.availableQuantity) {
+
+  if (gender === "male" && quantity > listing.maleQuantity) {
+    res.status(400).json({ error: `Only ${listing.maleQuantity} male(s) available` });
+    return;
+  }
+  if (gender === "female" && quantity > listing.femaleQuantity) {
+    res.status(400).json({ error: `Only ${listing.femaleQuantity} female(s) available` });
+    return;
+  }
+  if (!gender && quantity > listing.availableQuantity) {
     res.status(400).json({ error: "Requested quantity exceeds available stock" });
     return;
   }
@@ -72,16 +83,16 @@ router.post("/cart", authMiddleware, async (req, res): Promise<void> => {
   const [existing] = await db.select().from(cartTable)
     .where(and(eq(cartTable.userId, user.id), eq(cartTable.listingId, listingId)));
 
-  // Each add/update resets the 3-hour expiry timer and clears any prior warning state.
   if (existing) {
     await db.update(cartTable)
-      .set({ quantity, addedAt: new Date(), expiringNotified: false })
+      .set({ quantity, gender: gender ?? null, addedAt: new Date(), expiringNotified: false })
       .where(eq(cartTable.id, existing.id));
   } else {
     await db.insert(cartTable).values({
       userId: user.id,
       listingId,
       quantity,
+      gender: gender ?? null,
       addedAt: new Date(),
       expiringNotified: false,
     });

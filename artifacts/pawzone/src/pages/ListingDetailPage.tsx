@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useParams, useLocation } from "wouter";
-import { useGetListing, useAddToCart } from "@workspace/api-client-react";
+import { useGetListing } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { formatPrice, platformFee } from "@/lib/api";
+import { formatPrice, platformFee, getApiBase } from "@/lib/api";
 import { PawPrint, MapPin, ShoppingCart, Shield, ChevronLeft, Star, Play } from "lucide-react";
 
 type MediaItem = { kind: "image" | "video"; url: string };
@@ -14,23 +14,42 @@ type MediaItem = { kind: "image" | "video"; url: string };
 export function ListingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const { toast } = useToast();
   const [qty, setQty] = useState(1);
   const [photoIdx, setPhotoIdx] = useState(0);
+  const [gender, setGender] = useState<"male" | "female" | null>(null);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   const { data: listing, isLoading } = useGetListing(parseInt(id!));
 
-  const addToCart = useAddToCart({
-    mutation: {
-      onSuccess: () => {
-        toast({ title: "Added to cart!", description: `${listing?.breed} added to your cart.` });
-      },
-      onError: (err: any) => {
-        toast({ variant: "destructive", title: "Error", description: err?.data?.error || "Failed to add to cart" });
-      },
-    },
-  });
+  const handleAddToCart = async () => {
+    if (!listing) return;
+    const l = listing as any;
+    const hasMale = (l.maleQuantity ?? 0) > 0;
+    const hasFemale = (l.femaleQuantity ?? 0) > 0;
+    const needsGender = hasMale || hasFemale;
+    if (needsGender && !gender) {
+      toast({ variant: "destructive", title: "Select gender", description: "Please choose Male or Female before adding to cart." });
+      return;
+    }
+    setAddingToCart(true);
+    try {
+      const res = await fetch(`${getApiBase()}/cart`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ listingId: listing.id, quantity: qty, ...(gender ? { gender } : {}) }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ variant: "destructive", title: "Error", description: data.error || "Failed to add to cart" });
+        return;
+      }
+      toast({ title: "Added to cart!", description: `${listing.breed} added to your cart.` });
+    } finally {
+      setAddingToCart(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -188,12 +207,68 @@ export function ListingDetailPage() {
             {/* Add to Cart */}
             {user?.role === "buyer" ? (
               <div className="space-y-3">
+                {/* Gender Selection */}
+                {(() => {
+                  const l = listing as any;
+                  const maleQty = l.maleQuantity ?? 0;
+                  const femaleQty = l.femaleQuantity ?? 0;
+                  if (maleQty > 0 || femaleQty > 0) {
+                    return (
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold text-gray-700">Select Gender:</p>
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            onClick={() => { setGender("male"); setQty(1); }}
+                            disabled={maleQty === 0}
+                            className={`flex-1 py-2.5 px-4 rounded-xl border-2 text-sm font-medium transition-all ${
+                              gender === "male"
+                                ? "border-blue-500 bg-blue-50 text-blue-700"
+                                : maleQty === 0
+                                  ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "border-gray-200 hover:border-blue-300 text-gray-700"
+                            }`}
+                          >
+                            ♂ Male
+                            <span className="block text-xs mt-0.5 font-normal">
+                              {maleQty === 0 ? "Out of stock" : `${maleQty} available`}
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setGender("female"); setQty(1); }}
+                            disabled={femaleQty === 0}
+                            className={`flex-1 py-2.5 px-4 rounded-xl border-2 text-sm font-medium transition-all ${
+                              gender === "female"
+                                ? "border-pink-500 bg-pink-50 text-pink-700"
+                                : femaleQty === 0
+                                  ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "border-gray-200 hover:border-pink-300 text-gray-700"
+                            }`}
+                          >
+                            ♀ Female
+                            <span className="block text-xs mt-0.5 font-normal">
+                              {femaleQty === 0 ? "Out of stock" : `${femaleQty} available`}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
                 <div className="flex items-center gap-3">
                   <label className="text-sm font-medium">Quantity:</label>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" onClick={() => setQty(q => Math.max(1, q - 1))}>-</Button>
                     <span className="w-8 text-center font-medium">{qty}</span>
-                    <Button variant="outline" size="sm" onClick={() => setQty(q => Math.min(listing.availableQuantity, q + 1))}>+</Button>
+                    <Button variant="outline" size="sm" onClick={() => {
+                      const l = listing as any;
+                      const maxQty = gender === "male" ? (l.maleQuantity ?? listing.availableQuantity) :
+                                     gender === "female" ? (l.femaleQuantity ?? listing.availableQuantity) :
+                                     listing.availableQuantity;
+                      setQty(q => Math.min(maxQty, q + 1));
+                    }}>+</Button>
                   </div>
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -202,11 +277,11 @@ export function ListingDetailPage() {
                 </div>
                 <Button
                   className="w-full gap-2"
-                  disabled={listing.availableQuantity === 0 || addToCart.isPending}
-                  onClick={() => addToCart.mutate({ data: { listingId: listing.id, quantity: qty } })}
+                  disabled={listing.availableQuantity === 0 || addingToCart}
+                  onClick={handleAddToCart}
                 >
                   <ShoppingCart className="w-4 h-4" />
-                  {listing.availableQuantity === 0 ? "Sold Out" : addToCart.isPending ? "Adding..." : "Add to Cart"}
+                  {listing.availableQuantity === 0 ? "Sold Out" : addingToCart ? "Adding..." : "Add to Cart"}
                 </Button>
               </div>
             ) : !user ? (

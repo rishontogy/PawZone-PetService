@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
-import { useGetListing, useUpdateListing } from "@workspace/api-client-react";
+import { useGetListing } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,8 @@ export function EditListingPage() {
     category: "",
     breed: "",
     price: "",
-    quantity: "1",
+    maleQuantity: "0",
+    femaleQuantity: "0",
     vaccinated: false,
     vaccinationDetails: "",
     description: "",
@@ -39,23 +40,25 @@ export function EditListingPage() {
   const [uploading, setUploading] = useState(false);
   const [videoUploading, setVideoUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Populate form when listing loads
   useEffect(() => {
     if (listing) {
+      const l = listing as any;
       setForm({
-        category: (listing as any).category || "",
-        breed: (listing as any).breed || "",
-        price: String((listing as any).price || ""),
-        quantity: String((listing as any).quantity || "1"),
-        vaccinated: Boolean((listing as any).vaccinated),
-        vaccinationDetails: (listing as any).vaccinationDetails || "",
-        description: (listing as any).description || "",
-        address: (listing as any).address || "",
-        city: (listing as any).city || "",
+        category: l.category || "",
+        breed: l.breed || "",
+        price: String(l.price || ""),
+        maleQuantity: String(l.maleQuantity ?? Math.floor((l.quantity || 0) / 2)),
+        femaleQuantity: String(l.femaleQuantity ?? Math.ceil((l.quantity || 0) / 2)),
+        vaccinated: Boolean(l.vaccinated),
+        vaccinationDetails: l.vaccinationDetails || "",
+        description: l.description || "",
+        address: l.address || "",
+        city: l.city || "",
       });
-      setPhotos((listing as any).photos || []);
-      setVideoUrl((listing as any).videoUrl || "");
+      setPhotos(l.photos || []);
+      setVideoUrl(l.videoUrl || "");
     }
   }, [listing]);
 
@@ -140,36 +143,45 @@ export function EditListingPage() {
 
   const removePhoto = (idx: number) => setPhotos((prev) => prev.filter((_, i) => i !== idx));
 
-  const updateListing = useUpdateListing({
-    mutation: {
-      onSuccess: () => {
-        toast({ title: "✅ Listing updated!", description: "Changes saved. Admin re-review may be required." });
-        setLocation("/seller/listings");
-      },
-      onError: (err: any) => {
-        toast({ variant: "destructive", title: "Error", description: err?.data?.error || "Failed to update" });
-      },
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateListing.mutate({
-      id: parseInt(id!),
-      data: {
-        category: form.category as any,
-        breed: form.breed,
-        price: parseFloat(form.price),
-        quantity: parseInt(form.quantity),
-        vaccinated: form.vaccinated,
-        vaccinationDetails: form.vaccinationDetails || undefined,
-        description: form.description || undefined,
-        photos: photos.length > 0 ? photos : undefined,
-        videoUrl: videoUrl || undefined,
-        address: form.address,
-        city: form.city,
-      },
-    });
+    const male = parseInt(form.maleQuantity) || 0;
+    const female = parseInt(form.femaleQuantity) || 0;
+    if (male + female <= 0) {
+      toast({ variant: "destructive", title: "Invalid quantity", description: "Add at least 1 male or female." });
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${getApiBase()}/listings/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          category: form.category,
+          breed: form.breed,
+          price: parseFloat(form.price),
+          quantity: male + female,
+          maleQuantity: male,
+          femaleQuantity: female,
+          vaccinated: form.vaccinated,
+          vaccinationDetails: form.vaccinationDetails || undefined,
+          description: form.description || undefined,
+          photos: photos.length > 0 ? photos : undefined,
+          videoUrl: videoUrl || undefined,
+          address: form.address,
+          city: form.city,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast({ variant: "destructive", title: "Error", description: data.error || "Failed to update" });
+        return;
+      }
+      toast({ title: "Listing updated!", description: "Changes saved. Admin re-review may be required." });
+      setLocation("/seller/listings");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (isLoading) return (
@@ -184,7 +196,6 @@ export function EditListingPage() {
     </div>
   );
 
-  // Security: only owner can edit
   if ((listing as any).sellerId && user?.id && (listing as any).sellerId !== user.id) {
     setLocation("/seller/listings");
     return null;
@@ -193,6 +204,11 @@ export function EditListingPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-2xl mx-auto">
+        <div className="flex items-center gap-2 mb-6">
+          <button onClick={() => setLocation("/seller/listings")} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+            <ChevronLeft className="w-4 h-4" /> Back to listings
+          </button>
+        </div>
         <Card className="shadow-lg border-0 rounded-2xl overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-teal-600 to-emerald-500 text-white p-6">
             <CardTitle className="text-xl">Edit Listing</CardTitle>
@@ -226,29 +242,50 @@ export function EditListingPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="font-semibold text-gray-700">Price (₹) *</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    className="rounded-xl border-gray-200"
-                    value={form.price}
-                    onChange={(e) => setForm({ ...form, price: e.target.value })}
-                    required
-                  />
+              {/* Price */}
+              <div className="space-y-1.5">
+                <Label className="font-semibold text-gray-700">Price per pet (₹) *</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  className="rounded-xl border-gray-200"
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  required
+                />
+              </div>
+
+              {/* Gender Inventory */}
+              <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <Label className="font-semibold text-gray-700 block">Gender-based Inventory *</Label>
+                <p className="text-xs text-gray-500">Update male and female counts. At least one must be &gt; 0.</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium text-blue-700">♂ Male Count</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      className="rounded-xl border-blue-200 bg-white"
+                      value={form.maleQuantity}
+                      onChange={(e) => setForm({ ...form, maleQuantity: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium text-pink-600">♀ Female Count</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      className="rounded-xl border-pink-200 bg-white"
+                      value={form.femaleQuantity}
+                      onChange={(e) => setForm({ ...form, femaleQuantity: e.target.value })}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="font-semibold text-gray-700">Quantity *</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    className="rounded-xl border-gray-200"
-                    value={form.quantity}
-                    onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-                    required
-                  />
-                </div>
+                {(parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0) > 0 && (
+                  <p className="text-xs text-blue-600 font-medium">
+                    Total: {(parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0)} pet(s)
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -261,16 +298,18 @@ export function EditListingPage() {
                 />
               </div>
 
+              {/* Vaccination */}
               <div className="space-y-3 p-4 bg-green-50 border border-green-200 rounded-xl">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <Label className="font-semibold text-gray-700 min-w-max">Vaccinated:</Label>
                   <button
                     type="button"
                     onClick={() => setForm({ ...form, vaccinated: !form.vaccinated })}
-                    className={`w-11 h-6 rounded-full transition-colors relative ${form.vaccinated ? "bg-green-500" : "bg-gray-300"}`}
+                    className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${form.vaccinated ? "bg-green-500" : "bg-gray-300"}`}
                   >
                     <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.vaccinated ? "translate-x-5" : "translate-x-0.5"}`} />
                   </button>
-                  <Label className="font-semibold text-gray-700 cursor-pointer">Vaccinated</Label>
+                  <span className="text-sm text-gray-600">{form.vaccinated ? "Yes" : "No"}</span>
                   {form.vaccinated && <CheckCircle className="w-4 h-4 text-green-600" />}
                 </div>
                 {form.vaccinated && (
@@ -342,7 +381,6 @@ export function EditListingPage() {
                 )}
               </div>
 
-              {/* Pet Video (optional) */}
               <div className="space-y-2">
                 <Label className="font-semibold text-gray-700">Pet Video (optional)</Label>
                 <p className="text-xs text-gray-500">Upload or replace the pet video — .mp4 or .mov, max 50MB.</p>
@@ -362,7 +400,6 @@ export function EditListingPage() {
                       accept="video/mp4,video/quicktime,.mp4,.mov"
                       className="hidden"
                       onChange={(e) => e.target.files?.[0] && handleVideoFile(e.target.files[0])}
-                      data-testid="input-listing-video"
                     />
                     {videoUploading ? (
                       <div className="flex flex-col items-center gap-2 text-gray-500">
@@ -407,9 +444,9 @@ export function EditListingPage() {
               <Button
                 type="submit"
                 className="w-full h-12 rounded-xl text-base font-bold"
-                disabled={updateListing.isPending || !form.category || !form.breed || !form.price || !form.city}
+                disabled={submitting || !form.category || !form.breed || !form.price || !form.city || ((parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0) <= 0)}
               >
-                {updateListing.isPending ? "Saving..." : "Save Changes"}
+                {submitting ? "Saving..." : "Save Changes"}
               </Button>
             </form>
           </CardContent>

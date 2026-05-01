@@ -77,6 +77,36 @@ router.post("/admin/users/:id/block", async (req, res): Promise<void> => {
   res.json(u);
 });
 
+router.patch("/admin/users/:id", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  const [existing] = await db.select().from(usersTable).where(eq(usersTable.id, id));
+  if (!existing) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+
+  const updates: any = {};
+  if (req.body?.platformSharePercent !== undefined && existing.role === "transporter") {
+    const pct = Number(req.body.platformSharePercent);
+    if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
+      res.status(400).json({ error: "platformSharePercent must be 0-100" });
+      return;
+    }
+    updates.platformSharePercent = pct;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    res.status(400).json({ error: "No valid fields to update" });
+    return;
+  }
+
+  const [updated] = await db.update(usersTable).set(updates).where(eq(usersTable.id, id)).returning();
+  const { passwordHash, ...u } = updated as any;
+  res.json(u);
+});
+
 router.get("/admin/listings", async (req, res): Promise<void> => {
   const parsed = AdminGetListingsQueryParams.safeParse(req.query);
   const conditions: any[] = [];
