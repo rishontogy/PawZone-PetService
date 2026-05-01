@@ -1,0 +1,233 @@
+Remove Buyer Personal Details from Seller Order View while preserving system functionality.
+
+This is a SECURITY & PRIVACY FIX.
+
+---
+
+# 🔐 1. PROBLEM
+
+---
+
+Currently seller order details show:
+
+* Buyer Name ❌
+* Buyer Phone ❌
+* Buyer Address ❌
+
+This violates platform rules and privacy design.
+
+---
+
+# 🎯 2. REQUIRED CHANGE
+
+---
+
+## ❌ REMOVE from Seller View:
+
+* Buyer Name
+* Buyer Phone Number
+* Buyer Address
+* Any direct contact info
+
+---
+
+## ✅ KEEP ONLY:
+
+* Order ID
+* Product details
+* Quantity
+* Price
+* Seller earnings
+* Order status
+
+---
+
+---
+
+# 📦 3. UPDATED SELLER ORDER CARD STRUCTURE
+
+---
+
+## Expandable Order View should show:
+
+```id="seller_safe_view"
+Order ID: #12345
+
+Product: Labrador
+Quantity: 2
+Price per unit: ₹7000
+
+Subtotal: ₹14000
+Platform Fee: ₹40
+Seller Earnings: ₹13960
+
+Status: Confirmed / Ready / Picked / Delivered
+```
+
+---
+
+---
+
+# 🚚 4. TRANSPORTER INFO (ALLOWED)
+
+---
+
+After transporter assignment, seller CAN see:
+
+✔ Transporter Name
+✔ Transporter Phone
+✔ Pickup Date & Time
+
+---
+
+## ❗ Reason:
+
+Seller must coordinate **handover**, not buyer interaction.
+
+---
+
+---
+
+# 🔄 5. BACKEND FIX (IMPORTANT)
+
+---
+
+## Ensure API does NOT send buyer details:
+
+---
+
+### Before:
+
+```js
+order = {
+  buyer: {
+    name,
+    phone,
+    address
+  }
+}
+```
+
+---
+
+### After:
+
+```js
+order = {
+  buyer_id: "masked_or_hidden"
+}
+```
+
+---
+
+---
+
+# 🧠 6. OPTIONAL (SAFE DISPLAY)
+
+---
+
+If needed, show:
+
+```id="optional_mask"
+Buyer: Customer #A1023
+```
+
+---
+
+---
+
+# 🔐 7. ROLE-BASED DATA PROTECTION
+
+---
+
+## Enforce strict access:
+
+---
+
+### Seller:
+
+❌ Cannot access buyer personal data
+
+---
+
+### Transporter:
+
+✔ Can see buyer phone (for delivery only)
+
+---
+
+### Admin:
+
+✔ Full access
+
+---
+
+---
+
+# 🧪 8. VALIDATION TESTS
+
+---
+
+## Seller Page:
+
+* No buyer info visible ✔
+* Orders still functional ✔
+
+---
+
+## Transporter Page:
+
+* Buyer contact visible ✔
+
+---
+
+## Admin Page:
+
+* Full details visible ✔
+
+---
+
+---
+
+# ⚠️ 9. EDGE CASES
+
+---
+
+* Ensure no hidden API leaks
+* Ensure logs don’t expose buyer data
+* Ensure export/download doesn’t include buyer info for seller
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+✔ Seller cannot see buyer personal details
+✔ Transporter still gets required info
+✔ Admin retains full control
+✔ System remains fully functional
+
+---
+
+## FINAL RULE:
+
+Data must follow:
+
+→ Minimum necessary access
+→ Role-based visibility
+→ Privacy-first design
+
+---
+
+No accidental leaks
+No hidden exposure
+No unnecessary data sharing
+
+---
+
+This must behave like a secure marketplace system.

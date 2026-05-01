@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor, statusLabel } from "@/lib/api";
 import {
-  Package, MapPin, Clock, User, CheckCircle, ChevronDown, ChevronUp,
+  Package, Clock, User, CheckCircle, ChevronDown, ChevronUp,
   AlertCircle, X, Check, Video, Upload, Phone, Truck, IndianRupee
 } from "lucide-react";
 
@@ -145,19 +145,10 @@ export function SellerOrdersPage() {
                         </div>
                         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
                           <span className="flex items-center gap-1">
-                            <User className="w-3.5 h-3.5" /> {order.buyerName || "Buyer"}
-                          </span>
-                          <span className="flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5" /> {new Date(order.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                           </span>
                           <span>{orderItems.length || order.itemCount || "?"} pet{(orderItems.length || order.itemCount) !== 1 ? "s" : ""}</span>
                         </div>
-                        {order.deliveryAddress && (
-                          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                            <MapPin className="w-3 h-3 flex-shrink-0" />
-                            <span className="truncate">{order.deliveryAddress}</span>
-                          </p>
-                        )}
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="font-bold text-teal-700 text-lg">{formatPrice(sellerEarning > 0 ? sellerEarning : Number(order.totalAmount ?? 0))}</p>
@@ -229,28 +220,6 @@ export function SellerOrdersPage() {
                               <span>Your earnings</span>
                               <span>{formatPrice(Math.max(0, sellerEarning))}</span>
                             </div>
-                          </div>
-                        </div>
-
-                        {/* Buyer Info */}
-                        <div className="bg-gray-50 rounded-xl p-3">
-                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Buyer Info</p>
-                          <div className="space-y-1">
-                            <p className="text-sm text-gray-800 flex items-center gap-2">
-                              <User className="w-3.5 h-3.5 text-gray-400" /> {order.buyerName || "Unknown"}
-                            </p>
-                            {order.buyerPhone && (
-                              <p className="text-sm text-gray-800 flex items-center gap-2">
-                                <Phone className="w-3.5 h-3.5 text-gray-400" />
-                                <a href={`tel:${order.buyerPhone}`} className="text-blue-600 hover:underline">{order.buyerPhone}</a>
-                              </p>
-                            )}
-                            {order.deliveryAddress && (
-                              <p className="text-xs text-gray-500 flex items-start gap-2 mt-1">
-                                <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-gray-400" />
-                                <span>{order.deliveryAddress}</span>
-                              </p>
-                            )}
                           </div>
                         </div>
 

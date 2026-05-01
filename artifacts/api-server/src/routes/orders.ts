@@ -105,7 +105,14 @@ router.get("/orders", authMiddleware, async (req, res): Promise<void> => {
         breed: listing?.breed ?? null,
       };
     }));
-    return formatOrder(order, buyerName, seller?.name ?? "", transporterName, transporterPhone, buyerPhone, orderItems);
+    const formatted = formatOrder(order, buyerName, seller?.name ?? "", transporterName, transporterPhone, buyerPhone, orderItems);
+    // Sellers must not see buyer personal details — strip before returning
+    if (user.role === "seller") {
+      formatted.buyerName = null;
+      formatted.buyerPhone = null;
+      formatted.deliveryAddress = null;
+    }
+    return formatted;
   }));
 
   const page = parseInt((req.query.page as string) || "1", 10);
