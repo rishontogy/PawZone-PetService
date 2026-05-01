@@ -230,9 +230,9 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
     );
 
   const result = await Promise.all(candidates.map(async (order) => {
-    const [buyer] = await db.select({ name: usersTable.name, city: usersTable.city, address: usersTable.address })
+    const [buyer] = await db.select({ name: usersTable.name, city: usersTable.city, address: usersTable.address, phone: usersTable.phone })
       .from(usersTable).where(eq(usersTable.id, order.buyerId));
-    const [seller] = await db.select({ name: usersTable.name, city: usersTable.city, address: usersTable.address })
+    const [seller] = await db.select({ name: usersTable.name, city: usersTable.city, address: usersTable.address, phone: usersTable.phone })
       .from(usersTable).where(eq(usersTable.id, order.sellerId));
 
     // Build full address text for both ends (for keyword matching)
@@ -248,7 +248,9 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
     return {
       ...order,
       buyerName: buyer?.name ?? "",
+      buyerPhone: buyer?.phone ?? null,
       sellerName: seller?.name ?? "",
+      sellerPhone: seller?.phone ?? null,
       pickupCity: items[0]?.city ?? seller?.city ?? null,
       deliveryCity: extractCity(order.deliveryAddress, routeKeywords) ?? buyer?.city ?? null,
       _pickupAddress: pickupAddress,

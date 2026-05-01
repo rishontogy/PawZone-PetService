@@ -194,19 +194,13 @@ export function AddRoutePage() {
                 <Label className="font-semibold text-gray-700 flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5 text-gray-400" /> Route *
                 </Label>
-                <p className="text-xs text-gray-500">
-                  Type your stops separated by spaces — first stop is your starting point, last stop is your destination, everything in between are waypoints.
-                </p>
                 <Input
                   data-testid="input-route-text"
                   value={routeText}
                   onChange={(e) => setRouteText(e.target.value)}
-                  placeholder="thiruvananthapuram kazhakuttom varkala kottayam"
+                  placeholder="Enter route (e.g. thiruvananthapuram kazhakuttom varkala)"
                   className="rounded-xl border-gray-200"
                 />
-                <p className="text-xs text-gray-400">
-                  Example: <span className="font-mono text-blue-600">puthumana peroor ettumanoor kottayam</span>
-                </p>
               </div>
 
               {allTokens.length >= 2 && (

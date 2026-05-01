@@ -1,0 +1,198 @@
+Update Transporter Dashboard UI and Order Details View with Contact Info, Banner Fix, and Route Input Cleanup.
+
+This is a UI + DATA VISIBILITY FIX.
+
+---
+
+# 📞 1. ADD CONTACT DETAILS IN ORDER DETAILS (IMPORTANT)
+
+---
+
+## ❌ Problem:
+
+Transporter cannot clearly access all contact details
+
+---
+
+## ✅ Required Fix:
+
+In expanded order card (View Details), INCLUDE:
+
+---
+
+### 👤 Seller Details:
+
+* Name
+* Phone Number
+
+---
+
+### 👤 Buyer (Receiver) Details:
+
+* Name
+* Phone Number
+
+---
+
+---
+
+## 📦 Final Expanded Card Structure:
+
+```plaintext
+Order ID: #12345
+
+Pickup Location: Kottayam
+Delivery Location: Kochi
+
+Seller:
+Name: John
+Phone: 9876543210
+
+Buyer:
+Name: Arun
+Phone: 9123456780
+
+Transport Charge: ₹300
+Platform Fee: ₹40
+Your Earnings: ₹260
+```
+
+---
+
+## ⚠️ RULE:
+
+* Visible ONLY to assigned transporter
+* Hidden until order is accepted
+
+---
+
+---
+
+# 🎨 2. TOP BANNER COLOR FIX
+
+---
+
+## ❌ Problem:
+
+Top banner changed to blue
+
+---
+
+## ✅ Fix:
+
+* Restore original GREEN banner
+* Apply across transporter dashboard
+
+---
+
+### Example:
+
+```css
+background-color: #28a745; /* green */
+color: white;
+```
+
+---
+
+---
+
+# 🛣 3. ROUTE INPUT PAGE CLEANUP
+
+---
+
+## ❌ Problems:
+
+* Example text shown below input
+* UI looks cluttered
+
+---
+
+## ✅ Required Fix:
+
+---
+
+### 🔹 Keep ONLY:
+
+* Input textbox
+
+---
+
+### 🔹 Placeholder inside textbox:
+
+```plaintext
+Enter route (e.g. thiruvananthapuram kazhakuttom varkala)
+```
+
+---
+
+### 🔹 REMOVE:
+
+❌ Any example text BELOW the textbox
+❌ Extra instructions clutter
+
+---
+
+---
+
+# 🧠 4. ROUTE INPUT BEHAVIOR (KEEP EXISTING LOGIC)
+
+---
+
+* User types multiple stops
+* Split by space
+* Use for matching orders
+
+---
+
+---
+
+# 🧪 5. VALIDATION CHECK
+
+---
+
+✔ Transporter sees seller phone
+✔ Transporter sees buyer phone
+✔ Only after accepting order
+✔ Banner is green
+✔ No extra example text below input
+✔ UI clean and minimal
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+✔ Transporter gets full contact visibility
+✔ Clean professional UI restored
+✔ No unnecessary clutter
+✔ Consistent design
+
+---
+
+## FINAL RULE:
+
+UI must be:
+
+→ Clean
+→ Minimal
+→ Functional
+
+Data must be:
+
+→ Visible when needed
+→ Hidden when not
+
+---
+
+No clutter
+No confusion
+No inconsistent design
+
+---
+
+This should feel like a real delivery operations panel.

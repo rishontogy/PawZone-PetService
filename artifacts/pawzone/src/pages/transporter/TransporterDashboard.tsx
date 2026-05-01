@@ -123,16 +123,16 @@ export function TransporterDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-700 to-indigo-600 px-6 py-8">
+      <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-8">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
               <Truck className="w-6 h-6" /> Transporter Dashboard
             </h1>
-            <p className="text-blue-100 text-sm mt-1">Welcome back, {user?.name}</p>
+            <p className="text-green-100 text-sm mt-1">Welcome back, {user?.name}</p>
           </div>
           <Link href="/transporter/routes/new">
-            <Button className="gap-2 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-semibold">
+            <Button className="gap-2 rounded-xl bg-white text-green-700 hover:bg-green-50 font-semibold">
               <PlusCircle className="w-4 h-4" /> Add Route
             </Button>
           </Link>
@@ -436,37 +436,44 @@ export function TransporterDashboard() {
                           </div>
                         </div>
 
-                        {/* Seller Details */}
-                        <div className="bg-gray-50 rounded-xl p-3">
-                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Seller (Pickup Point)</p>
-                          <div className="space-y-1">
-                            <p className="text-sm text-gray-800 flex items-center gap-2">
-                              <User className="w-3.5 h-3.5 text-gray-400" /> {order.sellerName || "Seller"}
-                            </p>
-                            {order.sellerPhone && (
-                              <p className="text-sm flex items-center gap-2">
-                                <Phone className="w-3.5 h-3.5 text-gray-400" />
-                                <a href={`tel:${order.sellerPhone}`} className="text-blue-600 hover:underline font-medium">{order.sellerPhone}</a>
-                              </p>
-                            )}
-                          </div>
-                        </div>
+                        {/* Seller & Buyer contact — only visible once transporter has accepted */}
+                        {isMyOrder ? (
+                          <>
+                            <div className="bg-gray-50 rounded-xl p-3">
+                              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Seller (Pickup Point)</p>
+                              <div className="space-y-1">
+                                <p className="text-sm text-gray-800 flex items-center gap-2">
+                                  <User className="w-3.5 h-3.5 text-gray-400" /> {order.sellerName || "Seller"}
+                                </p>
+                                {order.sellerPhone && (
+                                  <p className="text-sm flex items-center gap-2">
+                                    <Phone className="w-3.5 h-3.5 text-gray-400" />
+                                    <a href={`tel:${order.sellerPhone}`} className="text-green-700 hover:underline font-medium">{order.sellerPhone}</a>
+                                  </p>
+                                )}
+                              </div>
+                            </div>
 
-                        {/* Buyer Details */}
-                        <div className="bg-gray-50 rounded-xl p-3">
-                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Buyer (Delivery Point)</p>
-                          <div className="space-y-1">
-                            <p className="text-sm text-gray-800 flex items-center gap-2">
-                              <User className="w-3.5 h-3.5 text-gray-400" /> {order.buyerName || "Buyer"}
-                            </p>
-                            {order.buyerPhone && (
-                              <p className="text-sm flex items-center gap-2">
-                                <Phone className="w-3.5 h-3.5 text-gray-400" />
-                                <a href={`tel:${order.buyerPhone}`} className="text-blue-600 hover:underline font-medium">{order.buyerPhone}</a>
-                              </p>
-                            )}
+                            <div className="bg-gray-50 rounded-xl p-3">
+                              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Buyer (Delivery Point)</p>
+                              <div className="space-y-1">
+                                <p className="text-sm text-gray-800 flex items-center gap-2">
+                                  <User className="w-3.5 h-3.5 text-gray-400" /> {order.buyerName || "Buyer"}
+                                </p>
+                                {order.buyerPhone && (
+                                  <p className="text-sm flex items-center gap-2">
+                                    <Phone className="w-3.5 h-3.5 text-gray-400" />
+                                    <a href={`tel:${order.buyerPhone}`} className="text-green-700 hover:underline font-medium">{order.buyerPhone}</a>
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-center">
+                            <p className="text-xs text-amber-700 font-medium">Accept this delivery to view seller & buyer contact details</p>
                           </div>
-                        </div>
+                        )}
 
                         {/* Earnings Breakdown */}
                         {(isMyOrder && transportCharge > 0) && (
