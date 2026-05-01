@@ -1,0 +1,176 @@
+Unify Transporter UI Theme with Seller Theme (Banner + Add Route Page).
+
+This is a UI CONSISTENCY FIX.
+
+---
+
+# 🎨 1. PROBLEM
+
+---
+
+* Transporter banner color ≠ Seller banner color
+* Add Route page using different color theme
+* UI looks inconsistent across roles
+
+---
+
+# 🎯 2. REQUIRED CHANGE
+
+---
+
+## ✅ Use EXACT SAME COLOR as Seller Banner:
+
+---
+
+### 🔹 Step 1: Identify Seller Banner Color
+
+Find seller banner CSS:
+
+```css
+.seller-banner {
+  background-color: ???;
+}
+```
+
+---
+
+### 🔹 Step 2: Apply SAME color to transporter
+
+---
+
+```css id="theme_sync"
+.transporter-banner {
+  background-color: SAME_AS_SELLER;
+  color: white;
+}
+```
+
+---
+
+---
+
+# 🎨 3. APPLY SAME COLOR TO ADD ROUTE PAGE
+
+---
+
+## Elements to update:
+
+* Page header
+* Submit button
+* Highlight sections
+* Input focus border
+
+---
+
+---
+
+### Example:
+
+```css id="route_theme"
+.add-route-header {
+  background-color: SAME_AS_SELLER;
+  color: white;
+}
+
+.add-route-button {
+  background-color: SAME_AS_SELLER;
+  border: none;
+  color: white;
+}
+
+.add-route-button:hover {
+  opacity: 0.9;
+}
+```
+
+---
+
+---
+
+# 🧠 4. BEST PRACTICE (IMPORTANT)
+
+---
+
+## ❗ DO NOT hardcode color multiple times
+
+---
+
+### Create global variable:
+
+```css id="global_color"
+:root {
+  --primary-color: #28a745; /* replace with seller color */
+}
+```
+
+---
+
+---
+
+### Use everywhere:
+
+```css id="use_global"
+background-color: var(--primary-color);
+```
+
+---
+
+---
+
+# 🔁 5. APPLY TO THESE AREAS
+
+---
+
+## Transporter:
+
+✔ Top banner
+✔ Add route page
+✔ Buttons
+✔ Active cards (optional highlight)
+
+---
+
+---
+
+# 🧪 6. VALIDATION
+
+---
+
+✔ Transporter banner = Seller banner
+✔ Add route page matches theme
+✔ No blue/extra colors left
+✔ UI looks consistent
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+✔ Same theme across Seller & Transporter
+✔ Clean, unified design
+✔ No mismatched colors
+
+---
+
+## FINAL RULE:
+
+Design must be:
+
+→ Consistent
+→ Reusable
+→ Centralized
+
+---
+
+No random colors
+No mismatched UI
+No duplicated styling
+
+---
+
+This should feel like one single professional product.

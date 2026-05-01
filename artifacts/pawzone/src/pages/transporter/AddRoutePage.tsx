@@ -140,7 +140,7 @@ export function AddRoutePage() {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-lg mx-auto">
         <Card className="shadow-lg border-0 rounded-2xl overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-500 text-white p-6">
+          <CardHeader className="bg-gradient-to-r from-teal-700 to-emerald-600 text-white p-6">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                 <Truck className="w-6 h-6 text-white" />
@@ -204,22 +204,22 @@ export function AddRoutePage() {
               </div>
 
               {allTokens.length >= 2 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <p className="text-xs font-semibold text-blue-700 mb-2">Route Preview</p>
+                <div className="bg-teal-50 border border-teal-200 rounded-xl p-4">
+                  <p className="text-xs font-semibold text-teal-700 mb-2">Route Preview</p>
                   <div className="flex flex-wrap items-center gap-1 text-sm">
                     {allTokens.map((city, idx) => (
                       <span key={idx} className="flex items-center gap-1">
                         <span className={`px-2 py-0.5 rounded-lg text-xs font-medium ${
                           idx === 0 ? "bg-green-100 text-green-700" :
                           idx === allTokens.length - 1 ? "bg-red-100 text-red-700" :
-                          "bg-blue-100 text-blue-700"
+                          "bg-teal-100 text-teal-700"
                         }`}>{city}</span>
                         {idx < allTokens.length - 1 && <span className="text-gray-400">→</span>}
                       </span>
                     ))}
                   </div>
                   {startTime && endTime && (
-                    <p className="text-xs text-blue-600 mt-2">
+                    <p className="text-xs text-teal-600 mt-2">
                       🕐 {startTime} – {endTime} on {dayOfWeek || "?"}
                     </p>
                   )}
@@ -229,7 +229,7 @@ export function AddRoutePage() {
               <Button
                 type="submit"
                 data-testid="button-save-route"
-                className="w-full h-12 rounded-xl text-base font-bold bg-blue-600 hover:bg-blue-700"
+                className="w-full h-12 rounded-xl text-base font-bold bg-teal-700 hover:bg-emerald-600"
                 disabled={isPending || !dayOfWeek || allTokens.length < 2}
               >
                 {isPending ? (isEditMode ? "Saving..." : "Adding Route...") : (isEditMode ? "Save Changes" : "Save Route")}

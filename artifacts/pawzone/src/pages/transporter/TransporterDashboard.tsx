@@ -123,16 +123,16 @@ export function TransporterDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-8">
+      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-6 py-8">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
               <Truck className="w-6 h-6" /> Transporter Dashboard
             </h1>
-            <p className="text-green-100 text-sm mt-1">Welcome back, {user?.name}</p>
+            <p className="text-teal-100 text-sm mt-1">Welcome back, {user?.name}</p>
           </div>
           <Link href="/transporter/routes/new">
-            <Button className="gap-2 rounded-xl bg-white text-green-700 hover:bg-green-50 font-semibold">
+            <Button className="gap-2 rounded-xl bg-white text-teal-700 hover:bg-teal-50 font-semibold">
               <PlusCircle className="w-4 h-4" /> Add Route
             </Button>
           </Link>
@@ -145,7 +145,7 @@ export function TransporterDashboard() {
           {[
             { icon: <CheckCircle className="w-6 h-6 text-green-600" />, label: "Deliveries Done", value: (dash as any)?.stats?.completedDeliveries ?? 0, bg: "bg-green-50", border: "border-green-200" },
             { icon: <Package className="w-6 h-6 text-amber-600" />, label: "Active", value: (dash as any)?.stats?.activeDeliveries ?? 0, bg: "bg-amber-50", border: "border-amber-200" },
-            { icon: <IndianRupee className="w-6 h-6 text-blue-600" />, label: "Total Earnings", value: formatPrice((dash as any)?.stats?.totalEarnings ?? 0), bg: "bg-blue-50", border: "border-blue-200" },
+            { icon: <IndianRupee className="w-6 h-6 text-teal-700" />, label: "Total Earnings", value: formatPrice((dash as any)?.stats?.totalEarnings ?? 0), bg: "bg-teal-50", border: "border-teal-200" },
           ].map((stat) => (
             <div key={stat.label} className={`${stat.bg} border ${stat.border} rounded-2xl p-5 flex items-center gap-4 shadow-sm`}>
               <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
@@ -163,10 +163,10 @@ export function TransporterDashboard() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
           <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
             <h2 className="font-bold text-gray-900 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-blue-600" /> My Delivery Routes
+              <MapPin className="w-5 h-5 text-teal-700" /> My Delivery Routes
             </h2>
             <Link href="/transporter/routes/new">
-              <button className="text-blue-600 text-sm font-medium hover:text-blue-700 flex items-center gap-1">
+              <button className="text-teal-700 text-sm font-medium hover:text-emerald-600 flex items-center gap-1">
                 <PlusCircle className="w-4 h-4" /> Add route
               </button>
             </Link>
@@ -193,7 +193,7 @@ export function TransporterDashboard() {
                               <span className={`text-sm px-2.5 py-1 rounded-lg font-medium ${
                                 idx === 0 ? "bg-green-100 text-green-700" :
                                 idx === allCities.length - 1 ? "bg-red-100 text-red-700" :
-                                "bg-blue-100 text-blue-700"
+                                "bg-teal-100 text-teal-700"
                               }`}>{city}</span>
                               {idx < allCities.length - 1 && <ArrowRight className="w-3.5 h-3.5 text-gray-400" />}
                             </span>
@@ -216,7 +216,7 @@ export function TransporterDashboard() {
                         <Link href={`/transporter/routes/${route.id}/edit`}>
                           <button
                             data-testid={`button-edit-route-${route.id}`}
-                            className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center transition-colors"
+                            className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 flex items-center justify-center transition-colors"
                             title="Edit route"
                           >
                             <Pencil className="w-4 h-4" />
@@ -243,7 +243,7 @@ export function TransporterDashboard() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
             <h2 className="font-bold text-gray-900 flex items-center gap-2">
-              <Package className="w-5 h-5 text-blue-600" /> Delivery Requests & Active Orders
+              <Package className="w-5 h-5 text-teal-700" /> Delivery Requests & Active Orders
             </h2>
             <span className="text-xs text-gray-400">{orders.length} total • newest first</span>
           </div>
@@ -315,7 +315,7 @@ export function TransporterDashboard() {
                         <Button
                           data-testid={`button-accept-${order.id}`}
                           size="sm"
-                          className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white"
+                          className="rounded-xl bg-teal-700 hover:bg-emerald-600 text-white"
                           onClick={() => handleOpenAccept(order.id)}
                         >
                           Accept Delivery
@@ -324,7 +324,7 @@ export function TransporterDashboard() {
                       <button
                         onClick={() => setExpandedId(isExpanded ? null : order.id)}
                         data-testid={`button-toggle-order-${order.id}`}
-                        className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                        className="flex items-center gap-1 text-sm text-teal-700 hover:text-emerald-600 font-medium"
                       >
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         {isExpanded ? "Hide Details" : "View Details"}
@@ -333,24 +333,24 @@ export function TransporterDashboard() {
 
                     {/* Accept form */}
                     {canAccept && acceptingId === order.id && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3 mb-3">
-                        <p className="text-sm font-semibold text-blue-800">Set Pickup & Delivery Schedule</p>
+                      <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 space-y-3 mb-3">
+                        <p className="text-sm font-semibold text-teal-800">Set Pickup & Delivery Schedule</p>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="text-xs text-blue-700 font-medium block mb-1">Pickup Time</label>
+                            <label className="text-xs text-teal-700 font-medium block mb-1">Pickup Time</label>
                             <input
                               type="datetime-local"
-                              className="w-full text-sm border border-blue-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              className="w-full text-sm border border-teal-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
                               value={acceptForm.pickupTime}
                               onChange={(e) => setAcceptForm({ ...acceptForm, pickupTime: e.target.value })}
                               data-testid={`input-pickup-time-${order.id}`}
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-blue-700 font-medium block mb-1">Delivery Time</label>
+                            <label className="text-xs text-teal-700 font-medium block mb-1">Delivery Time</label>
                             <input
                               type="datetime-local"
-                              className="w-full text-sm border border-blue-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              className="w-full text-sm border border-teal-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
                               value={acceptForm.deliveryTime}
                               onChange={(e) => setAcceptForm({ ...acceptForm, deliveryTime: e.target.value })}
                               data-testid={`input-delivery-time-${order.id}`}
@@ -358,14 +358,14 @@ export function TransporterDashboard() {
                           </div>
                         </div>
                         <div>
-                          <label className="text-xs text-blue-700 font-medium block mb-1 flex items-center gap-1">
+                          <label className="text-xs text-teal-700 font-medium block mb-1 flex items-center gap-1">
                             <IndianRupee className="w-3 h-3" /> Transport Rate (₹)
                           </label>
                           <input
                             type="number"
                             min={1}
                             step="1"
-                            className="w-full text-sm border border-blue-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            className="w-full text-sm border border-teal-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
                             value={acceptForm.transportFee}
                             onChange={(e) => setAcceptForm({ ...acceptForm, transportFee: e.target.value })}
                             placeholder="e.g. 300"
@@ -383,14 +383,14 @@ export function TransporterDashboard() {
                             const fee = amt >= 200 ? 40 : 20;
                             const earn = Math.max(0, amt - fee);
                             return (
-                              <div className="mt-1 text-[11px] bg-white border border-blue-100 rounded-lg p-2 space-y-0.5">
+                              <div className="mt-1 text-[11px] bg-white border border-teal-100 rounded-lg p-2 space-y-0.5">
                                 <div className="flex justify-between text-gray-600">
                                   <span>Transport charge</span><span>{formatPrice(amt)}</span>
                                 </div>
                                 <div className="flex justify-between text-red-500">
                                   <span>Platform fee</span><span>− {formatPrice(fee)}</span>
                                 </div>
-                                <div className="flex justify-between font-semibold text-blue-700 border-t border-blue-100 pt-0.5 mt-0.5">
+                                <div className="flex justify-between font-semibold text-teal-700 border-t border-teal-100 pt-0.5 mt-0.5">
                                   <span>Your earnings</span><span>{formatPrice(earn)}</span>
                                 </div>
                               </div>
@@ -400,7 +400,7 @@ export function TransporterDashboard() {
                         <div className="flex gap-2">
                           <Button
                             size="sm"
-                            className="rounded-xl bg-blue-600 hover:bg-blue-700"
+                            className="rounded-xl bg-teal-700 hover:bg-emerald-600"
                             disabled={acceptDelivery.isPending}
                             onClick={() => handleAcceptSubmit(order.id)}
                             data-testid={`button-confirm-accept-${order.id}`}
@@ -477,8 +477,8 @@ export function TransporterDashboard() {
 
                         {/* Earnings Breakdown */}
                         {(isMyOrder && transportCharge > 0) && (
-                          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
-                            <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-2 flex items-center gap-1">
+                          <div className="bg-teal-50 border border-teal-100 rounded-xl p-3">
+                            <p className="text-xs font-semibold text-teal-700 uppercase tracking-wide mb-2 flex items-center gap-1">
                               <IndianRupee className="w-3 h-3" /> Earnings Breakdown
                             </p>
                             <div className="space-y-1.5 text-sm">
@@ -490,7 +490,7 @@ export function TransporterDashboard() {
                                 <span>Platform fee</span>
                                 <span>− {formatPrice(platformFee)}</span>
                               </div>
-                              <div className="flex justify-between font-bold text-blue-700 border-t border-blue-200 pt-1.5">
+                              <div className="flex justify-between font-bold text-teal-700 border-t border-teal-200 pt-1.5">
                                 <span>Your earnings</span>
                                 <span>{formatPrice(myEarning)}</span>
                               </div>
