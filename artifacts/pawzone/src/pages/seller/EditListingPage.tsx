@@ -300,18 +300,30 @@ export function EditListingPage() {
 
               {/* Vaccination */}
               <div className="space-y-3 p-4 bg-green-50 border border-green-200 rounded-xl">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <Label className="font-semibold text-gray-700 min-w-max">Vaccinated:</Label>
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, vaccinated: !form.vaccinated })}
-                    className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${form.vaccinated ? "bg-green-500" : "bg-gray-300"}`}
-                  >
-                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.vaccinated ? "translate-x-5" : "translate-x-0.5"}`} />
-                  </button>
-                  <span className="text-sm text-gray-600">{form.vaccinated ? "Yes" : "No"}</span>
-                  {form.vaccinated && <CheckCircle className="w-4 h-4 text-green-600" />}
-                </div>
+                <label
+                  htmlFor="vaccinatedToggleEdit"
+                  className="flex items-center justify-between cursor-pointer select-none"
+                >
+                  <span className="font-semibold text-gray-700 flex items-center gap-2">
+                    Vaccinated
+                    {form.vaccinated && <CheckCircle className="w-4 h-4 text-green-600" />}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">{form.vaccinated ? "Yes" : "No"}</span>
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        id="vaccinatedToggleEdit"
+                        className="sr-only"
+                        checked={form.vaccinated}
+                        onChange={(e) => setForm({ ...form, vaccinated: e.target.checked })}
+                      />
+                      <div className={`w-11 h-6 rounded-full transition-colors duration-200 ${form.vaccinated ? "bg-green-500" : "bg-gray-300"}`}>
+                        <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${form.vaccinated ? "translate-x-5" : "translate-x-0"}`} />
+                      </div>
+                    </div>
+                  </div>
+                </label>
                 {form.vaccinated && (
                   <Input
                     className="rounded-xl border-green-200 bg-white"
