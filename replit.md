@@ -46,6 +46,10 @@ PawZone is a full-featured pet marketplace web application serving Kerala, India
 - **Buyer Instant Access**: Buyers get immediate dashboard access. Sellers/Transporters still require admin approval.
 - **Buyer Dashboard Redesign**: Amazon/Swiggy-style with sidebar, category pills (Dogs/Cats/Birds/Fish), live pet grid, welcome banner.
 - **Image Upload**: Drag & drop image upload on CreateListingPage with POST `/api/upload` endpoint (multer).
+- **Persistent Media Storage**: All uploads now go to Replit Object Storage (GCS-backed). `/api/upload` streams files to GCS via `@google-cloud/storage` and returns `/api/storage/objects/uploads/<uuid>.<ext>`. `/api/storage/objects/*` serves them back from GCS (permanent, survives restarts).
+- **Media Gallery/Slider**: Listing detail page shows unified photos+video gallery. Photo and video thumbnails in strip; click to switch main viewer. Video thumb shows Play icon overlay. Video plays inline with controls.
+- **Cart 3-hour Auto-Expiry**: Cart items expire after 3h inactivity. `addedAt` and `expiringNotified` columns on cart table. Background sweeper runs every 60s: sends `cart_expiring` notification at 2.5h, deletes item and sends `cart_expired` notification at 3h.
+- **Seller Restock Auth**: Fixed missing Authorization header in `submitRestock()` on SellerListingsPage.
 - **Multi-stop Routes**: Transporter AddRoutePage now supports multiple intermediate stops with visual route preview.
 - **Admin User Notifications**: WhatsApp button opens wa.me link with approval message for sellers/transporters.
 - **UI/UX Overhaul**: New teal gradient hero, search bar, stats bar, improved cards, rounded-2xl design system.

@@ -1,0 +1,339 @@
+Fix the Media Upload, Storage, and Rendering System for PawZone.
+
+This is a CRITICAL SYSTEM FIX affecting ALL roles.
+
+---
+
+# ❌ 1. CURRENT PROBLEM
+
+---
+
+* Images uploaded by seller are NOT visible
+* Videos are NOT loading
+* Media not accessible across pages
+* Possibly only local/temporary paths are stored
+
+---
+
+# 🎯 2. CORE REQUIREMENT
+
+---
+
+Media uploaded by seller must:
+
+✔ Be stored permanently
+✔ Be accessible across ALL roles
+✔ Load correctly on ALL pages
+
+---
+
+# 🗂 3. MEDIA STORAGE FIX (MANDATORY)
+
+---
+
+## ❌ DO NOT store:
+
+* Local file paths (e.g., C:, /tmp/)
+* Temporary URLs
+
+---
+
+## ✅ Use one of the following:
+
+---
+
+### Option A (Recommended for Desktop App):
+
+Store as **Base64 or Binary (BLOB)** in database
+
+```js
+product.media = [
+  {
+    type: "image",
+    data: base64_string
+  },
+  {
+    type: "video",
+    data: base64_string
+  }
+]
+```
+
+---
+
+### Option B:
+
+Store in **app storage folder**
+
+```
+/app_storage/media/products/{product_id}/
+```
+
+And save path in DB:
+
+```js
+url: "/media/products/123/image1.jpg"
+```
+
+---
+
+---
+
+# 📦 4. DATABASE STRUCTURE
+
+---
+
+Ensure each product has:
+
+```js
+product_id
+seller_id
+media: array
+```
+
+---
+
+Each media object:
+
+```js
+{
+  type: "image" | "video",
+  url OR data
+}
+```
+
+---
+
+---
+
+# ⬆️ 5. UPLOAD SYSTEM FIX
+
+---
+
+## When seller uploads:
+
+---
+
+### Steps:
+
+1. Validate file (image/video)
+2. Convert/store properly
+3. Save reference in DB
+4. Confirm upload success
+
+---
+
+## ❗ IMPORTANT:
+
+Remove requirement of:
+
+❌ “URL input required”
+
+---
+
+✔ Only file upload should be used
+
+---
+
+---
+
+# 🖼 6. MEDIA RENDERING FIX
+
+---
+
+## All pages must display media:
+
+---
+
+### Buyer:
+
+* Product listing
+* Product details
+
+---
+
+### Seller:
+
+* My listings
+* Edit page
+
+---
+
+### Admin:
+
+* Listing approval page
+
+---
+
+---
+
+## Rendering Logic:
+
+---
+
+### For Images:
+
+```html
+<img src="media_url_or_base64" />
+```
+
+---
+
+### For Videos:
+
+```html
+<video controls>
+  <source src="media_url_or_base64" />
+</video>
+```
+
+---
+
+---
+
+# 🎞 7. MEDIA SLIDER / GALLERY (REQUIRED)
+
+---
+
+## Add carousel/slider:
+
+---
+
+### Behavior:
+
+* Swipe or scroll
+* Show multiple images/videos
+
+---
+
+### Example:
+
+```
+[ Image 1 ] [ Image 2 ] [ ▶ Video ]
+```
+
+---
+
+---
+
+# ⚠️ 8. FALLBACK HANDLING
+
+---
+
+If media fails:
+
+* Show placeholder image
+* Show “Video not available”
+
+---
+
+## ❌ Do NOT leave blank space
+
+---
+
+---
+
+# 🔐 9. ACCESSIBILITY RULE
+
+---
+
+## Media must be accessible to:
+
+✔ Buyer
+✔ Seller
+✔ Transporter (if needed in order view)
+✔ Admin
+
+---
+
+## No role-based blocking for media viewing
+
+---
+
+---
+
+# 🧪 10. VALIDATION TESTS
+
+---
+
+## Case 1:
+
+Upload image → visible in buyer page
+✔ Pass
+
+---
+
+## Case 2:
+
+Upload video → playable
+✔ Pass
+
+---
+
+## Case 3:
+
+Multiple files → slider works
+✔ Pass
+
+---
+
+## Case 4:
+
+Restart app → media still loads
+✔ Pass
+
+---
+
+## Case 5:
+
+Admin view → media visible
+✔ Pass
+
+---
+
+---
+
+# ⚠️ 11. COMMON BUG FIXES
+
+---
+
+Fix:
+
+* Broken file paths
+* Missing DB entries
+* Incorrect binding
+* Async load issues
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this fix:
+
+✔ Images load everywhere
+✔ Videos play correctly
+✔ Media persists after restart
+✔ No URL-based upload needed
+✔ All roles can view media
+
+---
+
+## FINAL RULE:
+
+Media must be:
+
+→ Persistent
+→ Accessible
+→ Consistent
+
+No broken images
+No missing videos
+No local-path dependency
+
+---
+
+This must behave like a real production media system.

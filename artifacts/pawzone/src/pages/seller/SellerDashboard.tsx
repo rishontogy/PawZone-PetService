@@ -152,7 +152,8 @@ export function SellerDashboard() {
                   <div key={listing.id} className="px-5 py-3.5 flex items-center gap-3 hover:bg-gray-50 transition-colors">
                     <div className="w-12 h-12 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
                       {listing.photos?.[0] ? (
-                        <img src={listing.photos[0]} alt={listing.breed} className="w-full h-full object-cover" />
+                        <img src={listing.photos[0]} alt={listing.breed} className="w-full h-full object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <PawPrint className="w-5 h-5 text-gray-300" />

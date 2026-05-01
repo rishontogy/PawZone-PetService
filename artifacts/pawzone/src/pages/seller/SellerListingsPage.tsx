@@ -105,6 +105,7 @@ export function SellerListingsPage() {
                       src={listing.photos[0]}
                       alt={listing.breed}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => { (e.target as HTMLImageElement).src = "https://via.placeholder.com/400x225?text=Pet"; }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">

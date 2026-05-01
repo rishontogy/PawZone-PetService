@@ -289,7 +289,8 @@ export function EditListingPage() {
                   <div className="grid grid-cols-3 gap-2 mb-3">
                     {photos.map((url, idx) => (
                       <div key={idx} className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 group">
-                        <img src={url} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                        <img src={url} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).src = "https://via.placeholder.com/200x200?text=Photo"; }} />
                         <button
                           type="button"
                           onClick={() => removePhoto(idx)}

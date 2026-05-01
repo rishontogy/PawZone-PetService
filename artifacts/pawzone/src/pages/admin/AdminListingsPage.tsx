@@ -72,7 +72,8 @@ export function AdminListingsPage() {
                   <div className="flex gap-4">
                     <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                       {listing.photos?.[0] ? (
-                        <img src={listing.photos[0]} alt={listing.breed} className="w-full h-full object-cover" />
+                        <img src={listing.photos[0]} alt={listing.breed} className="w-full h-full object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).src = "https://via.placeholder.com/80x80?text=Pet"; }} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <PawPrint className="w-8 h-8 text-muted-foreground" />
