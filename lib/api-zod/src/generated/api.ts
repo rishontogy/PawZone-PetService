@@ -1347,7 +1347,9 @@ export const AdminResolveDisputeParams = zod.object({
 
 export const AdminResolveDisputeBody = zod.object({
   resolution: zod.string(),
-  action: zod.enum(["refund", "no_action", "warn_seller", "warn_buyer"]),
+  action: zod
+    .enum(["refund", "no_action", "warn_seller", "warn_buyer"])
+    .optional(),
 });
 
 export const AdminResolveDisputeResponse = zod.object({

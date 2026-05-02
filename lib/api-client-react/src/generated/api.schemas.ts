@@ -457,7 +457,7 @@ export const ResolveDisputeBodyAction = {
 
 export interface ResolveDisputeBody {
   resolution: string;
-  action: ResolveDisputeBodyAction;
+  action?: ResolveDisputeBodyAction;
 }
 
 export interface RejectBody {

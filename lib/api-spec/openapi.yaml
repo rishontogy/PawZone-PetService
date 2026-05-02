@@ -1891,7 +1891,6 @@ components:
           enum: [refund, no_action, warn_seller, warn_buyer]
       required:
         - resolution
-        - action
 
     RejectBody:
       type: object

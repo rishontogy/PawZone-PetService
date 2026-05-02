@@ -13,6 +13,23 @@ const router = Router();
 
 router.use("/admin", authMiddleware, adminMiddleware);
 
+function calculateOrder(order: any) {
+  const subtotal = Number(order.subtotal ?? 0);
+  const transport = Number(order.transportFee ?? 0);
+  const buyerFee = subtotal > 100 ? 20 : 5;
+  const sellerFee = buyerFee;
+  const platformTransportFee = transport >= 200 ? 40 : (transport > 0 ? 20 : 0);
+  const platformRevenue = buyerFee + sellerFee + platformTransportFee;
+  const sellerPayout = Math.max(0, subtotal - sellerFee);
+  const transporterPayout = Math.max(0, transport - platformTransportFee);
+  const buyerTotal = subtotal + buyerFee + transport;
+  return { buyerFee, sellerFee, platformTransportFee, platformRevenue, sellerPayout, transporterPayout, buyerTotal };
+}
+
+function isValidOrder(order: any): boolean {
+  return order.paymentStatus === "paid" && order.status !== "cancelled";
+}
+
 router.get("/admin/users", async (req, res): Promise<void> => {
   const parsed = AdminGetUsersQueryParams.safeParse(req.query);
   const conditions: any[] = [];
@@ -192,27 +209,21 @@ router.get("/admin/orders", async (req, res): Promise<void> => {
       transporterName = t?.name ?? "Not Assigned";
       transporterPhone = t?.phone ?? "";
     }
-    const total = Number(order.total ?? 0);
-    const platformFee = Number(order.platformFee ?? 0);
-    const transportFee = Number(order.transportFee ?? 0);
-    const transporterShareAmount = Number(order.transporterShareAmount ?? 0);
-    const transporterPayout = transporterShareAmount > 0 ? transporterShareAmount : (transportFee >= 200 ? transportFee - 40 : transportFee > 0 ? transportFee - 20 : 0);
-    const platformTransportFee = transportFee - transporterPayout;
-    const sellerPayout = Math.max(0, Number(order.subtotal ?? 0) - platformFee);
+    const calc = calculateOrder(order);
     return {
       ...order,
-      totalAmount: total,
+      totalAmount: calc.buyerTotal,
       buyerName: buyer?.name ?? "",
       buyerPhone: buyer?.phone ?? "",
       sellerName: seller?.name ?? "",
       sellerPhone: seller?.phone ?? "",
       transporterName,
       transporterPhone,
-      platformFee,
-      transportFee,
-      transporterPayout,
-      platformTransportFee,
-      sellerPayout,
+      platformFee: calc.platformRevenue,
+      platformTransportFee: calc.platformTransportFee,
+      sellerPayout: calc.sellerPayout,
+      transporterPayout: calc.transporterPayout,
+      transportFee: Number(order.transportFee ?? 0),
     };
   }));
   res.json({ orders: result, total: result.length, totalPages: 1 });
@@ -257,6 +268,15 @@ router.post("/admin/disputes/:id/resolve", async (req, res): Promise<void> => {
   const [reporter] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, dispute.reportedBy));
   const [orderRow] = await db.select({ orderNumber: ordersTable.orderNumber }).from(ordersTable).where(eq(ordersTable.id, dispute.orderId));
 
+  // Notify the customer who filed the dispute
+  await db.insert(notificationsTable).values({
+    userId: dispute.reportedBy,
+    type: "dispute_resolved",
+    title: "Your Dispute Has Been Resolved",
+    message: parsed.data.resolution || "Admin has reviewed and resolved your dispute.",
+    orderId: dispute.orderId,
+  });
+
   res.json({ ...dispute, reportedByName: reporter?.name ?? "", orderNumber: orderRow?.orderNumber ?? "" });
 });
 
@@ -292,18 +312,9 @@ router.get("/admin/dashboard", async (req, res): Promise<void> => {
 
   const allOrders = await db.select().from(ordersTable);
   const totalOrders = allOrders.length;
-  const paidOrders = allOrders.filter(o => o.paymentStatus === "paid");
-  const sellerCommission = paidOrders.reduce((s, o) => s + Number(o.platformFee || 0), 0);
-  // Transport commission = transportFee - transporterShareAmount per paid order with transporter assigned.
-  const transportCommission = paidOrders.reduce((s, o) => {
-    const fee = Number((o as any).transportFee ?? 0);
-    if (fee <= 0) return s;
-    const stored = Number((o as any).transporterShareAmount ?? 0);
-    if (stored > 0) return s + Math.max(0, fee - stored);
-    const platform = fee >= 200 ? 40 : 20;
-    return s + platform;
-  }, 0);
-  const platformRevenue = sellerCommission + transportCommission;
+  const platformRevenue = allOrders
+    .filter(isValidOrder)
+    .reduce((s, o) => s + calculateOrder(o).platformRevenue, 0);
 
   const allDisputes = await db.select().from(disputesTable);
   const activeDisputes = allDisputes.filter(d => d.status === "open" || d.status === "in_review").length;
@@ -334,8 +345,8 @@ router.get("/admin/dashboard", async (req, res): Promise<void> => {
   const revenueByMonth = months.map((month, idx) => {
     const rev = allOrders.filter(o => {
       const d = new Date(o.createdAt);
-      return d.getMonth() === idx && d.getFullYear() === new Date().getFullYear() && o.paymentStatus === "paid";
-    }).reduce((s, o) => s + (o.platformFee || 0), 0);
+      return d.getMonth() === idx && d.getFullYear() === new Date().getFullYear() && isValidOrder(o);
+    }).reduce((s, o) => s + calculateOrder(o).platformRevenue, 0);
     return { month, revenue: rev };
   });
 
@@ -380,82 +391,77 @@ router.get("/admin/accounting", async (req, res): Promise<void> => {
       const [t] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, order.transporterId));
       transporterName = t?.name ?? null;
     }
-    const price = Number(order.total ?? 0);
-    const fee = Number(order.platformFee ?? 0);
-    const transportFee = Number(order.transportFee ?? 0);
-    const transporterShareAmount = Number(order.transporterShareAmount ?? 0);
-    const transporterPayout = transporterShareAmount > 0 ? transporterShareAmount : (transportFee >= 200 ? transportFee - 40 : transportFee > 0 ? transportFee - 20 : 0);
-    const platformTransportFee = transportFee - transporterPayout;
-    const sellerPayout = Math.max(0, Number(order.subtotal ?? 0) - fee);
+    const calc = calculateOrder(order);
     return {
       orderId: order.id,
       orderNumber: order.orderNumber,
       buyerName,
       sellerName: seller?.name ?? "",
       transporterName,
-      totalAmount: price,
-      platformFee: fee,
-      transportFee,
-      sellerPayout,
-      transporterPayout,
-      platformTransportFee,
+      totalAmount: calc.buyerTotal,
+      platformFee: calc.platformRevenue,
+      sellerPayout: calc.sellerPayout,
+      transporterPayout: calc.transporterPayout,
+      platformTransportFee: calc.platformTransportFee,
       status: order.status,
       paymentStatus: order.paymentStatus,
       createdAt: order.createdAt,
     };
   }));
 
-  const paidTransactions = transactions.filter(t => t.paymentStatus === "paid");
+  const validTransactions = transactions.filter(t => isValidOrder({ paymentStatus: t.paymentStatus, status: t.status }));
 
-  const totalRevenue = paidTransactions.reduce((s, t) => s + t.totalAmount, 0);
-  const totalPlatformFees = paidTransactions.reduce((s, t) => s + t.platformFee, 0);
-  const totalSellerPayouts = paidTransactions.reduce((s, t) => s + t.sellerPayout, 0);
-  const totalTransporterPayouts = paidTransactions.reduce((s, t) => s + t.transporterPayout, 0);
+  const totalRevenue = validTransactions.reduce((s, t) => s + t.totalAmount, 0);
+  const totalPlatformFees = validTransactions.reduce((s, t) => s + t.platformFee, 0);
+  const totalSellerPayouts = validTransactions.reduce((s, t) => s + t.sellerPayout, 0);
+  const totalTransporterPayouts = validTransactions.reduce((s, t) => s + t.transporterPayout, 0);
 
-  // Seller ledger
+  // Seller ledger — only count valid (paid, non-cancelled) orders
   const sellerMap: Record<string, { name: string; totalEarnings: number; completedOrders: number; pendingPayouts: number }> = {};
   for (const t of transactions) {
     if (!sellerMap[t.sellerName]) sellerMap[t.sellerName] = { name: t.sellerName, totalEarnings: 0, completedOrders: 0, pendingPayouts: 0 };
-    if (t.paymentStatus === "paid") {
+    const valid = isValidOrder({ paymentStatus: t.paymentStatus, status: t.status });
+    if (valid) {
       sellerMap[t.sellerName].totalEarnings += t.sellerPayout;
       sellerMap[t.sellerName].completedOrders += 1;
-    } else if (["pending_payment", "confirmed"].includes(t.status)) {
+    } else if (["pending_payment", "confirmed"].includes(t.status) && t.status !== "cancelled") {
       sellerMap[t.sellerName].pendingPayouts += t.sellerPayout;
     }
   }
 
-  // Transporter ledger
+  // Transporter ledger — only count valid (paid, non-cancelled) delivered orders
   const transporterMap: Record<string, { name: string; totalEarnings: number; completedDeliveries: number }> = {};
   for (const t of transactions) {
     if (!t.transporterName) continue;
     if (!transporterMap[t.transporterName]) transporterMap[t.transporterName] = { name: t.transporterName, totalEarnings: 0, completedDeliveries: 0 };
-    if (t.status === "delivered") {
+    const valid = isValidOrder({ paymentStatus: t.paymentStatus, status: t.status });
+    if (valid && t.status === "delivered") {
       transporterMap[t.transporterName].totalEarnings += t.transporterPayout;
       transporterMap[t.transporterName].completedDeliveries += 1;
     }
   }
 
-  // Daily income last 30 days
+  // Daily income last 30 days — only valid orders
   const today = new Date();
   const dailyIncome = Array.from({ length: 30 }, (_, i) => {
     const d = new Date(today);
     d.setDate(d.getDate() - (29 - i));
     const label = `${d.getDate()}/${d.getMonth() + 1}`;
-    const revenue = paidTransactions.filter(t => {
+    const revenue = validTransactions.filter(t => {
       const td = new Date(t.createdAt);
       return td.getDate() === d.getDate() && td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
     }).reduce((s, t) => s + t.platformFee, 0);
     return { date: label, revenue };
   });
 
-  // Monthly income last 12 months
+  // Monthly income last 12 months — only valid orders
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const monthlyIncome = Array.from({ length: 12 }, (_, i) => {
     const d = new Date(today);
     d.setMonth(d.getMonth() - (11 - i));
     const m = d.getMonth();
     const y = d.getFullYear();
-    const revenue = paidTransactions.filter(t => {
+    const revenue = validTransactions.filter(t => {
       const td = new Date(t.createdAt);
       return td.getMonth() === m && td.getFullYear() === y;
     }).reduce((s, t) => s + t.platformFee, 0);
