@@ -236,7 +236,13 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
       .from(usersTable).where(eq(usersTable.id, order.sellerId));
 
     // Build full address text for both ends (for keyword matching)
-    const items = await db.select({ city: listingsTable.city, address: listingsTable.address })
+    const items = await db.select({
+      city: listingsTable.city,
+      address: listingsTable.address,
+      breed: listingsTable.breed,
+      category: listingsTable.category,
+      quantity: orderItemsTable.quantity,
+    })
       .from(orderItemsTable)
       .innerJoin(listingsTable, eq(orderItemsTable.listingId, listingsTable.id))
       .where(eq(orderItemsTable.orderId, order.id));
@@ -253,6 +259,11 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
       sellerPhone: seller?.phone ?? null,
       pickupCity: items[0]?.city ?? seller?.city ?? null,
       deliveryCity: extractCity(order.deliveryAddress, routeKeywords) ?? buyer?.city ?? null,
+      items: items.map(it => ({
+        name: it.breed,
+        category: it.category,
+        quantity: it.quantity,
+      })),
       _pickupAddress: pickupAddress,
       _deliveryAddress: deliveryAddress,
     };
