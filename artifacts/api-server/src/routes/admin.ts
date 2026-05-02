@@ -18,7 +18,7 @@ function calculateOrder(order: any) {
   const transport = Number(order.transportFee ?? 0);
   const buyerFee = subtotal > 100 ? 20 : 5;
   const sellerFee = buyerFee;
-  const platformTransportFee = transport >= 200 ? 40 : (transport > 0 ? 20 : 0);
+  const platformTransportFee = transport > 200 ? 40 : (transport > 0 ? 20 : 0);
   const platformRevenue = buyerFee + sellerFee + platformTransportFee;
   const sellerPayout = Math.max(0, subtotal - sellerFee);
   const transporterPayout = Math.max(0, transport - platformTransportFee);
@@ -416,28 +416,32 @@ router.get("/admin/accounting", async (req, res): Promise<void> => {
   const totalSellerPayouts = validTransactions.reduce((s, t) => s + t.sellerPayout, 0);
   const totalTransporterPayouts = validTransactions.reduce((s, t) => s + t.transporterPayout, 0);
 
-  // Seller ledger — only count valid (paid, non-cancelled) orders
-  const sellerMap: Record<string, { name: string; totalEarnings: number; completedOrders: number; pendingPayouts: number }> = {};
-  for (const t of transactions) {
-    if (!sellerMap[t.sellerName]) sellerMap[t.sellerName] = { name: t.sellerName, totalEarnings: 0, completedOrders: 0, pendingPayouts: 0 };
+  // Seller ledger — only count valid (paid, non-cancelled) orders, include sellerId for linking
+  const sellerMap: Record<number, { id: number; name: string; totalEarnings: number; completedOrders: number; pendingPayouts: number }> = {};
+  for (const { order } of allOrders) {
+    const t = transactions.find(tx => tx.orderId === order.id);
+    if (!t) continue;
+    if (!sellerMap[order.sellerId]) sellerMap[order.sellerId] = { id: order.sellerId, name: t.sellerName, totalEarnings: 0, completedOrders: 0, pendingPayouts: 0 };
     const valid = isValidOrder({ paymentStatus: t.paymentStatus, status: t.status });
     if (valid) {
-      sellerMap[t.sellerName].totalEarnings += t.sellerPayout;
-      sellerMap[t.sellerName].completedOrders += 1;
+      sellerMap[order.sellerId].totalEarnings += t.sellerPayout;
+      sellerMap[order.sellerId].completedOrders += 1;
     } else if (["pending_payment", "confirmed"].includes(t.status) && t.status !== "cancelled") {
-      sellerMap[t.sellerName].pendingPayouts += t.sellerPayout;
+      sellerMap[order.sellerId].pendingPayouts += t.sellerPayout;
     }
   }
 
-  // Transporter ledger — only count valid (paid, non-cancelled) delivered orders
-  const transporterMap: Record<string, { name: string; totalEarnings: number; completedDeliveries: number }> = {};
-  for (const t of transactions) {
-    if (!t.transporterName) continue;
-    if (!transporterMap[t.transporterName]) transporterMap[t.transporterName] = { name: t.transporterName, totalEarnings: 0, completedDeliveries: 0 };
+  // Transporter ledger — only count valid (paid, non-cancelled) orders with a transporter, include transporterId for linking
+  const transporterMap: Record<number, { id: number; name: string; totalEarnings: number; completedDeliveries: number }> = {};
+  for (const { order } of allOrders) {
+    if (!order.transporterId) continue;
+    const t = transactions.find(tx => tx.orderId === order.id);
+    if (!t || !t.transporterName) continue;
+    if (!transporterMap[order.transporterId]) transporterMap[order.transporterId] = { id: order.transporterId, name: t.transporterName, totalEarnings: 0, completedDeliveries: 0 };
     const valid = isValidOrder({ paymentStatus: t.paymentStatus, status: t.status });
-    if (valid && t.status === "delivered") {
-      transporterMap[t.transporterName].totalEarnings += t.transporterPayout;
-      transporterMap[t.transporterName].completedDeliveries += 1;
+    if (valid) {
+      transporterMap[order.transporterId].totalEarnings += t.transporterPayout;
+      transporterMap[order.transporterId].completedDeliveries += 1;
     }
   }
 
@@ -475,6 +479,67 @@ router.get("/admin/accounting", async (req, res): Promise<void> => {
     transporterLedger: Object.values(transporterMap),
     dailyIncome,
     monthlyIncome,
+  });
+});
+
+router.get("/admin/ledger/seller/:sellerId", async (req, res): Promise<void> => {
+  const sellerId = parseInt(req.params.sellerId, 10);
+  const [seller] = await db.select({ id: usersTable.id, name: usersTable.name }).from(usersTable).where(eq(usersTable.id, sellerId));
+  if (!seller) { res.status(404).json({ error: "Seller not found" }); return; }
+
+  const orders = await db.select().from(ordersTable).where(eq(ordersTable.sellerId, sellerId)).orderBy(desc(ordersTable.createdAt));
+  const validOrders = orders.filter(isValidOrder);
+
+  const rows = validOrders.map(o => {
+    const calc = calculateOrder(o);
+    return {
+      orderId: o.id,
+      orderNumber: o.orderNumber,
+      date: o.createdAt,
+      itemTotal: Number(o.subtotal ?? 0),
+      platformFee: calc.sellerFee,
+      netPaid: calc.sellerPayout,
+    };
+  });
+
+  const totalRevenue = rows.reduce((s, r) => s + r.itemTotal, 0);
+  const totalPlatformDeduction = rows.reduce((s, r) => s + r.platformFee, 0);
+  const netEarnings = rows.reduce((s, r) => s + r.netPaid, 0);
+
+  res.json({
+    seller,
+    summary: { totalOrders: rows.length, totalRevenue, totalPlatformDeduction, netEarnings },
+    orders: rows,
+  });
+});
+
+router.get("/admin/ledger/transporter/:transporterId", async (req, res): Promise<void> => {
+  const transporterId = parseInt(req.params.transporterId, 10);
+  const [transporter] = await db.select({ id: usersTable.id, name: usersTable.name }).from(usersTable).where(eq(usersTable.id, transporterId));
+  if (!transporter) { res.status(404).json({ error: "Transporter not found" }); return; }
+
+  const orders = await db.select().from(ordersTable).where(eq(ordersTable.transporterId, transporterId)).orderBy(desc(ordersTable.createdAt));
+  const validOrders = orders.filter(isValidOrder);
+
+  const rows = validOrders.map(o => {
+    const calc = calculateOrder(o);
+    return {
+      orderId: o.id,
+      orderNumber: o.orderNumber,
+      date: o.createdAt,
+      transportCharge: Number(o.transportFee ?? 0),
+      platformFee: calc.platformTransportFee,
+      netEarnings: calc.transporterPayout,
+    };
+  });
+
+  const totalEarnings = rows.reduce((s, r) => s + r.netEarnings, 0);
+  const totalPlatformDeduction = rows.reduce((s, r) => s + r.platformFee, 0);
+
+  res.json({
+    transporter,
+    summary: { totalDeliveries: rows.length, totalEarnings, totalPlatformDeduction },
+    orders: rows,
   });
 });
 

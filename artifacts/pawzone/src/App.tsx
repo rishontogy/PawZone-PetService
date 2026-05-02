@@ -36,6 +36,8 @@ import { AdminListingsPage } from "@/pages/admin/AdminListingsPage";
 import { AdminOrdersPage } from "@/pages/admin/AdminOrdersPage";
 import { AdminDisputesPage } from "@/pages/admin/AdminDisputesPage";
 import { AdminAccountingPage } from "@/pages/admin/AdminAccountingPage";
+import { AdminSellerLedgerPage } from "@/pages/admin/AdminSellerLedgerPage";
+import { AdminTransporterLedgerPage } from "@/pages/admin/AdminTransporterLedgerPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -201,6 +203,16 @@ function Router() {
       <Route path="/admin/accounting">
         <RequireAuth allowedRoles={["admin"]}>
           <AppLayout><AdminAccountingPage /></AppLayout>
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/ledger/seller/:sellerId">
+        <RequireAuth allowedRoles={["admin"]}>
+          <AppLayout><AdminSellerLedgerPage /></AppLayout>
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/ledger/transporter/:transporterId">
+        <RequireAuth allowedRoles={["admin"]}>
+          <AppLayout><AdminTransporterLedgerPage /></AppLayout>
         </RequireAuth>
       </Route>
 

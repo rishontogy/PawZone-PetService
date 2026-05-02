@@ -1,0 +1,328 @@
+Fix Admin Orders Calculation and Implement Detailed Ledger Pages for Sellers & Transporters.
+
+This is a CRITICAL FINANCIAL CONSISTENCY FIX.
+
+---
+
+# 💰 1. ALL ORDERS PAGE – PLATFORM FEE WRONG
+
+---
+
+## ❌ Problem:
+
+* Platform fee per order is incorrect
+* Different logic used across pages
+
+---
+
+## ✅ FIX: USE SINGLE SOURCE FUNCTION
+
+---
+
+### Create ONE global function:
+
+```js
+function calculateOrder(order) {
+  const itemTotal = Number(order.item_total || 0);
+  const transport = Number(order.transport_charge || 0);
+
+  const buyerFee = itemTotal > 100 ? 20 : 5;
+  const sellerFee = buyerFee;
+  const transporterFee = transport > 200 ? 40 : 20;
+
+  const buyerTotal = itemTotal + buyerFee + transport;
+
+  const sellerPayout = itemTotal - sellerFee;
+  const transporterPayout = transport - transporterFee;
+
+  const platformFee = buyerFee + sellerFee + transporterFee;
+
+  return {
+    buyerTotal,
+    sellerPayout,
+    transporterPayout,
+    platformFee,
+    buyerFee,
+    sellerFee,
+    transporterFee
+  };
+}
+```
+
+---
+
+## 🔁 APPLY THIS IN:
+
+* All Orders Page
+* Dashboard
+* Accounting
+* Ledger
+* Transactions
+
+---
+
+---
+
+## 🧾 ORDER CARD MUST SHOW:
+
+```plaintext
+Order ID: PZ-0205260001
+
+Buyer Paid: ₹8420
+Platform Fee: ₹80
+Seller Payout: ₹7980
+Transporter Earnings: ₹360
+```
+
+---
+
+---
+
+# ⚠️ IMPORTANT FILTER
+
+---
+
+```js
+function validOrder(o) {
+  return o.payment_status === "PAID" && o.status !== "CANCELLED";
+}
+```
+
+---
+
+---
+
+# 📘 2. SELLER LEDGER – DETAILED PAGE (NEW FEATURE)
+
+---
+
+## ❌ Problem:
+
+* No detailed ledger view
+* Amount incorrect
+
+---
+
+## ✅ FIX:
+
+---
+
+## On clicking a seller:
+
+Redirect:
+
+```plaintext
+/admin/ledger/seller/:sellerId
+```
+
+---
+
+---
+
+## 📄 Seller Ledger Page Must Show:
+
+---
+
+### 🔹 Summary:
+
+* Total Orders
+* Total Revenue
+* Total Platform Deduction
+* Net Earnings
+
+---
+
+---
+
+### 🔹 Ledger Table:
+
+```plaintext
+Date | Order ID | Item Total | Platform Fee | Net Paid
+```
+
+---
+
+---
+
+### Logic:
+
+```js
+sellerOrders = orders.filter(
+  o => validOrder(o) && o.seller_id === sellerId
+);
+
+sellerOrders.map(o => {
+  const calc = calculateOrder(o);
+
+  return {
+    date: o.date,
+    orderId: o.id,
+    itemTotal: o.item_total,
+    platformFee: calc.sellerFee,
+    net: calc.sellerPayout
+  };
+});
+```
+
+---
+
+---
+
+# 🚚 3. TRANSPORTER LEDGER – FIX 0 VALUE + DETAIL PAGE
+
+---
+
+## ❌ Problem:
+
+* Transporter ledger showing 0
+* No detail page
+
+---
+
+---
+
+## ✅ ROOT CAUSE:
+
+* transport_charge not mapped
+* transporter_id mismatch
+* calculation not applied
+
+---
+
+---
+
+## ✅ FIX:
+
+---
+
+### Correct filter:
+
+```js
+transporterOrders = orders.filter(
+  o => validOrder(o) && o.transporter_id === transporterId
+);
+```
+
+---
+
+---
+
+### Apply calculation:
+
+```js
+transporterOrders.map(o => {
+  const calc = calculateOrder(o);
+
+  return {
+    orderId: o.id,
+    transportCharge: o.transport_charge,
+    platformFee: calc.transporterFee,
+    earnings: calc.transporterPayout
+  };
+});
+```
+
+---
+
+---
+
+## 📄 Transporter Ledger Page:
+
+---
+
+### Summary:
+
+* Total Deliveries
+* Total Earnings
+* Total Platform Deduction
+
+---
+
+---
+
+### Table:
+
+```plaintext
+Date | Order ID | Transport Charge | Platform Fee | Net Earnings
+```
+
+---
+
+---
+
+# ⚠️ 4. FIX “0 VALUE” ISSUE GLOBALLY
+
+---
+
+## Always use:
+
+```js
+Number(value || 0)
+```
+
+---
+
+## Never:
+
+❌ undefined
+❌ null
+❌ string math
+
+---
+
+---
+
+# 🧪 5. VALIDATION TEST
+
+---
+
+✔ Order with ₹8000 + ₹400
+
+---
+
+### Must show:
+
+```plaintext
+Buyer Paid: ₹8420
+Platform Fee: ₹80
+Seller: ₹7980
+Transporter: ₹360
+```
+
+---
+
+---
+
+✔ Seller ledger shows correct totals
+✔ Transporter ledger NOT zero
+✔ Detail pages load correctly
+✔ No NaN anywhere
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this fix:
+
+✔ Orders page shows correct platform fee
+✔ Seller ledger = correct & detailed
+✔ Transporter ledger = fixed (no zero)
+✔ All calculations consistent
+
+---
+
+## FINAL RULE:
+
+All financial calculations must come from ONE function.
+
+No duplication
+No manual math in UI
+No inconsistent logic
+
+---
+
+This is your accounting backbone—must be 100% accurate.

@@ -237,23 +237,28 @@ export function AdminAccountingPage() {
                 <div className="py-12 text-center text-gray-400 text-sm">No seller data yet</div>
               )}
               {sellerLedger.map((s: any) => (
-                <div key={s.name} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                      <Users className="w-5 h-5 text-blue-600" />
+                <Link key={s.id ?? s.name} href={`/admin/ledger/seller/${s.id}`}>
+                  <div className="px-6 py-4 flex items-center justify-between hover:bg-blue-50 transition-colors cursor-pointer group">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <Users className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">{s.name}</p>
+                        <p className="text-xs text-gray-400">{s.completedOrders} completed orders</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{s.name}</p>
-                      <p className="text-xs text-gray-400">{s.completedOrders} completed orders</p>
+                    <div className="text-right flex items-center gap-3">
+                      <div>
+                        <p className="font-bold text-blue-700">{formatPrice(s.totalEarnings)}</p>
+                        {s.pendingPayouts > 0 && (
+                          <p className="text-xs text-amber-600">{formatPrice(s.pendingPayouts)} pending</p>
+                        )}
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-400 transition-colors" />
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-blue-700">{formatPrice(s.totalEarnings)}</p>
-                    {s.pendingPayouts > 0 && (
-                      <p className="text-xs text-amber-600">{formatPrice(s.pendingPayouts)} pending</p>
-                    )}
-                  </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -271,18 +276,23 @@ export function AdminAccountingPage() {
                 <div className="py-12 text-center text-gray-400 text-sm">No transporter data yet</div>
               )}
               {transporterLedger.map((t: any) => (
-                <div key={t.name} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                      <Truck className="w-5 h-5 text-purple-600" />
+                <Link key={t.id ?? t.name} href={`/admin/ledger/transporter/${t.id}`}>
+                  <div className="px-6 py-4 flex items-center justify-between hover:bg-purple-50 transition-colors cursor-pointer group">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <Truck className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">{t.name}</p>
+                        <p className="text-xs text-gray-400">{t.completedDeliveries} deliveries completed</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{t.name}</p>
-                      <p className="text-xs text-gray-400">{t.completedDeliveries} deliveries completed</p>
+                    <div className="flex items-center gap-3">
+                      <p className="font-bold text-purple-700">{formatPrice(t.totalEarnings)}</p>
+                      <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-purple-400 transition-colors" />
                     </div>
                   </div>
-                  <p className="font-bold text-purple-700">{formatPrice(t.totalEarnings)}</p>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
