@@ -200,8 +200,8 @@ export function AdminAccountingPage() {
                     <tr><td colSpan={8} className="px-4 py-10 text-center text-gray-400">No transactions yet</td></tr>
                   )}
                   {transactions.map((tx: any) => {
-                    const isCancelled = tx.status === "cancelled" || tx.paymentStatus === "refunded";
-                    const rowClass = isCancelled ? "opacity-50" : "hover:bg-gray-50";
+                    const isInvalid = tx.paymentStatus !== "paid" || tx.status === "cancelled";
+                    const rowClass = isInvalid ? "opacity-50" : "hover:bg-gray-50";
                     return (
                     <tr key={tx.orderId} className={`transition-colors ${rowClass}`}>
                       <td className="px-4 py-3 font-mono text-xs text-teal-700 font-semibold">#{tx.orderNumber}</td>
