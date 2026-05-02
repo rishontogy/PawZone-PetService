@@ -1,0 +1,256 @@
+Fix Buyer Profile Spend/Pending Calculation and Correct Order Progress Status Flow.
+
+This is a DATA + STATUS FLOW FIX.
+
+---
+
+# 💰 1. BUYER PROFILE – SPEND & PENDING SHOWING 0
+
+---
+
+## ❌ Problem:
+
+* Spend = 0
+* Pending = 0
+* Not updating based on orders
+
+---
+
+## ✅ FIX: CORRECT AGGREGATION LOGIC
+
+---
+
+## 🔹 Define Order States:
+
+* PAID → Completed spend
+* UNPAID / PENDING → Pending amount
+* CANCELLED → Ignore
+
+---
+
+---
+
+## 🔹 Spend Calculation:
+
+```js id="buyer_spend"
+const totalSpend = orders
+  .filter(o => 
+    o.buyer_id === currentUserId &&
+    o.payment_status === "PAID" &&
+    o.status !== "CANCELLED"
+  )
+  .reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+```
+
+---
+
+---
+
+## 🔹 Pending Calculation:
+
+```js id="buyer_pending"
+const pendingAmount = orders
+  .filter(o => 
+    o.buyer_id === currentUserId &&
+    o.payment_status !== "PAID" &&
+    o.status !== "CANCELLED"
+  )
+  .reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+```
+
+---
+
+---
+
+## ⚠️ IMPORTANT
+
+---
+
+✔ Always use:
+
+```js id="safe_num"
+Number(value || 0)
+```
+
+---
+
+✔ Ensure:
+
+* total_amount exists in DB
+* Correct field binding
+
+---
+
+---
+
+# 🧪 VALIDATION
+
+---
+
+✔ Paid order → added to Spend
+✔ Pending order → added to Pending
+✔ Cancelled → ignored
+✔ No NaN / no 0 bug
+
+---
+
+---
+
+# 🔄 2. ORDER PROGRESS FLOW – WRONG SEQUENCE
+
+---
+
+## ❌ Problem:
+
+* Status order incorrect
+* Flow broken
+
+---
+
+---
+
+## ✅ CORRECT FLOW (MANDATORY)
+
+---
+
+### Current (WRONG):
+
+```plaintext id="wrong_flow"
+Payment Completed
+Transport Assigned
+```
+
+---
+
+---
+
+## 🔁 FIX TO:
+
+```plaintext id="correct_flow"
+Transport Assigned
+Payment Completed
+```
+
+---
+
+---
+
+## 🎯 FINAL STATUS FLOW:
+
+```plaintext id="full_flow"
+1. Order Requested
+2. Seller Confirmed
+3. Transport Assigned
+4. Payment Completed
+5. Picked Up
+6. In Transit
+7. Delivered
+```
+
+---
+
+---
+
+# ⚙️ IMPLEMENT STATUS UPDATE
+
+---
+
+## When transporter accepts:
+
+```js id="status_assign"
+order.status = "TRANSPORT_ASSIGNED";
+```
+
+---
+
+---
+
+## When payment completes:
+
+```js id="status_payment"
+order.status = "PAYMENT_COMPLETED";
+order.payment_status = "PAID";
+```
+
+---
+
+---
+
+# 🎨 UI TIMELINE FIX
+
+---
+
+Ensure timeline highlights correctly:
+
+---
+
+✔ Current step = active
+✔ Completed steps = green
+✔ Future steps = grey
+
+---
+
+---
+
+# ⚠️ DATA CONSISTENCY RULE
+
+---
+
+* Timeline must read from **order.status**
+* NOT hardcoded UI states
+
+---
+
+---
+
+# 🧪 TEST CASE
+
+---
+
+## Scenario:
+
+1. Buyer places order
+2. Seller confirms
+3. Transporter accepts
+4. Buyer pays
+
+---
+
+### Expected:
+
+```plaintext id="expected_flow"
+✔ Transport Assigned active first
+✔ Then Payment Completed
+```
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this fix:
+
+✔ Buyer Spend shows correct value
+✔ Pending shows correct value
+✔ Order timeline flows correctly
+✔ No incorrect step sequence
+
+---
+
+## FINAL RULE:
+
+Financial data = calculated
+Status flow = event-driven
+
+---
+
+No UI hacks
+No hardcoding
+No broken sequence
+
+---
+
+This must behave like a real order lifecycle system.

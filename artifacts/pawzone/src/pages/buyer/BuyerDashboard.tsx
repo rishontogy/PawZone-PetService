@@ -121,7 +121,7 @@ export function BuyerDashboard() {
                   <p className="text-white/70 text-xs">Orders</p>
                 </div>
                 <div>
-                  <p className="font-bold text-xl">{dashData?.stats?.pendingOrders ?? 0}</p>
+                  <p className="font-bold text-xl">{formatPrice((dashData?.stats as any)?.pendingAmount ?? 0)}</p>
                   <p className="text-white/70 text-xs">Pending</p>
                 </div>
                 <div>

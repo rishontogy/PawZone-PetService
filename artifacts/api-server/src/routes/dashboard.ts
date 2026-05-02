@@ -41,12 +41,24 @@ router.get("/dashboard/buyer", authMiddleware, async (req, res): Promise<void> =
     return { category: cat, count: rows.length };
   }));
 
+  const nonCancelledOrders = allOrders.filter(o => o.status !== "cancelled" && o.status !== "refunded");
+  const totalSpent = nonCancelledOrders
+    .filter(o => o.paymentStatus === "paid")
+    .reduce((s, o) => s + Number(o.total ?? 0), 0);
+  const pendingAmount = nonCancelledOrders
+    .filter(o => o.paymentStatus !== "paid")
+    .reduce((s, o) => s + Number(o.total ?? 0), 0);
+  const pendingOrdersCount = nonCancelledOrders
+    .filter(o => ["pending", "confirmed", "ready", "picked_up", "in_transit"].includes(o.status) && o.paymentStatus !== "paid")
+    .length;
+
   res.json({
     stats: {
       totalOrders: allOrders.length,
-      pendingOrders: allOrders.filter(o => ["pending_payment", "paid", "ready_for_pickup", "assigned", "in_transit"].includes(o.status)).length,
+      pendingOrders: pendingOrdersCount,
+      pendingAmount,
       deliveredOrders: completedOrders,
-      totalSpent: allOrders.filter(o => o.paymentStatus === "paid").reduce((s, o) => s + (o.totalAmount || 0), 0),
+      totalSpent,
       cartItems: cartCount,
     },
     recentOrders: recentOrdersWithNames,

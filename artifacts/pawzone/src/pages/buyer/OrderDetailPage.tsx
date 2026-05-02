@@ -35,18 +35,18 @@ const STAGES: Stage[] = [
     doneAt: (o) => findTimelineAt(o, ["confirmed"]),
   },
   {
+    key: "transport_assigned",
+    label: "Transport Assigned",
+    icon: <Truck className="w-4 h-4" />,
+    isDone: (o) => !!o.transporterId,
+    doneAt: (o) => findTimelineAt(o, ["transporter_assigned", "ready", "accepted"]) ?? null,
+  },
+  {
     key: "payment_completed",
     label: "Payment Completed",
     icon: <CreditCard className="w-4 h-4" />,
     isDone: (o) => o.paymentStatus === "paid",
     doneAt: (o) => findTimelineAt(o, ["paid", "payment"]) ?? o.paidAt ?? null,
-  },
-  {
-    key: "transport_assigned",
-    label: "Transport Assigned",
-    icon: <Truck className="w-4 h-4" />,
-    isDone: (o) => !!o.transporterId,
-    doneAt: (o) => findTimelineAt(o, ["ready", "transporter_assigned", "accepted"]) ?? null,
   },
   {
     key: "picked_up",
