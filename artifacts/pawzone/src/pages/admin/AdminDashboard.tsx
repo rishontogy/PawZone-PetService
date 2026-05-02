@@ -114,7 +114,7 @@ export function AdminDashboard() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    {["Order #", "Buyer", "Seller", "Amount", "Status"].map(h => (
+                    {["Order #", "Buyer", "Seller", "Transporter", "Amount", "Status"].map(h => (
                       <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
@@ -125,7 +125,8 @@ export function AdminDashboard() {
                       <td className="px-5 py-3.5 font-mono text-xs text-teal-700 font-semibold">#{order.orderNumber}</td>
                       <td className="px-5 py-3.5 text-gray-700">{order.buyerName}</td>
                       <td className="px-5 py-3.5 text-gray-700">{order.sellerName}</td>
-                      <td className="px-5 py-3.5 font-bold text-gray-900">{formatPrice(Number(order.totalAmount ?? 0))}</td>
+                      <td className="px-5 py-3.5 text-gray-500 text-xs">{(order as any).transporterName ?? "—"}</td>
+                      <td className="px-5 py-3.5 font-bold text-gray-900">{formatPrice(Number((order as any).totalAmount ?? 0))}</td>
                       <td className="px-5 py-3.5">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${{
                           delivered: "bg-green-100 text-green-700",

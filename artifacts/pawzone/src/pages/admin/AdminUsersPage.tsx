@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { getStatusColor } from "@/lib/api";
-import { Users, Search, CheckCircle, XCircle, MessageSquare, Phone, MapPin, Shield, ShoppingBag, Truck, Percent, Save } from "lucide-react";
+import { Users, Search, CheckCircle, XCircle, MessageSquare, Phone, MapPin, Shield, ShoppingBag, Truck, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 
 function mockWhatsApp(name: string, phone: string, role: string) {
   const msg = encodeURIComponent(`Hi ${name}! 🎉 Your PawZone ${role} account has been approved. You can now access your dashboard and start using all features. Welcome to PawZone! 🐾`);
@@ -32,17 +33,6 @@ const roleColor = (role: string) => {
   return "bg-gray-100 text-gray-700 border-gray-200";
 };
 
-async function updatePlatformShare(userId: number, pct: number, token: string) {
-  const res = await fetch(`/api/admin/users/${userId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ platformSharePercent: pct }),
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data?.error || "Update failed");
-  return data;
-}
-
 export function AdminUsersPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -50,8 +40,6 @@ export function AdminUsersPage() {
   const [role, setRole] = useState("");
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
-  const [shareEdits, setShareEdits] = useState<Record<number, string>>({});
-  const [savingShare, setSavingShare] = useState<number | null>(null);
 
   const { data, refetch } = useAdminGetUsers(
     { page, limit: 20, role: role || undefined, status: status || undefined },
@@ -95,22 +83,31 @@ export function AdminUsersPage() {
   const pendingCount = users.filter((u: any) => u.status === "pending").length;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Users className="w-6 h-6 text-teal-600" /> User Management
-            </h1>
-            <p className="text-gray-500 text-sm mt-1">Manage user accounts and approvals</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-8">
+        <div className="max-w-6xl mx-auto flex items-center gap-4">
+          <Link href="/admin">
+            <button className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
+              <ArrowLeft className="w-4 h-4 text-white" />
+            </button>
+          </Link>
+          <div className="flex-1 flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <Users className="w-6 h-6" /> User Management
+              </h1>
+              <p className="text-gray-400 text-sm mt-0.5">Manage user accounts and approvals</p>
+            </div>
+            {pendingCount > 0 && (
+              <Badge className="bg-amber-400/20 text-amber-300 border border-amber-400/30 text-sm px-3 py-1.5">
+                {pendingCount} pending
+              </Badge>
+            )}
           </div>
-          {pendingCount > 0 && (
-            <Badge className="bg-amber-100 text-amber-700 border border-amber-300 text-sm px-3 py-1.5">
-              {pendingCount} pending approval{pendingCount > 1 ? "s" : ""}
-            </Badge>
-          )}
         </div>
+      </div>
 
+      <div className="max-w-6xl mx-auto px-6 py-6">
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
@@ -195,50 +192,6 @@ export function AdminUsersPage() {
                           {u.city && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{u.city}</span>}
                         </div>
                         {u.sellerId && <p className="text-xs font-mono text-teal-600 mt-0.5">{u.sellerId}</p>}
-                        {u.role === "transporter" && (
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <Percent className="w-3.5 h-3.5 text-blue-500" />
-                            <span className="text-xs text-blue-700 font-medium">Platform Share %:</span>
-                            <input
-                              type="number"
-                              min={0}
-                              max={100}
-                              step={1}
-                              className="w-16 text-xs border border-blue-200 rounded-lg px-2 py-0.5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-400"
-                              value={shareEdits[u.id] ?? String(u.platformSharePercent ?? 10)}
-                              onChange={(e) => setShareEdits(prev => ({ ...prev, [u.id]: e.target.value }))}
-                              data-testid={`input-platform-share-${u.id}`}
-                            />
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-6 text-xs rounded-lg border-blue-200 text-blue-700 hover:bg-blue-50 px-2"
-                              disabled={savingShare === u.id}
-                              data-testid={`button-save-platform-share-${u.id}`}
-                              onClick={async () => {
-                                const pct = Number(shareEdits[u.id] ?? u.platformSharePercent ?? 10);
-                                if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
-                                  toast({ variant: "destructive", title: "Invalid %", description: "Enter a value 0-100" });
-                                  return;
-                                }
-                                setSavingShare(u.id);
-                                try {
-                                  const token = localStorage.getItem("pawzone_token") ?? "";
-                                  await updatePlatformShare(u.id, pct, token);
-                                  toast({ title: "Saved", description: `Platform share for ${u.name} set to ${pct}%` });
-                                  refetch();
-                                } catch (err: any) {
-                                  toast({ variant: "destructive", title: "Error", description: err?.message ?? "" });
-                                } finally {
-                                  setSavingShare(null);
-                                }
-                              }}
-                            >
-                              <Save className="w-3 h-3 mr-0.5" />
-                              {savingShare === u.id ? "..." : "Save"}
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">

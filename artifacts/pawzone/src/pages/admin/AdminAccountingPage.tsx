@@ -190,7 +190,7 @@ export function AdminAccountingPage() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
-                    {["Order #", "Buyer", "Seller", "Total Paid", "Platform Fee", "Seller Payout", "Delivery", "Status"].map(h => (
+                    {["Order #", "Buyer", "Seller", "Total Paid", "Platform Fee", "Seller Payout", "Transporter Payout", "Status"].map(h => (
                       <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
@@ -199,22 +199,26 @@ export function AdminAccountingPage() {
                   {transactions.length === 0 && (
                     <tr><td colSpan={8} className="px-4 py-10 text-center text-gray-400">No transactions yet</td></tr>
                   )}
-                  {transactions.map((tx: any) => (
-                    <tr key={tx.orderId} className="hover:bg-gray-50 transition-colors">
+                  {transactions.map((tx: any) => {
+                    const isCancelled = tx.status === "cancelled" || tx.paymentStatus === "refunded";
+                    const rowClass = isCancelled ? "opacity-50" : "hover:bg-gray-50";
+                    return (
+                    <tr key={tx.orderId} className={`transition-colors ${rowClass}`}>
                       <td className="px-4 py-3 font-mono text-xs text-teal-700 font-semibold">#{tx.orderNumber}</td>
                       <td className="px-4 py-3 text-gray-700">{tx.buyerName}</td>
                       <td className="px-4 py-3 text-gray-700">{tx.sellerName}</td>
                       <td className="px-4 py-3 font-bold text-gray-900">{formatPrice(tx.totalAmount)}</td>
                       <td className="px-4 py-3 text-teal-600 font-medium">{formatPrice(tx.platformFee)}</td>
                       <td className="px-4 py-3 text-blue-600 font-medium">{formatPrice(tx.sellerPayout)}</td>
-                      <td className="px-4 py-3 text-purple-600 font-medium">{formatPrice(tx.transporterPayout)}</td>
+                      <td className="px-4 py-3 text-purple-600 font-medium">{tx.transporterPayout > 0 ? formatPrice(tx.transporterPayout) : <span className="text-gray-300">—</span>}</td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusColor(tx.paymentStatus)}`}>
                           {tx.paymentStatus}
                         </span>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -183,9 +183,37 @@ router.post("/admin/listings/:id/reject", async (req, res): Promise<void> => {
 router.get("/admin/orders", async (req, res): Promise<void> => {
   const orders = await db.select().from(ordersTable).orderBy(desc(ordersTable.createdAt)).limit(100);
   const result = await Promise.all(orders.map(async (order) => {
-    const [buyer] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, order.buyerId));
-    const [seller] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, order.sellerId));
-    return { ...order, buyerName: buyer?.name ?? "", sellerName: seller?.name ?? "" };
+    const [buyer] = await db.select({ name: usersTable.name, phone: usersTable.phone }).from(usersTable).where(eq(usersTable.id, order.buyerId));
+    const [seller] = await db.select({ name: usersTable.name, phone: usersTable.phone }).from(usersTable).where(eq(usersTable.id, order.sellerId));
+    let transporterName = "Not Assigned";
+    let transporterPhone = "";
+    if (order.transporterId) {
+      const [t] = await db.select({ name: usersTable.name, phone: usersTable.phone }).from(usersTable).where(eq(usersTable.id, order.transporterId));
+      transporterName = t?.name ?? "Not Assigned";
+      transporterPhone = t?.phone ?? "";
+    }
+    const total = Number(order.total ?? 0);
+    const platformFee = Number(order.platformFee ?? 0);
+    const transportFee = Number(order.transportFee ?? 0);
+    const transporterShareAmount = Number(order.transporterShareAmount ?? 0);
+    const transporterPayout = transporterShareAmount > 0 ? transporterShareAmount : (transportFee >= 200 ? transportFee - 40 : transportFee > 0 ? transportFee - 20 : 0);
+    const platformTransportFee = transportFee - transporterPayout;
+    const sellerPayout = Math.max(0, Number(order.subtotal ?? 0) - platformFee);
+    return {
+      ...order,
+      totalAmount: total,
+      buyerName: buyer?.name ?? "",
+      buyerPhone: buyer?.phone ?? "",
+      sellerName: seller?.name ?? "",
+      sellerPhone: seller?.phone ?? "",
+      transporterName,
+      transporterPhone,
+      platformFee,
+      transportFee,
+      transporterPayout,
+      platformTransportFee,
+      sellerPayout,
+    };
   }));
   res.json({ orders: result, total: result.length, totalPages: 1 });
 });
@@ -288,7 +316,18 @@ router.get("/admin/dashboard", async (req, res): Promise<void> => {
   const recentWithNames = await Promise.all(recentOrders.map(async (order) => {
     const [buyer] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, order.buyerId));
     const [seller] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, order.sellerId));
-    return { ...order, buyerName: buyer?.name ?? "", sellerName: seller?.name ?? "" };
+    let transporterName = "Not Assigned";
+    if (order.transporterId) {
+      const [t] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, order.transporterId));
+      transporterName = t?.name ?? "Not Assigned";
+    }
+    return {
+      ...order,
+      buyerName: buyer?.name ?? "",
+      sellerName: seller?.name ?? "",
+      transporterName,
+      totalAmount: Number(order.total ?? 0),
+    };
   }));
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -341,11 +380,13 @@ router.get("/admin/accounting", async (req, res): Promise<void> => {
       const [t] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, order.transporterId));
       transporterName = t?.name ?? null;
     }
-    const price = Number(order.totalAmount ?? 0);
+    const price = Number(order.total ?? 0);
     const fee = Number(order.platformFee ?? 0);
-    const deliveryFee = Number(order.deliveryFee ?? 0);
-    const sellerPayout = price - fee - deliveryFee;
-    const transporterPayout = deliveryFee > 0 ? Math.round(deliveryFee * 0.85) : 0;
+    const transportFee = Number(order.transportFee ?? 0);
+    const transporterShareAmount = Number(order.transporterShareAmount ?? 0);
+    const transporterPayout = transporterShareAmount > 0 ? transporterShareAmount : (transportFee >= 200 ? transportFee - 40 : transportFee > 0 ? transportFee - 20 : 0);
+    const platformTransportFee = transportFee - transporterPayout;
+    const sellerPayout = Math.max(0, Number(order.subtotal ?? 0) - fee);
     return {
       orderId: order.id,
       orderNumber: order.orderNumber,
@@ -354,9 +395,10 @@ router.get("/admin/accounting", async (req, res): Promise<void> => {
       transporterName,
       totalAmount: price,
       platformFee: fee,
-      deliveryFee,
-      sellerPayout: Math.max(0, sellerPayout),
+      transportFee,
+      sellerPayout,
       transporterPayout,
+      platformTransportFee,
       status: order.status,
       paymentStatus: order.paymentStatus,
       createdAt: order.createdAt,
