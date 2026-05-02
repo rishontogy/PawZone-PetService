@@ -219,11 +219,15 @@ router.get("/admin/orders", async (req, res): Promise<void> => {
       sellerPhone: seller?.phone ?? "",
       transporterName,
       transporterPhone,
+      salePlatformFee: calc.buyerFee + calc.sellerFee,
+      transportPlatformFee: calc.platformTransportFee,
       platformFee: calc.platformRevenue,
       platformTransportFee: calc.platformTransportFee,
       sellerPayout: calc.sellerPayout,
       transporterPayout: calc.transporterPayout,
       transportFee: Number(order.transportFee ?? 0),
+      buyerFee: calc.buyerFee,
+      sellerFee: calc.sellerFee,
     };
   }));
   res.json({ orders: result, total: result.length, totalPages: 1 });

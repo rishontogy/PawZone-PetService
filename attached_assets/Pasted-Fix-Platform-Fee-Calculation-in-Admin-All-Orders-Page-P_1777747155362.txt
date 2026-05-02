@@ -1,0 +1,188 @@
+Fix Platform Fee Calculation in Admin → All Orders Page (Per Order Level).
+
+This is a CRITICAL FINANCIAL LOGIC FIX.
+
+---
+
+# ❌ CURRENT ISSUE
+
+---
+
+Platform fee is incorrectly calculated per order.
+
+It must strictly follow:
+
+---
+
+# ✅ CORRECT BUSINESS LOGIC (MANDATORY)
+
+---
+
+## For EACH ORDER:
+
+---
+
+### 🐾 SALE PLATFORM FEE:
+
+* Buyer pays → ₹20
+* Seller pays → ₹20
+
+```plaintext
+Sale Platform Fee = 20 + 20 = 40
+```
+
+---
+
+---
+
+### 🚚 TRANSPORT PLATFORM FEE:
+
+* Transporter pays → ₹40
+
+```plaintext
+Transport Platform Fee = 40
+```
+
+---
+
+---
+
+### 💰 TOTAL PLATFORM FEE:
+
+```plaintext
+Total Platform Fee = 40 (sale) + 40 (transport) = ₹80
+```
+
+---
+
+---
+
+# ⚙️ IMPLEMENT FIX IN CODE
+
+---
+
+## Replace existing logic with:
+
+```js id="correct_pf"
+function calculatePlatformFee(order) {
+  const itemTotal = Number(order.item_total || 0);
+  const transport = Number(order.transport_charge || 0);
+
+  const buyerFee = itemTotal > 100 ? 20 : 5;
+  const sellerFee = buyerFee;
+
+  const transportFee = transport > 200 ? 40 : 20;
+
+  const salePlatformFee = buyerFee + sellerFee;
+  const transportPlatformFee = transportFee;
+
+  const totalPlatformFee = salePlatformFee + transportPlatformFee;
+
+  return {
+    salePlatformFee,
+    transportPlatformFee,
+    totalPlatformFee
+  };
+}
+```
+
+---
+
+---
+
+# 🧾 UPDATE ORDER CARD DISPLAY
+
+---
+
+## Each order card must show:
+
+```plaintext
+Sale Platform Fee: ₹40
+Transport Platform Fee: ₹40
+Total Platform Fee: ₹80
+```
+
+---
+
+---
+
+# ⚠️ IMPORTANT RULES
+
+---
+
+✔ Always calculate from raw values (item_total, transport_charge)
+✔ Never hardcode ₹80 directly
+✔ Must work dynamically for:
+
+* Low-cost items (<₹100 → ₹5 logic)
+* Low transport (<₹200 → ₹20 logic)
+
+---
+
+---
+
+# 🚫 EXCLUDE INVALID ORDERS
+
+---
+
+```js
+if (order.payment_status !== "PAID" || order.status === "CANCELLED") {
+  return 0;
+}
+```
+
+---
+
+---
+
+# 🧪 TEST CASE (MANDATORY)
+
+---
+
+## Input:
+
+```plaintext
+Item Total: ₹8000
+Transport: ₹400
+```
+
+---
+
+## Expected:
+
+```plaintext
+Sale Platform Fee: ₹40
+Transport Platform Fee: ₹40
+Total Platform Fee: ₹80
+```
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After fix:
+
+✔ Platform fee per order is EXACT
+✔ No mismatch across pages
+✔ Works for all price ranges
+✔ Matches accounting & ledger
+
+---
+
+## FINAL RULE:
+
+Platform fee must ALWAYS be:
+
+→ Buyer Fee + Seller Fee + Transport Fee
+
+No shortcuts
+No UI-only fixes
+No inconsistent math
+
+---
+
+This must behave like a real financial system.

@@ -57,11 +57,15 @@ export function AdminOrdersPage() {
           orders.map((order: any) => {
             const isOpen = expandedId === order.id;
             const total = Number(order.totalAmount ?? order.total ?? 0);
-            const platformFee = Number(order.platformFee ?? 0);
+            const subtotal = Number(order.subtotal ?? 0);
             const transportFee = Number(order.transportFee ?? 0);
+            const buyerFee = Number(order.buyerFee ?? (subtotal > 100 ? 20 : 5));
+            const sellerFee = Number(order.sellerFee ?? buyerFee);
+            const salePlatformFee = Number(order.salePlatformFee ?? (buyerFee + sellerFee));
+            const transportPlatformFee = Number(order.transportPlatformFee ?? order.platformTransportFee ?? 0);
+            const totalPlatformFee = salePlatformFee + transportPlatformFee;
             const sellerPayout = Number(order.sellerPayout ?? 0);
             const transporterPayout = Number(order.transporterPayout ?? 0);
-            const platformTransportFee = Number(order.platformTransportFee ?? 0);
 
             return (
               <div key={order.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -144,40 +148,62 @@ export function AdminOrdersPage() {
                     </div>
 
                     {/* Financial Breakdown */}
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-1">
-                        <DollarSign className="w-3.5 h-3.5" /> Financial Breakdown
-                      </p>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Buyer Paid (Total)</span>
-                          <span className="font-bold text-gray-900">{formatPrice(total)}</span>
-                        </div>
-                        <div className="h-px bg-gray-200" />
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">→ Seller Payout</span>
-                          <span className="font-medium text-blue-700">{formatPrice(sellerPayout)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">→ Platform Fee (from sale)</span>
-                          <span className="font-medium text-teal-700">{formatPrice(platformFee)}</span>
-                        </div>
-                        {transportFee > 0 && (
-                          <>
+                    <div className="space-y-3">
+                      {/* Buyer side */}
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-1">
+                          <DollarSign className="w-3.5 h-3.5" /> Payment Breakdown
+                        </p>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Buyer Paid (Total)</span>
+                            <span className="font-bold text-gray-900">{formatPrice(total)}</span>
+                          </div>
+                          <div className="h-px bg-gray-200" />
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-500 pl-2">→ Seller Payout</span>
+                            <span className="font-medium text-blue-700">{formatPrice(sellerPayout)}</span>
+                          </div>
+                          {transportFee > 0 && (
                             <div className="flex justify-between text-sm">
-                              <span className="text-gray-500">→ Transporter Payout</span>
+                              <span className="text-gray-500 pl-2">→ Transporter Payout</span>
                               <span className="font-medium text-purple-700">{formatPrice(transporterPayout)}</span>
                             </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-500">→ Platform Fee (transport)</span>
-                              <span className="font-medium text-teal-700">{formatPrice(platformTransportFee)}</span>
+                          )}
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-500 pl-2">→ Platform Revenue</span>
+                            <span className="font-medium text-teal-700">{formatPrice(totalPlatformFee)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Platform fee breakdown */}
+                      <div className="bg-teal-50 border border-teal-100 rounded-xl p-4">
+                        <p className="text-xs font-semibold text-teal-600 uppercase tracking-wide mb-3 flex items-center gap-1">
+                          <DollarSign className="w-3.5 h-3.5" /> Platform Fee Breakdown
+                        </p>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Sale Platform Fee</span>
+                            <div className="text-right">
+                              <span className="font-semibold text-teal-700">{formatPrice(salePlatformFee)}</span>
+                              <span className="text-xs text-gray-400 ml-1">(Buyer ₹{buyerFee} + Seller ₹{sellerFee})</span>
                             </div>
-                          </>
-                        )}
-                        <div className="h-px bg-gray-200" />
-                        <div className="flex justify-between text-sm font-semibold">
-                          <span className="text-teal-700">Total Platform Revenue</span>
-                          <span className="text-teal-700">{formatPrice(platformFee + platformTransportFee)}</span>
+                          </div>
+                          {transportFee > 0 && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Transport Platform Fee</span>
+                              <div className="text-right">
+                                <span className="font-semibold text-teal-700">{formatPrice(transportPlatformFee)}</span>
+                                <span className="text-xs text-gray-400 ml-1">(from ₹{transportFee} charge)</span>
+                              </div>
+                            </div>
+                          )}
+                          <div className="h-px bg-teal-200" />
+                          <div className="flex justify-between text-sm font-bold">
+                            <span className="text-teal-800">Total Platform Fee</span>
+                            <span className="text-teal-800 text-base">{formatPrice(totalPlatformFee)}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
