@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { startCartSweeper } from "./lib/cartSweeper";
+import { seedAdmin } from "./lib/seed";
 
 const rawPort = process.env["PORT"];
 
@@ -24,4 +25,5 @@ app.listen(port, (err) => {
 
   logger.info({ port }, "Server listening");
   startCartSweeper();
+  seedAdmin().catch((e) => logger.error({ err: e }, "Failed to seed admin"));
 });

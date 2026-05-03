@@ -50,6 +50,10 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     res.status(403).json({ error: "Your account has been blocked" });
     return;
   }
+  if (user.role !== "buyer" && user.status !== "approved") {
+    res.status(403).json({ error: "Your account is pending admin approval. Please wait for approval before logging in." });
+    return;
+  }
 
   const token = await createSession(user.id);
   res.json({ user: formatUser(user), token });

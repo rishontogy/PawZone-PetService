@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useSignup } from "@workspace/api-client-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ const COUNTRIES = ["India", "United Arab Emirates", "United Kingdom", "United St
 
 export function SignupPage() {
   const [, setLocation] = useLocation();
+  const { login } = useAuth();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -43,7 +45,7 @@ export function SignupPage() {
     mutation: {
       onSuccess: (data: any) => {
         if (form.role === "buyer") {
-          setLocation("/buyer");
+          login(data.token, data.user);
         } else {
           setSuccess(true);
         }

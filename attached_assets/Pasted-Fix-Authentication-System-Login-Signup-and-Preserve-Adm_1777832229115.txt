@@ -1,0 +1,264 @@
+Fix Authentication System (Login + Signup) and Preserve Admin Credentials.
+
+This is a CRITICAL SYSTEM FIX.
+
+---
+
+# 🔐 1. ADMIN LOGIN (DO NOT CHANGE)
+
+---
+
+## MUST REMAIN EXACT:
+
+```plaintext
+Username: PAWZONE_A2005
+Password: PawZone2005
+```
+
+---
+
+## IMPLEMENT HARD CHECK:
+
+```js
+if (username === "PAWZONE_A2005" && password === "PawZone2005") {
+  loginAsAdmin();
+  return;
+}
+```
+
+---
+
+## RULES:
+
+✔ No admin signup
+✔ Only this one admin account
+✔ Accessible from buyer login page
+
+---
+
+---
+
+# 🧾 2. FIX SIGNUP ERRORS
+
+---
+
+## ❌ Common Issues:
+
+* Form not submitting
+* Data not saving
+* Validation failing incorrectly
+
+---
+
+## ✅ FIX VALIDATION
+
+---
+
+### Required fields:
+
+```js
+if (!name || !email || !password || !role) {
+  return showError("All fields are required");
+}
+```
+
+---
+
+---
+
+### Email validation:
+
+```js
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+if (!emailRegex.test(email)) {
+  return showError("Invalid email format");
+}
+```
+
+---
+
+---
+
+### Password validation:
+
+```js
+if (password.length < 6) {
+  return showError("Password must be at least 6 characters");
+}
+```
+
+---
+
+---
+
+# 💾 3. SAVE USER CORRECTLY
+
+---
+
+```js
+const newUser = {
+  id: generateId(),
+  name,
+  email,
+  password,
+  role, // buyer / seller / transporter
+  status: role === "buyer" ? "ACTIVE" : "PENDING",
+  created_at: new Date()
+};
+
+saveUser(newUser);
+```
+
+---
+
+---
+
+# 🔑 4. FIX LOGIN SYSTEM
+
+---
+
+## Login logic:
+
+```js
+const user = users.find(u => u.email === email && u.password === password);
+
+if (!user) {
+  return showError("Invalid credentials");
+}
+```
+
+---
+
+---
+
+## Approval check:
+
+```js
+if (user.role !== "buyer" && user.status !== "ACTIVE") {
+  return showError("Waiting for admin approval");
+}
+```
+
+---
+
+---
+
+# 🔄 5. SESSION MANAGEMENT
+
+---
+
+```js
+localStorage.setItem("currentUser", JSON.stringify(user));
+```
+
+---
+
+---
+
+# 🔁 6. REDIRECTION FIX
+
+---
+
+After login:
+
+```js
+if (user.role === "buyer") goToBuyerDashboard();
+if (user.role === "seller") goToSellerDashboard();
+if (user.role === "transporter") goToTransporterDashboard();
+if (isAdmin) goToAdminDashboard();
+```
+
+---
+
+---
+
+# ⚠️ 7. ERROR HANDLING (IMPORTANT)
+
+---
+
+Ensure all errors show properly:
+
+* Invalid login
+* Email exists
+* Approval pending
+* Server error
+
+---
+
+---
+
+# 🧪 8. TEST CASES
+
+---
+
+## Signup:
+
+✔ Buyer signup → works instantly
+✔ Seller signup → pending approval
+✔ Transporter signup → pending approval
+
+---
+
+## Login:
+
+✔ Correct credentials → login success
+✔ Wrong password → error
+✔ Not approved seller → blocked
+
+---
+
+## Admin:
+
+✔ Only works with fixed credentials
+✔ No signup
+✔ No duplicate admin
+
+---
+
+---
+
+# 🚫 9. DUPLICATE EMAIL FIX
+
+---
+
+```js
+if (users.some(u => u.email === email)) {
+  return showError("Email already registered");
+}
+```
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After fix:
+
+✔ Signup works for all roles
+✔ Login works without errors
+✔ Admin login remains fixed
+✔ Role-based access works
+✔ No crash / no silent failure
+
+---
+
+## FINAL RULE:
+
+Authentication must be:
+
+→ Secure
+→ Reliable
+→ Consistent
+
+---
+
+No broken login
+No missing users
+No admin override errors
+
+---
+
+This must behave like a real production auth system.
