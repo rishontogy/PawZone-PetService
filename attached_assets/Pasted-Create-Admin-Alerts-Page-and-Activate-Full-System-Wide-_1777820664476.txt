@@ -1,0 +1,354 @@
+Create Admin → Alerts Page and Activate Full System-Wide Alert Engine.
+
+This is a CRITICAL CONTROL SYSTEM.
+
+---
+
+# 🚨 1. CREATE NEW PAGE
+
+---
+
+## Add in Admin Panel:
+
+👉 New page: **“Alerts”**
+👉 Add card next to **Disputes**
+
+---
+
+## Navigation:
+
+```plaintext
+Dashboard | Users | Listings | Orders | Disputes | Alerts
+```
+
+---
+
+---
+
+# 🔔 2. ALERT TYPES (MUST INCLUDE ALL)
+
+---
+
+## 🕒 Seller Delay
+
+* Trigger: No response in 3 hours
+* Night rule applies (after 9 PM → next day 9 AM)
+
+---
+
+## 💳 Payment Delay
+
+* 30 min → Buyer reminder
+* 60 min → Admin alert
+* 5 hr → Auto cancel
+
+---
+
+## 🚚 Transport Delay
+
+* No transporter assigned in 12 hours
+
+---
+
+## 📦 Delivery Delay
+
+* Delivery not completed within 3 days
+
+---
+
+## 🚫 Cancellation / Failure
+
+* Buyer not paid
+* Seller cancelled
+* Transporter cancelled
+
+---
+
+## ⚠️ Fraud Alerts
+
+Trigger when:
+
+* High cancellation rate
+* Repeated reports
+* Suspicious activity
+
+---
+
+## 📝 Report Alerts
+
+* When any user submits issue
+
+---
+
+## 🔄 Refund Alerts
+
+* Refund requested
+* Refund approved
+* Refund processed
+
+---
+
+---
+
+# 🧠 3. ALERT DATA STRUCTURE
+
+---
+
+```js id="alert_model"
+alert = {
+  id: "ALT-0001",
+  type: "PAYMENT_DELAY",
+  message: "Buyer has not completed payment in 60 minutes",
+  user_id: "buyer123",
+  order_id: "PZ-0205260001",
+  priority: "HIGH",
+  status: "ACTIVE",
+  created_at: timestamp
+};
+```
+
+---
+
+---
+
+# 🎨 4. ALERT UI DESIGN
+
+---
+
+## Each alert shown as CARD:
+
+```plaintext
+[HIGH] Payment Delay  
+Order: PZ-0205260001  
+Buyer has not paid within 60 minutes  
+
+[View Order] [Mark Resolved]
+```
+
+---
+
+---
+
+## Priority Colors:
+
+* 🔴 High → Red
+* 🟠 Medium → Orange
+* 🔵 Low → Blue
+
+---
+
+---
+
+# 📊 5. SORTING & FILTER
+
+---
+
+Sort by:
+
+1. Priority
+2. Time (latest first)
+
+---
+
+Add filters:
+
+* All
+* High Priority
+* Payment
+* Transport
+* Fraud
+
+---
+
+---
+
+# ⚙️ 6. ALERT TRIGGER ENGINE (IMPORTANT)
+
+---
+
+## Implement central function:
+
+```js id="trigger_alert"
+function triggerAlert(type, message, order, user, priority="MEDIUM") {
+  const alert = {
+    id: generateId(),
+    type,
+    message,
+    order_id: order?.id || null,
+    user_id: user?.id || null,
+    priority,
+    status: "ACTIVE",
+    created_at: new Date()
+  };
+
+  saveAlert(alert);
+}
+```
+
+---
+
+---
+
+# 🔁 7. CONNECT ALL SYSTEM EVENTS
+
+---
+
+## Must trigger alerts on:
+
+---
+
+### Seller not responding:
+
+```js id="seller_delay"
+triggerAlert(
+  "SELLER_DELAY",
+  "Seller did not respond within 3 hours",
+  order,
+  seller,
+  "HIGH"
+);
+```
+
+---
+
+---
+
+### Payment delay:
+
+```js id="payment_delay"
+triggerAlert(
+  "PAYMENT_DELAY",
+  "Buyer has not paid within 60 minutes",
+  order,
+  buyer,
+  "HIGH"
+);
+```
+
+---
+
+---
+
+### Transport delay:
+
+```js id="transport_delay"
+triggerAlert(
+  "TRANSPORT_DELAY",
+  "No transporter assigned within 12 hours",
+  order,
+  null,
+  "HIGH"
+);
+```
+
+---
+
+---
+
+### Fraud:
+
+```js id="fraud_alert"
+triggerAlert(
+  "FRAUD",
+  "User showing suspicious activity",
+  null,
+  user,
+  "HIGH"
+);
+```
+
+---
+
+---
+
+### Report submitted:
+
+```js id="report_alert"
+triggerAlert(
+  "REPORT",
+  "New issue reported",
+  order,
+  user,
+  "MEDIUM"
+);
+```
+
+---
+
+---
+
+# 🔔 8. REAL-TIME NOTIFICATION
+
+---
+
+## When alert is created:
+
+✔ Show in Admin Alerts page
+✔ Increase notification count
+✔ Highlight icon
+
+---
+
+---
+
+# 🧪 9. VALIDATION CHECKLIST
+
+---
+
+✔ Seller delay alert appears
+✔ Payment delay alert appears
+✔ Transport delay alert appears
+✔ Report alert appears
+✔ Fraud alert appears
+
+---
+
+✔ Alerts sorted correctly
+✔ No missing alerts
+✔ No duplicate alerts
+
+---
+
+---
+
+# ⚠️ 10. AUTO CLEANUP
+
+---
+
+## When resolved:
+
+```js id="resolve_alert"
+alert.status = "RESOLVED";
+```
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this implementation:
+
+✔ Admin sees ALL system issues
+✔ Alerts trigger automatically
+✔ No silent failures
+✔ Full system visibility achieved
+
+---
+
+## FINAL RULE:
+
+If something goes wrong in system →
+Admin MUST know immediately.
+
+---
+
+No hidden errors
+No silent failures
+No missing alerts
+
+---
+
+This system must behave like a real operations control center.
