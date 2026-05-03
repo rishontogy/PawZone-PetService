@@ -1,0 +1,228 @@
+Upgrade Transporter → Order Details: Replace “Animals List” with Clickable Pet Cards (Same as Buyer Product Cards).
+
+This is a UI + DATA LINKING IMPROVEMENT.
+
+---
+
+# 🐾 1. REQUIREMENT
+
+---
+
+## ❌ Current:
+
+* Text list like:
+  “Animals in this order”
+
+---
+
+## ✅ Replace with:
+
+👉 Small pet cards (like buyer product cards)
+👉 Each card clickable → opens full pet details
+
+---
+
+---
+
+# 📦 2. DATA REQUIREMENT
+
+---
+
+Ensure each order item contains:
+
+```js id="order_items"
+order.items = [
+  {
+    product_id: "p123",
+    name: "Golden Retriever",
+    category: "Dog",
+    price: 8000,
+    quantity: 2,
+    image: "image_url"
+  }
+];
+```
+
+---
+
+---
+
+# 🎨 3. PET CARD UI (COMPACT)
+
+---
+
+## Each item should render like:
+
+```plaintext id="card_layout"
+[ Image ]
+Golden Retriever
+₹8000 × 2
+```
+
+---
+
+---
+
+## Layout Style:
+
+```css id="pet_card_style"
+.pet-card {
+  width: 120px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  cursor: pointer;
+}
+
+.pet-card img {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+}
+
+.pet-card-body {
+  padding: 6px;
+  font-size: 12px;
+}
+```
+
+---
+
+---
+
+# 📱 4. DISPLAY AS GRID / SCROLL
+
+---
+
+```css id="grid_style"
+.pet-list {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+}
+```
+
+---
+
+---
+
+# 🔗 5. CLICK → OPEN FULL PRODUCT DETAILS
+
+---
+
+## On click:
+
+```js id="open_details"
+onClick={() => openProductPage(item.product_id)}
+```
+
+---
+
+---
+
+## Behavior:
+
+* Open SAME product detail page as buyer
+* Show:
+
+  ✔ Images
+  ✔ Video
+  ✔ Description
+  ✔ Vaccination info
+
+---
+
+---
+
+# 🔐 6. ACCESS RULE
+
+---
+
+✔ Transporter can VIEW details
+❌ Cannot edit
+❌ Cannot purchase
+
+---
+
+---
+
+# ⚠️ 7. FALLBACK
+
+---
+
+If image missing:
+
+```plaintext id="fallback"
+Show default pet image
+```
+
+---
+
+---
+
+# 🧪 8. VALIDATION
+
+---
+
+✔ Cards visible for each item
+✔ Quantity shown correctly
+✔ Click opens correct product
+✔ Works for multi-seller orders
+✔ No broken images
+
+---
+
+---
+
+# 🎯 FINAL UI STRUCTURE
+
+---
+
+```plaintext id="final_ui"
+Order Details
+
+📍 Pickup / Delivery
+
+🐾 Pets:
+[Card] [Card] [Card]
+
+👤 Seller
+👤 Buyer
+
+💰 Earnings
+```
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After this update:
+
+✔ Transporter sees actual pet visuals
+✔ Can verify before pickup
+✔ Less confusion in multi-pet orders
+
+---
+
+## FINAL RULE:
+
+Information must be:
+
+→ Visual
+→ Clickable
+→ Context-rich
+
+---
+
+No plain text lists
+No hidden product info
+No ambiguity
+
+---
+
+This should feel like a real logistics + inventory preview system.

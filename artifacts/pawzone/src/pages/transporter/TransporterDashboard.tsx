@@ -436,34 +436,47 @@ export function TransporterDashboard() {
                           </div>
                         </div>
 
-                        {/* Animals in this Order */}
+                        {/* Pets in this Order — clickable cards */}
                         {(() => {
-                          const animalIcons: Record<string, string> = {
+                          const categoryEmoji: Record<string, string> = {
                             dogs: "🐶", cats: "🐱", birds: "🐦", fish: "🐟",
                           };
-                          const orderItems: { name: string; category: string; quantity: number }[] =
+                          const orderItems: { listingId: number; name: string; category: string; photo: string | null; price: number; quantity: number }[] =
                             Array.isArray(order.items) ? order.items : [];
                           return (
                             <div className="bg-amber-50 border border-amber-100 rounded-xl p-3">
-                              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-2 flex items-center gap-1">
-                                🐾 Animals in this Order
+                              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-3 flex items-center gap-1">
+                                🐾 Pets in this Order
                               </p>
                               {orderItems.length === 0 ? (
                                 <p className="text-xs text-gray-400 italic">No animals listed</p>
                               ) : (
-                                <div className="space-y-1.5">
-                                  {orderItems.map((item, idx) => {
-                                    const icon = animalIcons[item.category?.toLowerCase()] ?? "🐾";
-                                    return (
-                                      <div key={idx} className="flex items-center gap-2 text-sm">
-                                        <span className="text-lg leading-none">{icon}</span>
-                                        <span className="font-medium text-gray-800">{item.name}</span>
-                                        <span className="ml-auto text-xs font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                                          ×{item.quantity}
-                                        </span>
+                                <div className="flex gap-3 overflow-x-auto pb-1">
+                                  {orderItems.map((item, idx) => (
+                                    <Link key={idx} href={`/listings/${item.listingId}`}>
+                                      <div className="flex-shrink-0 w-28 bg-white rounded-xl overflow-hidden shadow-sm border border-amber-100 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all">
+                                        <div className="w-full h-20 bg-gray-100 overflow-hidden">
+                                          {item.photo ? (
+                                            <img
+                                              src={item.photo}
+                                              alt={item.name}
+                                              className="w-full h-full object-cover"
+                                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                            />
+                                          ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-3xl bg-amber-50">
+                                              {categoryEmoji[item.category?.toLowerCase()] ?? "🐾"}
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div className="p-1.5">
+                                          <p className="text-xs font-semibold text-gray-800 truncate leading-tight">{item.name}</p>
+                                          <p className="text-[11px] text-teal-700 font-bold mt-0.5">{formatPrice(item.price)}</p>
+                                          <p className="text-[10px] text-amber-600 font-medium">qty: {item.quantity}</p>
+                                        </div>
                                       </div>
-                                    );
-                                  })}
+                                    </Link>
+                                  ))}
                                 </div>
                               )}
                             </div>

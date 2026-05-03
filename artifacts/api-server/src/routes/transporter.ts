@@ -237,10 +237,13 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
 
     // Build full address text for both ends (for keyword matching)
     const items = await db.select({
+      listingId: listingsTable.id,
       city: listingsTable.city,
       address: listingsTable.address,
       breed: listingsTable.breed,
       category: listingsTable.category,
+      photos: listingsTable.photos,
+      price: listingsTable.price,
       quantity: orderItemsTable.quantity,
     })
       .from(orderItemsTable)
@@ -260,8 +263,11 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
       pickupCity: items[0]?.city ?? seller?.city ?? null,
       deliveryCity: extractCity(order.deliveryAddress, routeKeywords) ?? buyer?.city ?? null,
       items: items.map(it => ({
+        listingId: it.listingId,
         name: it.breed,
         category: it.category,
+        photo: it.photos?.[0] ?? null,
+        price: it.price,
         quantity: it.quantity,
       })),
       _pickupAddress: pickupAddress,
