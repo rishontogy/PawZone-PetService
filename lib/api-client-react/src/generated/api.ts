@@ -22,8 +22,11 @@ import type {
   Address,
   AddressBody,
   AdminDashboard,
+  AdminGetAlerts200,
+  AdminGetAlertsParams,
   AdminGetListingsParams,
   AdminGetUsersParams,
+  Alert,
   AuthResponse,
   BuyerDashboard,
   Cart,
@@ -3975,6 +3978,184 @@ export const useUpdateProfile = <
   TContext
 > => {
   return useMutation(getUpdateProfileMutationOptions(options));
+};
+
+/**
+ * @summary Get all system alerts
+ */
+export const getAdminGetAlertsUrl = (params?: AdminGetAlertsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/alerts?${stringifiedParams}`
+    : `/api/admin/alerts`;
+};
+
+export const adminGetAlerts = async (
+  params?: AdminGetAlertsParams,
+  options?: RequestInit,
+): Promise<AdminGetAlerts200> => {
+  return customFetch<AdminGetAlerts200>(getAdminGetAlertsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getAdminGetAlertsQueryKey = (params?: AdminGetAlertsParams) => {
+  return [`/api/admin/alerts`, ...(params ? [params] : [])] as const;
+};
+
+export const getAdminGetAlertsQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminGetAlerts>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: AdminGetAlertsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof adminGetAlerts>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getAdminGetAlertsQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof adminGetAlerts>>> = ({
+    signal,
+  }) => adminGetAlerts(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminGetAlerts>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type AdminGetAlertsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminGetAlerts>>
+>;
+export type AdminGetAlertsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get all system alerts
+ */
+
+export function useAdminGetAlerts<
+  TData = Awaited<ReturnType<typeof adminGetAlerts>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: AdminGetAlertsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof adminGetAlerts>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAdminGetAlertsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Resolve an alert
+ */
+export const getAdminResolveAlertUrl = (id: number) => {
+  return `/api/admin/alerts/${id}/resolve`;
+};
+
+export const adminResolveAlert = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Alert> => {
+  return customFetch<Alert>(getAdminResolveAlertUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getAdminResolveAlertMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminResolveAlert>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminResolveAlert>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["adminResolveAlert"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminResolveAlert>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return adminResolveAlert(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminResolveAlertMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminResolveAlert>>
+>;
+
+export type AdminResolveAlertMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Resolve an alert
+ */
+export const useAdminResolveAlert = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminResolveAlert>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminResolveAlert>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getAdminResolveAlertMutationOptions(options));
 };
 
 /**

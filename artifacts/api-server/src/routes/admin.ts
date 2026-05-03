@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { eq, and, desc, ne } from "drizzle-orm";
-import { db, usersTable, listingsTable, ordersTable, disputesTable, waitlistTable, notificationsTable } from "@workspace/db";
+import { db, usersTable, listingsTable, ordersTable, disputesTable, waitlistTable, notificationsTable, alertsTable } from "@workspace/db";
+import { triggerAlert } from "../lib/alertEngine";
 import {
   AdminGetUsersQueryParams,
   AdminGetListingsQueryParams,
@@ -371,6 +372,60 @@ router.get("/admin/dashboard", async (req, res): Promise<void> => {
     recentOrders: recentWithNames,
     revenueByMonth,
   });
+});
+
+router.get("/admin/alerts", async (req, res): Promise<void> => {
+  const conditions: any[] = [];
+  if (req.query.status) conditions.push(eq(alertsTable.status, req.query.status as any));
+  if (req.query.priority) conditions.push(eq(alertsTable.priority, req.query.priority as any));
+  if (req.query.type) conditions.push(eq(alertsTable.type, req.query.type as any));
+
+  const alerts = await db
+    .select()
+    .from(alertsTable)
+    .where(conditions.length ? and(...conditions) : undefined)
+    .orderBy(desc(alertsTable.createdAt))
+    .limit(200);
+
+  const enriched = await Promise.all(alerts.map(async (alert) => {
+    let userName: string | null = null;
+    let orderNumber: string | null = null;
+
+    if (alert.userId) {
+      const [u] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, alert.userId));
+      userName = u?.name ?? null;
+    }
+    if (alert.orderId) {
+      const [o] = await db.select({ orderNumber: ordersTable.orderNumber }).from(ordersTable).where(eq(ordersTable.id, alert.orderId));
+      orderNumber = o?.orderNumber ?? null;
+    }
+
+    return { ...alert, userName, orderNumber };
+  }));
+
+  const activeCount = await db
+    .select({ id: alertsTable.id })
+    .from(alertsTable)
+    .where(eq(alertsTable.status, "ACTIVE"));
+
+  res.json({ alerts: enriched, total: enriched.length, activeCount: activeCount.length });
+});
+
+router.post("/admin/alerts/:id/resolve", async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id, 10);
+
+  const [alert] = await db
+    .update(alertsTable)
+    .set({ status: "RESOLVED", resolvedAt: new Date() })
+    .where(eq(alertsTable.id, id))
+    .returning();
+
+  if (!alert) {
+    res.status(404).json({ error: "Alert not found" });
+    return;
+  }
+
+  res.json(alert);
 });
 
 router.get("/admin/waitlist", async (req, res): Promise<void> => {

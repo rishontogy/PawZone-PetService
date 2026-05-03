@@ -1507,6 +1507,74 @@ export const UpdateProfileResponse = zod.object({
 });
 
 /**
+ * @summary Get all system alerts
+ */
+export const AdminGetAlertsQueryParams = zod.object({
+  status: zod.enum(["ACTIVE", "RESOLVED"]).optional(),
+  priority: zod.enum(["HIGH", "MEDIUM", "LOW"]).optional(),
+  type: zod.coerce.string().optional(),
+});
+
+export const AdminGetAlertsResponse = zod.object({
+  alerts: zod.array(
+    zod.object({
+      id: zod.number(),
+      type: zod.enum([
+        "SELLER_DELAY",
+        "PAYMENT_DELAY",
+        "TRANSPORT_DELAY",
+        "DELIVERY_DELAY",
+        "CANCELLATION",
+        "FRAUD",
+        "REPORT",
+        "REFUND",
+      ]),
+      message: zod.string(),
+      priority: zod.enum(["HIGH", "MEDIUM", "LOW"]),
+      status: zod.enum(["ACTIVE", "RESOLVED"]),
+      userId: zod.number().nullish(),
+      orderId: zod.number().nullish(),
+      userName: zod.string().nullish(),
+      orderNumber: zod.string().nullish(),
+      createdAt: zod.coerce.date(),
+      resolvedAt: zod.coerce.date().nullish(),
+    }),
+  ),
+  total: zod.number(),
+  activeCount: zod.number(),
+});
+
+/**
+ * @summary Resolve an alert
+ */
+export const AdminResolveAlertParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AdminResolveAlertResponse = zod.object({
+  id: zod.number(),
+  type: zod.enum([
+    "SELLER_DELAY",
+    "PAYMENT_DELAY",
+    "TRANSPORT_DELAY",
+    "DELIVERY_DELAY",
+    "CANCELLATION",
+    "FRAUD",
+    "REPORT",
+    "REFUND",
+  ]),
+  message: zod.string(),
+  priority: zod.enum(["HIGH", "MEDIUM", "LOW"]),
+  status: zod.enum(["ACTIVE", "RESOLVED"]),
+  userId: zod.number().nullish(),
+  orderId: zod.number().nullish(),
+  userName: zod.string().nullish(),
+  orderNumber: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  resolvedAt: zod.coerce.date().nullish(),
+});
+
+/**
  * @summary Get saved addresses
  */
 export const GetUserAddressesResponseItem = zod.object({

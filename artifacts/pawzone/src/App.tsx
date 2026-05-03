@@ -35,6 +35,7 @@ import { AdminUsersPage } from "@/pages/admin/AdminUsersPage";
 import { AdminListingsPage } from "@/pages/admin/AdminListingsPage";
 import { AdminOrdersPage } from "@/pages/admin/AdminOrdersPage";
 import { AdminDisputesPage } from "@/pages/admin/AdminDisputesPage";
+import { AdminAlertsPage } from "@/pages/admin/AdminAlertsPage";
 import { AdminAccountingPage } from "@/pages/admin/AdminAccountingPage";
 import { AdminSellerLedgerPage } from "@/pages/admin/AdminSellerLedgerPage";
 import { AdminTransporterLedgerPage } from "@/pages/admin/AdminTransporterLedgerPage";
@@ -198,6 +199,11 @@ function Router() {
       <Route path="/admin/disputes">
         <RequireAuth allowedRoles={["admin"]}>
           <AppLayout><AdminDisputesPage /></AppLayout>
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/alerts">
+        <RequireAuth allowedRoles={["admin"]}>
+          <AppLayout><AdminAlertsPage /></AppLayout>
         </RequireAuth>
       </Route>
       <Route path="/admin/accounting">

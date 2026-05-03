@@ -464,6 +464,48 @@ export interface RejectBody {
   reason: string;
 }
 
+export type AlertType = (typeof AlertType)[keyof typeof AlertType];
+
+export const AlertType = {
+  SELLER_DELAY: "SELLER_DELAY",
+  PAYMENT_DELAY: "PAYMENT_DELAY",
+  TRANSPORT_DELAY: "TRANSPORT_DELAY",
+  DELIVERY_DELAY: "DELIVERY_DELAY",
+  CANCELLATION: "CANCELLATION",
+  FRAUD: "FRAUD",
+  REPORT: "REPORT",
+  REFUND: "REFUND",
+} as const;
+
+export type AlertPriority = (typeof AlertPriority)[keyof typeof AlertPriority];
+
+export const AlertPriority = {
+  HIGH: "HIGH",
+  MEDIUM: "MEDIUM",
+  LOW: "LOW",
+} as const;
+
+export type AlertStatus = (typeof AlertStatus)[keyof typeof AlertStatus];
+
+export const AlertStatus = {
+  ACTIVE: "ACTIVE",
+  RESOLVED: "RESOLVED",
+} as const;
+
+export interface Alert {
+  id: number;
+  type: AlertType;
+  message: string;
+  priority: AlertPriority;
+  status: AlertStatus;
+  userId?: number | null;
+  orderId?: number | null;
+  userName?: string | null;
+  orderNumber?: string | null;
+  createdAt: string;
+  resolvedAt?: string | null;
+}
+
 export interface Notification {
   id: number;
   userId: number;
@@ -530,4 +572,33 @@ export type AdminGetUsersParams = {
 
 export type AdminGetListingsParams = {
   status?: string;
+};
+
+export type AdminGetAlertsParams = {
+  status?: AdminGetAlertsStatus;
+  priority?: AdminGetAlertsPriority;
+  type?: string;
+};
+
+export type AdminGetAlertsStatus =
+  (typeof AdminGetAlertsStatus)[keyof typeof AdminGetAlertsStatus];
+
+export const AdminGetAlertsStatus = {
+  ACTIVE: "ACTIVE",
+  RESOLVED: "RESOLVED",
+} as const;
+
+export type AdminGetAlertsPriority =
+  (typeof AdminGetAlertsPriority)[keyof typeof AdminGetAlertsPriority];
+
+export const AdminGetAlertsPriority = {
+  HIGH: "HIGH",
+  MEDIUM: "MEDIUM",
+  LOW: "LOW",
+} as const;
+
+export type AdminGetAlerts200 = {
+  alerts: Alert[];
+  total: number;
+  activeCount: number;
 };

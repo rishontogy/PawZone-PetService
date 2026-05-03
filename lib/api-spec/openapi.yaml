@@ -954,6 +954,66 @@ paths:
               schema:
                 $ref: "#/components/schemas/User"
 
+  /admin/alerts:
+    get:
+      operationId: adminGetAlerts
+      tags: [admin]
+      summary: Get all system alerts
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ACTIVE, RESOLVED]
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [HIGH, MEDIUM, LOW]
+        - name: type
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Alerts list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alerts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Alert"
+                  total:
+                    type: integer
+                  activeCount:
+                    type: integer
+                required:
+                  - alerts
+                  - total
+                  - activeCount
+
+  /admin/alerts/{id}/resolve:
+    post:
+      operationId: adminResolveAlert
+      tags: [admin]
+      summary: Resolve an alert
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Alert resolved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alert"
+
   /users/addresses:
     get:
       operationId: getUserAddresses
@@ -1899,6 +1959,49 @@ components:
           type: string
       required:
         - reason
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [SELLER_DELAY, PAYMENT_DELAY, TRANSPORT_DELAY, DELIVERY_DELAY, CANCELLATION, FRAUD, REPORT, REFUND]
+        message:
+          type: string
+        priority:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+        status:
+          type: string
+          enum: [ACTIVE, RESOLVED]
+        userId:
+          type: integer
+          nullable: true
+        orderId:
+          type: integer
+          nullable: true
+        userName:
+          type: string
+          nullable: true
+        orderNumber:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - type
+        - message
+        - priority
+        - status
+        - createdAt
 
     Notification:
       type: object

@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice } from "@/lib/api";
 import {
   Users, Package, ShoppingBag, AlertTriangle, TrendingUp, Shield,
-  ChevronRight, BarChart2, CheckCircle, Clock, DollarSign, Truck
+  ChevronRight, BarChart2, CheckCircle, Clock, DollarSign, Truck, Bell
 } from "lucide-react";
 
 export function AdminDashboard() {
@@ -37,6 +37,7 @@ export function AdminDashboard() {
     { href: "/admin/orders", icon: <ShoppingBag className="w-6 h-6 text-purple-600" />, label: "All Orders", desc: "Monitor all platform orders", bg: "bg-purple-50", badge: null },
     { href: "/admin/accounting", icon: <BarChart2 className="w-6 h-6 text-green-600" />, label: "Accounting", desc: "Revenue, ledger & transactions", bg: "bg-green-50", badge: null },
     { href: "/admin/disputes", icon: <AlertTriangle className="w-6 h-6 text-red-600" />, label: "Disputes", desc: "Resolve buyer/seller disputes", bg: "bg-red-50", badge: stats.openDisputes > 0 ? stats.openDisputes : null },
+    { href: "/admin/alerts", icon: <Bell className="w-6 h-6 text-yellow-600" />, label: "Alerts", desc: "System alerts & operations log", bg: "bg-yellow-50", badge: null },
   ];
 
   return (

@@ -11,3 +11,4 @@ export * from "./transporter_routes";
 export * from "./disputes";
 export * from "./notifications";
 export * from "./sessions";
+export * from "./alerts";
