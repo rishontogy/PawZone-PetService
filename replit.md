@@ -83,11 +83,14 @@ PawZone is a full-featured pet marketplace web application serving Kerala, India
 - `/seller/listings/new` — Create new listing
 - `/seller/orders` — View buyer orders
 - `/transporter` — Transporter dashboard + routes
+- `/buyer/orders/:id/pay` — UPI payment page (QR + upload screenshot)
 - `/admin` — Admin dashboard with platform stats
 - `/admin/users` — User management (approve/block)
 - `/admin/listings` — Listing approval queue
 - `/admin/orders` — All platform orders
 - `/admin/disputes` — Dispute resolution
+- `/admin/alerts` — System alerts from alert engine
+- `/admin/payments` — UPI payment proof verification (approve/reject)
 
 ## Database Schema Tables
 
@@ -102,6 +105,15 @@ PawZone is a full-featured pet marketplace web application serving Kerala, India
 - `notifications` — User notifications
 - `waitlist` — Pre-launch waitlist
 - `addresses` — User delivery addresses
+- `alerts` — System alerts (alert engine outputs)
+- `payment_proofs` — UPI payment screenshot submissions with approve/reject workflow
+
+## UPI Payment Flow
+
+- `paymentStatus` values: `pending` → `pending_verification` → `paid` (approved) or `retry_allowed` (1st reject) or `failed` (2nd reject, cancels order)
+- QR code stored at `artifacts/pawzone/public/upi-qr.jpg`
+- UPI ID: `rishontogy5050@oksbi`
+- Flow: buyer uploads screenshot + reference + date → admin verifies → approve (paid) or reject (retry/cancel)
 
 ## Key Commands
 

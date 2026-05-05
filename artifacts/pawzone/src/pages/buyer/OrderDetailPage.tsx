@@ -1,5 +1,5 @@
 import { useParams, useLocation } from "wouter";
-import { useGetOrder, useProcessPayment, useReportIssue } from "@workspace/api-client-react";
+import { useGetOrder, useReportIssue } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -100,15 +100,6 @@ export function OrderDetailPage() {
   const [showIssue, setShowIssue] = useState(false);
 
   const { data: order, refetch } = useGetOrder(parseInt(id!), { query: { enabled: !!user } } as any);
-
-  const processPayment = useProcessPayment({
-    mutation: {
-      onSuccess: () => { toast({ title: "✅ Payment confirmed!" }); refetch(); },
-      onError: (err: any) => {
-        toast({ variant: "destructive", title: "Payment failed", description: err?.data?.error });
-      },
-    },
-  });
 
   const reportIssue = useReportIssue({
     mutation: {
@@ -242,12 +233,46 @@ export function OrderDetailPage() {
                 <Button
                   className="mt-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white"
                   size="sm"
-                  onClick={() => processPayment.mutate({ id: parseInt(id!), data: { method: "upi", amount: totalAmount } as any })}
-                  disabled={processPayment.isPending}
+                  onClick={() => setLocation(`/buyer/orders/${id}/pay`)}
                 >
-                  {processPayment.isPending ? "Processing..." : `Pay ${formatPrice(totalAmount)}`}
+                  Pay {formatPrice(totalAmount)} via UPI
                 </Button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Retry payment banner */}
+        {paymentStatusVal === "retry_allowed" && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-5">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-bold text-red-800">Payment Rejected — Re-upload Required</p>
+                <p className="text-sm text-red-700 mt-0.5">
+                  Your payment proof was rejected. Please re-upload with the correct screenshot and reference number. This is your final chance — a second rejection will cancel the order.
+                </p>
+                <Button
+                  className="mt-3 rounded-xl bg-red-600 hover:bg-red-700 text-white"
+                  size="sm"
+                  onClick={() => setLocation(`/buyer/orders/${id}/pay`)}
+                >
+                  Re-upload Payment Proof
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Pending verification banner */}
+        {paymentStatusVal === "pending_verification" && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
+            <Clock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-blue-900">Payment Proof Submitted</p>
+              <p className="text-sm text-blue-700 mt-0.5">
+                Your payment is being verified by our admin team. You will be notified once confirmed.
+              </p>
             </div>
           </div>
         )}

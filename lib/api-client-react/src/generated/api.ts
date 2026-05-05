@@ -25,7 +25,10 @@ import type {
   AdminGetAlerts200,
   AdminGetAlertsParams,
   AdminGetListingsParams,
+  AdminGetPaymentProofs200,
+  AdminGetPaymentProofsParams,
   AdminGetUsersParams,
+  AdminRejectPaymentProofBody,
   Alert,
   AuthResponse,
   BuyerDashboard,
@@ -46,6 +49,7 @@ import type {
   Order,
   OrderDetail,
   PaymentBody,
+  PaymentProof,
   PickupBody,
   PlaceOrderBody,
   RejectBody,
@@ -54,6 +58,7 @@ import type {
   Review,
   SellerDashboard,
   SignupBody,
+  SubmitPaymentProofBody,
   SuccessResponse,
   TransporterDashboard,
   TransporterRoute,
@@ -1748,6 +1753,93 @@ export const useProcessPayment = <
   TContext
 > => {
   return useMutation(getProcessPaymentMutationOptions(options));
+};
+
+/**
+ * @summary Submit UPI payment proof for verification
+ */
+export const getSubmitPaymentProofUrl = (id: number) => {
+  return `/api/orders/${id}/payment-proof`;
+};
+
+export const submitPaymentProof = async (
+  id: number,
+  submitPaymentProofBody: SubmitPaymentProofBody,
+  options?: RequestInit,
+): Promise<PaymentProof> => {
+  return customFetch<PaymentProof>(getSubmitPaymentProofUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(submitPaymentProofBody),
+  });
+};
+
+export const getSubmitPaymentProofMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitPaymentProof>>,
+    TError,
+    { id: number; data: BodyType<SubmitPaymentProofBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof submitPaymentProof>>,
+  TError,
+  { id: number; data: BodyType<SubmitPaymentProofBody> },
+  TContext
+> => {
+  const mutationKey = ["submitPaymentProof"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof submitPaymentProof>>,
+    { id: number; data: BodyType<SubmitPaymentProofBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return submitPaymentProof(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SubmitPaymentProofMutationResult = NonNullable<
+  Awaited<ReturnType<typeof submitPaymentProof>>
+>;
+export type SubmitPaymentProofMutationBody = BodyType<SubmitPaymentProofBody>;
+export type SubmitPaymentProofMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Submit UPI payment proof for verification
+ */
+export const useSubmitPaymentProof = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitPaymentProof>>,
+    TError,
+    { id: number; data: BodyType<SubmitPaymentProofBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof submitPaymentProof>>,
+  TError,
+  { id: number; data: BodyType<SubmitPaymentProofBody> },
+  TContext
+> => {
+  return useMutation(getSubmitPaymentProofMutationOptions(options));
 };
 
 /**
@@ -4156,6 +4248,281 @@ export const useAdminResolveAlert = <
   TContext
 > => {
   return useMutation(getAdminResolveAlertMutationOptions(options));
+};
+
+/**
+ * @summary List payment proofs pending verification
+ */
+export const getAdminGetPaymentProofsUrl = (
+  params?: AdminGetPaymentProofsParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/admin/payment-proofs?${stringifiedParams}`
+    : `/api/admin/payment-proofs`;
+};
+
+export const adminGetPaymentProofs = async (
+  params?: AdminGetPaymentProofsParams,
+  options?: RequestInit,
+): Promise<AdminGetPaymentProofs200> => {
+  return customFetch<AdminGetPaymentProofs200>(
+    getAdminGetPaymentProofsUrl(params),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getAdminGetPaymentProofsQueryKey = (
+  params?: AdminGetPaymentProofsParams,
+) => {
+  return [`/api/admin/payment-proofs`, ...(params ? [params] : [])] as const;
+};
+
+export const getAdminGetPaymentProofsQueryOptions = <
+  TData = Awaited<ReturnType<typeof adminGetPaymentProofs>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: AdminGetPaymentProofsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof adminGetPaymentProofs>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getAdminGetPaymentProofsQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof adminGetPaymentProofs>>
+  > = ({ signal }) =>
+    adminGetPaymentProofs(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof adminGetPaymentProofs>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type AdminGetPaymentProofsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof adminGetPaymentProofs>>
+>;
+export type AdminGetPaymentProofsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List payment proofs pending verification
+ */
+
+export function useAdminGetPaymentProofs<
+  TData = Awaited<ReturnType<typeof adminGetPaymentProofs>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: AdminGetPaymentProofsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof adminGetPaymentProofs>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAdminGetPaymentProofsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Approve a payment proof
+ */
+export const getAdminApprovePaymentProofUrl = (id: number) => {
+  return `/api/admin/payment-proofs/${id}/approve`;
+};
+
+export const adminApprovePaymentProof = async (
+  id: number,
+  options?: RequestInit,
+): Promise<PaymentProof> => {
+  return customFetch<PaymentProof>(getAdminApprovePaymentProofUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getAdminApprovePaymentProofMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminApprovePaymentProof>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminApprovePaymentProof>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["adminApprovePaymentProof"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminApprovePaymentProof>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return adminApprovePaymentProof(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminApprovePaymentProofMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminApprovePaymentProof>>
+>;
+
+export type AdminApprovePaymentProofMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Approve a payment proof
+ */
+export const useAdminApprovePaymentProof = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminApprovePaymentProof>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminApprovePaymentProof>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getAdminApprovePaymentProofMutationOptions(options));
+};
+
+/**
+ * @summary Reject a payment proof
+ */
+export const getAdminRejectPaymentProofUrl = (id: number) => {
+  return `/api/admin/payment-proofs/${id}/reject`;
+};
+
+export const adminRejectPaymentProof = async (
+  id: number,
+  adminRejectPaymentProofBody?: AdminRejectPaymentProofBody,
+  options?: RequestInit,
+): Promise<PaymentProof> => {
+  return customFetch<PaymentProof>(getAdminRejectPaymentProofUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(adminRejectPaymentProofBody),
+  });
+};
+
+export const getAdminRejectPaymentProofMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminRejectPaymentProof>>,
+    TError,
+    { id: number; data: BodyType<AdminRejectPaymentProofBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof adminRejectPaymentProof>>,
+  TError,
+  { id: number; data: BodyType<AdminRejectPaymentProofBody> },
+  TContext
+> => {
+  const mutationKey = ["adminRejectPaymentProof"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof adminRejectPaymentProof>>,
+    { id: number; data: BodyType<AdminRejectPaymentProofBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return adminRejectPaymentProof(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AdminRejectPaymentProofMutationResult = NonNullable<
+  Awaited<ReturnType<typeof adminRejectPaymentProof>>
+>;
+export type AdminRejectPaymentProofMutationBody =
+  BodyType<AdminRejectPaymentProofBody>;
+export type AdminRejectPaymentProofMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Reject a payment proof
+ */
+export const useAdminRejectPaymentProof = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof adminRejectPaymentProof>>,
+    TError,
+    { id: number; data: BodyType<AdminRejectPaymentProofBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof adminRejectPaymentProof>>,
+  TError,
+  { id: number; data: BodyType<AdminRejectPaymentProofBody> },
+  TContext
+> => {
+  return useMutation(getAdminRejectPaymentProofMutationOptions(options));
 };
 
 /**

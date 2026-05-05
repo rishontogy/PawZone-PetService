@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { eq, and, desc, or } from "drizzle-orm";
-import { db, ordersTable, orderItemsTable, orderTimelineTable, listingsTable, usersTable, cartTable, notificationsTable, disputesTable } from "@workspace/db";
+import { db, ordersTable, orderItemsTable, orderTimelineTable, listingsTable, usersTable, cartTable, notificationsTable, disputesTable, paymentProofsTable } from "@workspace/db";
 import {
   GetOrdersQueryParams,
   PlaceOrderBody,
@@ -8,8 +8,10 @@ import {
   UpdateOrderStatusBody,
   ProcessPaymentBody,
   ReportIssueBody,
+  SubmitPaymentProofBody,
 } from "@workspace/api-zod";
 import { authMiddleware, generateOrderNumber, generatePetCode } from "../lib/auth";
+import { triggerAlert } from "../lib/alertEngine";
 
 const router = Router();
 
@@ -407,6 +409,77 @@ router.post("/orders/:id/payment", authMiddleware, async (req, res): Promise<voi
   const [buyer] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, updated.buyerId));
   const [seller] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, updated.sellerId));
   res.json(formatOrder(updated, buyer?.name ?? "", seller?.name ?? ""));
+});
+
+router.post("/orders/:id/payment-proof", authMiddleware, async (req, res): Promise<void> => {
+  const user = (req as any).user;
+  if (user.role !== "buyer") {
+    res.status(403).json({ error: "Buyers only" });
+    return;
+  }
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  const parsed = SubmitPaymentProofBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order || order.buyerId !== user.id) {
+    res.status(404).json({ error: "Order not found" });
+    return;
+  }
+
+  if (order.paymentStatus === "paid") {
+    res.status(400).json({ error: "Order already paid" });
+    return;
+  }
+
+  if (!["pending", "retry_allowed"].includes(order.paymentStatus)) {
+    res.status(400).json({ error: "Cannot submit payment proof for this order" });
+    return;
+  }
+
+  // Check if there's already a pending proof for this order — prevent duplicates
+  const [existing] = await db.select().from(paymentProofsTable)
+    .where(and(eq(paymentProofsTable.orderId, id), eq(paymentProofsTable.status, "pending")));
+  if (existing) {
+    res.status(400).json({ error: "Payment proof already submitted and pending review" });
+    return;
+  }
+
+  const [proof] = await db.insert(paymentProofsTable).values({
+    orderId: id,
+    buyerId: user.id,
+    screenshotUrl: parsed.data.screenshotUrl,
+    referenceNumber: parsed.data.referenceNumber,
+    paymentDate: parsed.data.paymentDate,
+    status: "pending",
+  }).returning();
+
+  await db.update(ordersTable)
+    .set({ paymentStatus: "pending_verification" })
+    .where(eq(ordersTable.id, id));
+
+  await triggerAlert(
+    "PAYMENT_VERIFICATION",
+    `New payment proof uploaded for order ${order.orderNumber}. Ref: ${parsed.data.referenceNumber}`,
+    order.id,
+    user.id,
+    "HIGH"
+  );
+
+  await db.insert(notificationsTable).values({
+    userId: order.sellerId,
+    type: "payment_received",
+    title: "Payment Proof Submitted",
+    message: `Buyer submitted payment proof for order ${order.orderNumber}. Awaiting admin verification.`,
+    orderId: id,
+  });
+
+  res.status(201).json(proof);
 });
 
 router.post("/orders/:id/prepared-video", authMiddleware, async (req, res): Promise<void> => {

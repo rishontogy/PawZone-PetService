@@ -12,7 +12,7 @@ export const ordersTable = pgTable("orders", {
   status: text("status").notNull().default("pending")
     .$type<"pending" | "confirmed" | "ready" | "picked_up" | "in_transit" | "delivered" | "completed" | "cancelled" | "refunded">(),
   paymentStatus: text("payment_status").notNull().default("pending")
-    .$type<"pending" | "paid" | "failed" | "refunded">(),
+    .$type<"pending" | "paid" | "failed" | "refunded" | "pending_verification" | "retry_allowed">(),
   subtotal: real("subtotal").notNull(),
   platformFee: real("platform_fee").notNull().default(0),
   deliveryFee: real("delivery_fee").notNull().default(0),

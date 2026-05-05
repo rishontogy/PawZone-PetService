@@ -36,9 +36,11 @@ import { AdminListingsPage } from "@/pages/admin/AdminListingsPage";
 import { AdminOrdersPage } from "@/pages/admin/AdminOrdersPage";
 import { AdminDisputesPage } from "@/pages/admin/AdminDisputesPage";
 import { AdminAlertsPage } from "@/pages/admin/AdminAlertsPage";
+import { AdminPaymentsPage } from "@/pages/admin/AdminPaymentsPage";
 import { AdminAccountingPage } from "@/pages/admin/AdminAccountingPage";
 import { AdminSellerLedgerPage } from "@/pages/admin/AdminSellerLedgerPage";
 import { AdminTransporterLedgerPage } from "@/pages/admin/AdminTransporterLedgerPage";
+import { UPIPaymentPage } from "@/pages/buyer/UPIPaymentPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -125,6 +127,11 @@ function Router() {
           <AppLayout><BuyerOrdersPage /></AppLayout>
         </RequireAuth>
       </Route>
+      <Route path="/buyer/orders/:id/pay">
+        <RequireAuth allowedRoles={["buyer"]}>
+          <UPIPaymentPage />
+        </RequireAuth>
+      </Route>
       <Route path="/buyer/orders/:id">
         <RequireAuth allowedRoles={["buyer"]}>
           <AppLayout><OrderDetailPage /></AppLayout>
@@ -204,6 +211,11 @@ function Router() {
       <Route path="/admin/alerts">
         <RequireAuth allowedRoles={["admin"]}>
           <AppLayout><AdminAlertsPage /></AppLayout>
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/payments">
+        <RequireAuth allowedRoles={["admin"]}>
+          <AppLayout><AdminPaymentsPage /></AppLayout>
         </RequireAuth>
       </Route>
       <Route path="/admin/accounting">

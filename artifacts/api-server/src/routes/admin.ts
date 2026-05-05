@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { eq, and, desc, ne } from "drizzle-orm";
-import { db, usersTable, listingsTable, ordersTable, disputesTable, waitlistTable, notificationsTable, alertsTable } from "@workspace/db";
+import { db, usersTable, listingsTable, ordersTable, orderTimelineTable, disputesTable, waitlistTable, notificationsTable, alertsTable, paymentProofsTable } from "@workspace/db";
 import { triggerAlert } from "../lib/alertEngine";
 import {
   AdminGetUsersQueryParams,
@@ -600,6 +600,158 @@ router.get("/admin/ledger/transporter/:transporterId", async (req, res): Promise
     summary: { totalDeliveries: rows.length, totalEarnings, totalPlatformDeduction },
     orders: rows,
   });
+});
+
+router.get("/admin/payment-proofs", async (req, res): Promise<void> => {
+  const statusFilter = req.query.status as string | undefined;
+
+  const proofs = await db.select({
+    proof: paymentProofsTable,
+    orderNumber: ordersTable.orderNumber,
+    totalAmount: ordersTable.total,
+    buyerName: usersTable.name,
+  })
+    .from(paymentProofsTable)
+    .innerJoin(ordersTable, eq(paymentProofsTable.orderId, ordersTable.id))
+    .innerJoin(usersTable, eq(paymentProofsTable.buyerId, usersTable.id))
+    .orderBy(desc(paymentProofsTable.createdAt));
+
+  const filtered = statusFilter
+    ? proofs.filter(p => p.proof.status === statusFilter)
+    : proofs;
+
+  const result = filtered.map(({ proof, orderNumber, totalAmount, buyerName }) => ({
+    ...proof,
+    orderNumber,
+    totalAmount,
+    buyerName,
+  }));
+
+  res.json({ proofs: result, total: result.length });
+});
+
+router.post("/admin/payment-proofs/:id/approve", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  const [proof] = await db.select().from(paymentProofsTable).where(eq(paymentProofsTable.id, id));
+  if (!proof) {
+    res.status(404).json({ error: "Payment proof not found" });
+    return;
+  }
+  if (proof.status !== "pending") {
+    res.status(400).json({ error: "Proof already reviewed" });
+    return;
+  }
+
+  const [updatedProof] = await db.update(paymentProofsTable)
+    .set({ status: "approved", reviewedAt: new Date() })
+    .where(eq(paymentProofsTable.id, id))
+    .returning();
+
+  const [updatedOrder] = await db.update(ordersTable)
+    .set({ paymentStatus: "paid" })
+    .where(eq(ordersTable.id, proof.orderId))
+    .returning();
+
+  await db.insert(orderTimelineTable).values({
+    orderId: proof.orderId,
+    status: "paid",
+    note: "Payment verified by admin",
+    timestamp: new Date(),
+  });
+
+  await db.insert(notificationsTable).values({
+    userId: proof.buyerId,
+    type: "payment_received",
+    title: "Payment Approved",
+    message: `Your payment for order ${updatedOrder?.orderNumber ?? ""} has been verified. Your order is now confirmed!`,
+    orderId: proof.orderId,
+  });
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, proof.orderId));
+  if (order?.sellerId) {
+    await db.insert(notificationsTable).values({
+      userId: order.sellerId,
+      type: "payment_received",
+      title: "Payment Confirmed",
+      message: `Payment verified for order ${updatedOrder?.orderNumber ?? ""}. Please prepare the pet.`,
+      orderId: proof.orderId,
+    });
+  }
+
+  res.json({ ...updatedProof, orderNumber: updatedOrder?.orderNumber });
+});
+
+router.post("/admin/payment-proofs/:id/reject", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  const adminNote = req.body?.note ?? null;
+
+  const [proof] = await db.select().from(paymentProofsTable).where(eq(paymentProofsTable.id, id));
+  if (!proof) {
+    res.status(404).json({ error: "Payment proof not found" });
+    return;
+  }
+  if (proof.status !== "pending") {
+    res.status(400).json({ error: "Proof already reviewed" });
+    return;
+  }
+
+  const newRejectionCount = proof.rejectionCount + 1;
+  const isSecondRejection = newRejectionCount >= 2;
+
+  const [updatedProof] = await db.update(paymentProofsTable)
+    .set({ status: "rejected", rejectionCount: newRejectionCount, reviewedAt: new Date(), adminNote })
+    .where(eq(paymentProofsTable.id, id))
+    .returning();
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, proof.orderId));
+
+  if (isSecondRejection) {
+    await db.update(ordersTable)
+      .set({ paymentStatus: "failed", status: "cancelled" })
+      .where(eq(ordersTable.id, proof.orderId));
+
+    await db.insert(orderTimelineTable).values({
+      orderId: proof.orderId,
+      status: "cancelled",
+      note: "Order cancelled: payment rejected twice",
+      timestamp: new Date(),
+    });
+
+    await db.insert(notificationsTable).values({
+      userId: proof.buyerId,
+      type: "order_update",
+      title: "Order Cancelled",
+      message: `Your payment was rejected again for order ${order?.orderNumber ?? ""}. Order has been cancelled.`,
+      orderId: proof.orderId,
+    });
+
+    if (order?.sellerId) {
+      await db.insert(notificationsTable).values({
+        userId: order.sellerId,
+        type: "order_update",
+        title: "Order Cancelled",
+        message: `Order ${order?.orderNumber ?? ""} cancelled — buyer payment rejected twice.`,
+        orderId: proof.orderId,
+      });
+    }
+  } else {
+    await db.update(ordersTable)
+      .set({ paymentStatus: "retry_allowed" })
+      .where(eq(ordersTable.id, proof.orderId));
+
+    await db.insert(notificationsTable).values({
+      userId: proof.buyerId,
+      type: "order_update",
+      title: "Payment Rejected — Retry",
+      message: `Your payment proof for order ${order?.orderNumber ?? ""} was rejected. Please re-upload with correct details.`,
+      orderId: proof.orderId,
+    });
+  }
+
+  res.json(updatedProof);
 });
 
 export default router;

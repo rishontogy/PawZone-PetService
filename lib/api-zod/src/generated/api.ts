@@ -671,6 +671,19 @@ export const ProcessPaymentResponse = zod.object({
 });
 
 /**
+ * @summary Submit UPI payment proof for verification
+ */
+export const SubmitPaymentProofParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const SubmitPaymentProofBody = zod.object({
+  screenshotUrl: zod.string(),
+  referenceNumber: zod.string(),
+  paymentDate: zod.string(),
+});
+
+/**
  * @summary Report an issue with an order
  */
 export const ReportIssueParams = zod.object({
@@ -1572,6 +1585,87 @@ export const AdminResolveAlertResponse = zod.object({
   orderNumber: zod.string().nullish(),
   createdAt: zod.coerce.date(),
   resolvedAt: zod.coerce.date().nullish(),
+});
+
+/**
+ * @summary List payment proofs pending verification
+ */
+export const AdminGetPaymentProofsQueryParams = zod.object({
+  status: zod.enum(["pending", "approved", "rejected"]).optional(),
+});
+
+export const AdminGetPaymentProofsResponse = zod.object({
+  proofs: zod.array(
+    zod.object({
+      id: zod.number(),
+      orderId: zod.number(),
+      buyerId: zod.number(),
+      screenshotUrl: zod.string(),
+      referenceNumber: zod.string(),
+      paymentDate: zod.string(),
+      status: zod.enum(["pending", "approved", "rejected"]),
+      rejectionCount: zod.number(),
+      adminNote: zod.string().nullish(),
+      createdAt: zod.string(),
+      reviewedAt: zod.string().nullish(),
+      orderNumber: zod.string().nullish(),
+      buyerName: zod.string().nullish(),
+      totalAmount: zod.number().nullish(),
+    }),
+  ),
+  total: zod.number(),
+});
+
+/**
+ * @summary Approve a payment proof
+ */
+export const AdminApprovePaymentProofParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AdminApprovePaymentProofResponse = zod.object({
+  id: zod.number(),
+  orderId: zod.number(),
+  buyerId: zod.number(),
+  screenshotUrl: zod.string(),
+  referenceNumber: zod.string(),
+  paymentDate: zod.string(),
+  status: zod.enum(["pending", "approved", "rejected"]),
+  rejectionCount: zod.number(),
+  adminNote: zod.string().nullish(),
+  createdAt: zod.string(),
+  reviewedAt: zod.string().nullish(),
+  orderNumber: zod.string().nullish(),
+  buyerName: zod.string().nullish(),
+  totalAmount: zod.number().nullish(),
+});
+
+/**
+ * @summary Reject a payment proof
+ */
+export const AdminRejectPaymentProofParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const AdminRejectPaymentProofBody = zod.object({
+  note: zod.string().optional(),
+});
+
+export const AdminRejectPaymentProofResponse = zod.object({
+  id: zod.number(),
+  orderId: zod.number(),
+  buyerId: zod.number(),
+  screenshotUrl: zod.string(),
+  referenceNumber: zod.string(),
+  paymentDate: zod.string(),
+  status: zod.enum(["pending", "approved", "rejected"]),
+  rejectionCount: zod.number(),
+  adminNote: zod.string().nullish(),
+  createdAt: zod.string(),
+  reviewedAt: zod.string().nullish(),
+  orderNumber: zod.string().nullish(),
+  buyerName: zod.string().nullish(),
+  totalAmount: zod.number().nullish(),
 });
 
 /**

@@ -12,3 +12,4 @@ export * from "./disputes";
 export * from "./notifications";
 export * from "./sessions";
 export * from "./alerts";
+export * from "./payment_proofs";

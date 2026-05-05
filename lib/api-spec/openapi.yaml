@@ -447,6 +447,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/Order"
 
+  /orders/{id}/payment-proof:
+    post:
+      operationId: submitPaymentProof
+      tags: [orders]
+      summary: Submit UPI payment proof for verification
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitPaymentProofBody"
+      responses:
+        "201":
+          description: Proof submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentProof"
+
   /orders/{id}/issue:
     post:
       operationId: reportIssue
@@ -1013,6 +1038,82 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Alert"
+
+  /admin/payment-proofs:
+    get:
+      operationId: adminGetPaymentProofs
+      tags: [admin]
+      summary: List payment proofs pending verification
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+      responses:
+        "200":
+          description: Payment proofs list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  proofs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PaymentProof"
+                  total:
+                    type: integer
+                required:
+                  - proofs
+                  - total
+
+  /admin/payment-proofs/{id}/approve:
+    post:
+      operationId: adminApprovePaymentProof
+      tags: [admin]
+      summary: Approve a payment proof
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Payment approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentProof"
+
+  /admin/payment-proofs/{id}/reject:
+    post:
+      operationId: adminRejectPaymentProof
+      tags: [admin]
+      summary: Reject a payment proof
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+      responses:
+        "200":
+          description: Payment rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentProof"
 
   /users/addresses:
     get:
@@ -1584,6 +1685,68 @@ components:
           type: string
       required:
         - status
+
+    SubmitPaymentProofBody:
+      type: object
+      properties:
+        screenshotUrl:
+          type: string
+        referenceNumber:
+          type: string
+        paymentDate:
+          type: string
+      required:
+        - screenshotUrl
+        - referenceNumber
+        - paymentDate
+
+    PaymentProof:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderId:
+          type: integer
+        buyerId:
+          type: integer
+        screenshotUrl:
+          type: string
+        referenceNumber:
+          type: string
+        paymentDate:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        rejectionCount:
+          type: integer
+        adminNote:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        reviewedAt:
+          type: string
+          nullable: true
+        orderNumber:
+          type: string
+          nullable: true
+        buyerName:
+          type: string
+          nullable: true
+        totalAmount:
+          type: number
+          nullable: true
+      required:
+        - id
+        - orderId
+        - buyerId
+        - screenshotUrl
+        - referenceNumber
+        - paymentDate
+        - status
+        - rejectionCount
+        - createdAt
 
     PaymentBody:
       type: object

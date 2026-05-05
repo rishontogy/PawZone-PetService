@@ -1,0 +1,300 @@
+Implement UPI QR-Based Payment Flow with Admin Verification.
+
+This replaces direct “Pay Now” with manual payment verification.
+
+---
+
+# 💳 1. PAY NOW BUTTON BEHAVIOR
+
+---
+
+## On clicking “Pay Now”:
+
+👉 Redirect to **Payment Page**
+
+---
+
+---
+
+# 📱 2. PAYMENT PAGE UI
+
+---
+
+## Must include:
+
+---
+
+### 🔳 QR CODE
+
+* Display QR image for payment
+* Use fixed QR (platform UPI)
+
+---
+
+---
+
+### 🧾 UPI ID
+
+```plaintext id="upi_text"
+UPI ID: pawzone@upi
+```
+
+---
+
+---
+
+### 💰 AMOUNT
+
+```plaintext id="amount_text"
+Amount to Pay: ₹{final_total}
+```
+
+---
+
+---
+
+### 📸 PAYMENT PROOF UPLOAD
+
+---
+
+## Upload section:
+
+```plaintext id="upload_section"
+Upload Payment Screenshot
+[ Upload Image ]
+
+Enter Reference Number
+[ Input Field ]
+
+Select Payment Date
+[ Date Picker ]
+```
+
+---
+
+---
+
+# ⚙️ 3. VALIDATION
+
+---
+
+## Before submission:
+
+```js id="validation"
+if (!image || !reference || !date) {
+  return showError("Upload screenshot, reference number and date");
+}
+```
+
+---
+
+---
+
+# 📤 4. SUBMIT FLOW
+
+---
+
+## On clicking “Done”:
+
+```js id="submit_payment"
+order.payment_status = "PENDING_VERIFICATION";
+
+savePaymentProof({
+  order_id: order.id,
+  screenshot: image,
+  reference,
+  date,
+  status: "PENDING"
+});
+```
+
+---
+
+---
+
+# 🔔 5. ADMIN ALERT
+
+---
+
+Trigger alert:
+
+```js id="alert_admin"
+triggerAlert(
+  "PAYMENT_VERIFICATION",
+  "New payment uploaded for verification",
+  order,
+  buyer,
+  "HIGH"
+);
+```
+
+---
+
+---
+
+# 🛠 6. ADMIN PANEL – PAYMENT VERIFICATION
+
+---
+
+## Add new section:
+
+👉 “Pending Payments”
+
+---
+
+## Each card shows:
+
+* Order ID
+* Buyer name
+* Amount
+* Screenshot
+* Reference number
+* Date
+
+---
+
+---
+
+## Admin Actions:
+
+```plaintext id="admin_buttons"
+[Approve Payment]   [Reject Payment]
+```
+
+---
+
+---
+
+# ✅ 7. APPROVE FLOW
+
+---
+
+```js id="approve_payment"
+order.payment_status = "PAID";
+order.status = "PAYMENT_COMPLETED";
+
+updateOrder(order);
+notifyBuyer("Payment confirmed");
+```
+
+---
+
+---
+
+# ❌ 8. REJECT FLOW
+
+---
+
+## First rejection:
+
+```js id="reject_once"
+order.payment_status = "RETRY_ALLOWED";
+notifyBuyer("Payment rejected. Please upload again.");
+```
+
+---
+
+---
+
+## Second rejection:
+
+```js id="reject_twice"
+order.payment_status = "FAILED";
+order.status = "CANCELLED";
+
+restockItems(order);
+notifyBuyer("Order cancelled due to invalid payment");
+```
+
+---
+
+---
+
+# 🔁 9. BUYER RETRY FLOW
+
+---
+
+If status = RETRY_ALLOWED:
+
+👉 Show “Re-upload Payment” button
+👉 Same upload flow again
+
+---
+
+---
+
+# 📊 10. UI STATUS (BUYER ORDER PAGE)
+
+---
+
+Show:
+
+```plaintext id="status_view"
+Payment Pending Verification
+Payment Rejected – Retry
+Payment Completed
+Order Cancelled
+```
+
+---
+
+---
+
+# 🔐 11. SECURITY RULES
+
+---
+
+✔ Screenshot REQUIRED
+✔ Reference REQUIRED
+✔ Date REQUIRED
+
+✔ No payment → no confirmation
+✔ No bypass allowed
+
+---
+
+---
+
+# 🧪 12. TEST CASES
+
+---
+
+✔ Upload valid screenshot → admin approves → success
+✔ Upload fake → reject → retry allowed
+✔ Reject twice → order cancelled
+✔ No upload → cannot proceed
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After implementation:
+
+✔ Payment page fully functional
+✔ Admin controls all payments
+✔ No fake confirmations
+✔ Clear retry logic
+
+---
+
+## FINAL RULE:
+
+Money must be:
+
+→ Verified
+→ Controlled
+→ Traceable
+
+---
+
+No blind payment success
+No missing proof
+No fake approvals
+
+---
+
+This must behave like a real verified payment system.

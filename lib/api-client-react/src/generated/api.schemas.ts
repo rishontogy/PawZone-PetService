@@ -299,6 +299,38 @@ export interface UpdateOrderStatusBody {
   note?: string;
 }
 
+export interface SubmitPaymentProofBody {
+  screenshotUrl: string;
+  referenceNumber: string;
+  paymentDate: string;
+}
+
+export type PaymentProofStatus =
+  (typeof PaymentProofStatus)[keyof typeof PaymentProofStatus];
+
+export const PaymentProofStatus = {
+  pending: "pending",
+  approved: "approved",
+  rejected: "rejected",
+} as const;
+
+export interface PaymentProof {
+  id: number;
+  orderId: number;
+  buyerId: number;
+  screenshotUrl: string;
+  referenceNumber: string;
+  paymentDate: string;
+  status: PaymentProofStatus;
+  rejectionCount: number;
+  adminNote?: string | null;
+  createdAt: string;
+  reviewedAt?: string | null;
+  orderNumber?: string | null;
+  buyerName?: string | null;
+  totalAmount?: number | null;
+}
+
 export type PaymentBodyMethod =
   (typeof PaymentBodyMethod)[keyof typeof PaymentBodyMethod];
 
@@ -601,4 +633,26 @@ export type AdminGetAlerts200 = {
   alerts: Alert[];
   total: number;
   activeCount: number;
+};
+
+export type AdminGetPaymentProofsParams = {
+  status?: AdminGetPaymentProofsStatus;
+};
+
+export type AdminGetPaymentProofsStatus =
+  (typeof AdminGetPaymentProofsStatus)[keyof typeof AdminGetPaymentProofsStatus];
+
+export const AdminGetPaymentProofsStatus = {
+  pending: "pending",
+  approved: "approved",
+  rejected: "rejected",
+} as const;
+
+export type AdminGetPaymentProofs200 = {
+  proofs: PaymentProof[];
+  total: number;
+};
+
+export type AdminRejectPaymentProofBody = {
+  note?: string;
 };
