@@ -1,0 +1,194 @@
+Fix Payment Screenshot Upload Failure and Use Static QR Code.
+
+This is a FILE HANDLING + UI FIX.
+
+---
+
+# ❌ 1. CURRENT ISSUE
+
+---
+
+* Screenshot upload shows “failed”
+* System expects URL instead of file
+* Image not stored or previewed
+
+---
+
+# ✅ 2. FIX IMAGE UPLOAD (CRITICAL)
+
+---
+
+## Replace URL input with FILE INPUT
+
+```html
+<input type="file" accept="image/*" id="paymentScreenshot" />
+```
+
+---
+
+---
+
+## Read file properly:
+
+```js
+const fileInput = document.getElementById("paymentScreenshot");
+
+fileInput.addEventListener("change", function () {
+  const file = fileInput.files[0];
+
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function (e) {
+    const base64Image = e.target.result;
+
+    localStorage.setItem("payment_screenshot_preview", base64Image);
+
+    document.getElementById("preview").src = base64Image;
+  };
+
+  reader.readAsDataURL(file);
+});
+```
+
+---
+
+---
+
+# 🖼 3. ADD PREVIEW
+
+---
+
+```html
+<img id="preview" style="width:150px; margin-top:10px;" />
+```
+
+---
+
+---
+
+# 💾 4. SAVE PAYMENT PROOF CORRECTLY
+
+---
+
+```js
+function submitPayment() {
+  const screenshot = localStorage.getItem("payment_screenshot_preview");
+  const reference = document.getElementById("ref").value;
+  const date = document.getElementById("date").value;
+
+  if (!screenshot || !reference || !date) {
+    return alert("All fields required");
+  }
+
+  const paymentData = {
+    order_id: currentOrder.id,
+    screenshot,
+    reference,
+    date,
+    status: "PENDING"
+  };
+
+  savePaymentProof(paymentData);
+}
+```
+
+---
+
+---
+
+# ⚠️ 5. IMPORTANT RULES
+
+---
+
+✔ DO NOT require URL anymore
+✔ Accept only file upload
+✔ Store as base64 (for now)
+✔ Prevent submission if missing
+
+---
+
+---
+
+# 🔳 6. STATIC QR CODE (FIXED)
+
+---
+
+## Use ONE fixed QR image:
+
+```html
+<img src="/assets/pawzone-qr.png" alt="UPI QR" width="200" />
+```
+
+---
+
+---
+
+## UPI TEXT:
+
+```plaintext
+UPI ID: pawzone@upi
+```
+
+---
+
+---
+
+# 🚫 7. REMOVE OLD LOGIC
+
+---
+
+❌ Remove:
+
+* URL input field
+* URL validation
+* “enter URL” errors
+
+---
+
+---
+
+# 🧪 8. TEST CASES
+
+---
+
+✔ Upload image → preview shows
+✔ Submit → saved successfully
+✔ No image → blocked
+✔ No error shown
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After fix:
+
+✔ Screenshot upload works smoothly
+✔ No “URL required” error
+✔ QR is fixed and always visible
+✔ Payment submission succeeds
+
+---
+
+## FINAL RULE:
+
+User must:
+
+→ Upload image
+→ See preview
+→ Submit successfully
+
+---
+
+No broken upload
+No confusing errors
+No URL dependency
+
+---
+
+This must feel like a real payment upload system.

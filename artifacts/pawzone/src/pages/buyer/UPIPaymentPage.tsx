@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/api";
 import {
-  ChevronLeft, QrCode, Copy, Upload, CheckCircle, AlertCircle, Clock,
+  ChevronLeft, QrCode, Copy, Upload, CheckCircle, AlertCircle, Clock, X,
 } from "lucide-react";
 import { useState, useRef } from "react";
 
@@ -19,9 +19,7 @@ export function UPIPaymentPage() {
 
   const { data: order, refetch } = useGetOrder(parseInt(id!), { query: { enabled: !!user } } as any);
 
-  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
-  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [screenshotBase64, setScreenshotBase64] = useState<string | null>(null);
   const [referenceNumber, setReferenceNumber] = useState("");
   const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [submitting, setSubmitting] = useState(false);
@@ -53,12 +51,15 @@ export function UPIPaymentPage() {
   const onPickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setScreenshotFile(file);
-    setScreenshotPreview(URL.createObjectURL(file));
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setScreenshotBase64(ev.target?.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async () => {
-    if (!screenshotFile) {
+    if (!screenshotBase64) {
       toast({ variant: "destructive", title: "Upload your payment screenshot" });
       return;
     }
@@ -71,26 +72,6 @@ export function UPIPaymentPage() {
       return;
     }
 
-    setUploading(true);
-    let screenshotUrl = "";
-    try {
-      const formData = new FormData();
-      formData.append("file", screenshotFile);
-      const uploadRes = await fetch("/api/upload", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (!uploadRes.ok) throw new Error("Upload failed");
-      const uploadData = await uploadRes.json();
-      screenshotUrl = uploadData.url;
-    } catch {
-      toast({ variant: "destructive", title: "Screenshot upload failed", description: "Please try again" });
-      setUploading(false);
-      return;
-    }
-    setUploading(false);
-
     setSubmitting(true);
     try {
       const res = await fetch(`/api/orders/${id}/payment-proof`, {
@@ -99,7 +80,7 @@ export function UPIPaymentPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ screenshotUrl, referenceNumber: referenceNumber.trim(), paymentDate }),
+        body: JSON.stringify({ screenshotUrl: screenshotBase64, referenceNumber: referenceNumber.trim(), paymentDate }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -215,14 +196,14 @@ export function UPIPaymentPage() {
           <div>
             <label className="text-sm font-semibold text-gray-700 block mb-2">Payment Screenshot *</label>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPickFile} />
-            {screenshotPreview ? (
+            {screenshotBase64 ? (
               <div className="relative rounded-xl overflow-hidden border border-gray-200">
-                <img src={screenshotPreview} alt="Payment screenshot" className="w-full max-h-64 object-contain bg-gray-50" />
+                <img src={screenshotBase64} alt="Payment screenshot" className="w-full max-h-64 object-contain bg-gray-50" />
                 <button
-                  onClick={() => { setScreenshotFile(null); setScreenshotPreview(null); if (fileRef.current) fileRef.current.value = ""; }}
-                  className="absolute top-2 right-2 bg-white rounded-full shadow px-2 py-1 text-xs text-red-500 hover:bg-red-50"
+                  onClick={() => { setScreenshotBase64(null); if (fileRef.current) fileRef.current.value = ""; }}
+                  className="absolute top-2 right-2 bg-white rounded-full shadow p-1 text-red-500 hover:bg-red-50"
                 >
-                  Remove
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             ) : (
@@ -264,9 +245,9 @@ export function UPIPaymentPage() {
           <Button
             className="w-full h-12 rounded-xl text-base font-bold"
             onClick={handleSubmit}
-            disabled={uploading || submitting}
+            disabled={submitting}
           >
-            {uploading ? "Uploading screenshot..." : submitting ? "Submitting..." : "Done — Submit for Verification"}
+            {submitting ? "Submitting..." : "Done — Submit for Verification"}
           </Button>
           <p className="text-xs text-gray-400 text-center">
             Admin will verify your payment within a few hours. Do not close this page until submitted.
