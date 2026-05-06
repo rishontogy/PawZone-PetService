@@ -1,0 +1,243 @@
+Fix Video Upload System for Seller and Transporter (Prepared / Pickup / Delivery Videos).
+
+This is a FILE UPLOAD + STORAGE FIX.
+
+---
+
+# ❌ 1. CURRENT ISSUE
+
+---
+
+* Video upload fails
+* Shows “URL required” or “upload failed”
+* Videos not stored or visible
+
+---
+
+# ✅ 2. USE FILE INPUT (REMOVE URL SYSTEM)
+
+---
+
+## Replace any URL input with:
+
+```html
+<input type="file" accept="video/*" id="videoUpload" />
+```
+
+---
+
+---
+
+# 🎥 3. READ VIDEO FILE PROPERLY
+
+---
+
+```js
+const videoInput = document.getElementById("videoUpload");
+
+videoInput.addEventListener("change", function () {
+  const file = videoInput.files[0];
+
+  if (!file) return;
+
+  // Limit size (IMPORTANT)
+  if (file.size > 20 * 1024 * 1024) {
+    return alert("Video must be under 20MB");
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function (e) {
+    const base64Video = e.target.result;
+
+    localStorage.setItem("temp_video", base64Video);
+
+    document.getElementById("videoPreview").src = base64Video;
+  };
+
+  reader.readAsDataURL(file);
+});
+```
+
+---
+
+---
+
+# ▶️ 4. ADD VIDEO PREVIEW
+
+---
+
+```html
+<video id="videoPreview" controls width="200"></video>
+```
+
+---
+
+---
+
+# 💾 5. SAVE VIDEO TO ORDER
+
+---
+
+## Seller (Prepared Video):
+
+```js
+order.prepared_video = localStorage.getItem("temp_video");
+```
+
+---
+
+## Transporter Pickup:
+
+```js
+order.pickup_video = localStorage.getItem("temp_video");
+```
+
+---
+
+## Transporter Delivery:
+
+```js
+order.delivery_video = localStorage.getItem("temp_video");
+```
+
+---
+
+---
+
+# 🔁 6. CLEAR TEMP STORAGE AFTER SAVE
+
+---
+
+```js
+localStorage.removeItem("temp_video");
+```
+
+---
+
+---
+
+# 📦 7. DISPLAY VIDEOS IN ALL PAGES
+
+---
+
+## Example:
+
+```html
+<video src="{order.prepared_video}" controls width="200"></video>
+```
+
+---
+
+---
+
+# ⚠️ 8. VALIDATION BEFORE SUBMIT
+
+---
+
+```js
+if (!order.prepared_video) {
+  return alert("Please upload prepared video");
+}
+```
+
+---
+
+---
+
+# 🔒 9. FLOW RULES (VERY IMPORTANT)
+
+---
+
+## Seller:
+
+* Must upload **Prepared Video BEFORE pickup**
+* “Ready to Pickup” button only enabled AFTER upload
+
+---
+
+---
+
+## Transporter:
+
+### Pickup:
+
+* Upload pickup video → status = PICKED_UP
+
+### Delivery:
+
+* Upload delivery video → status = DELIVERED
+
+---
+
+---
+
+# 🧪 10. TEST CASES
+
+---
+
+✔ Upload video → preview works
+✔ Save → persists in order
+✔ Reload app → video still visible
+✔ Seller video blocks pickup if missing
+✔ Transporter video updates status
+
+---
+
+---
+
+# ⚠️ IMPORTANT LIMITATIONS (CURRENT SYSTEM)
+
+---
+
+* Using base64 → large videos may slow app
+* Temporary solution for now
+
+---
+
+---
+
+# 🚀 OPTIONAL IMPROVEMENT (IF NEEDED)
+
+---
+
+If performance issue:
+
+👉 Save video as file path instead of base64
+👉 Or compress before saving
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After fix:
+
+✔ Video upload works for seller & transporter
+✔ No “URL required” errors
+✔ Videos stored and visible everywhere
+✔ Flow logic enforced properly
+
+---
+
+## FINAL RULE:
+
+Video must be:
+
+→ Uploaded
+→ Previewed
+→ Stored
+→ Verified
+
+---
+
+No broken uploads
+No missing videos
+No fake completion
+
+---
+
+This must behave like a real logistics verification system.

@@ -615,18 +615,18 @@ export function TransporterDashboard() {
   );
 }
 
-async function uploadVideoFile(f: File): Promise<string> {
-  const token = localStorage.getItem("pawzone_token");
-  const fd = new FormData();
-  fd.append("file", f);
-  const up = await fetch("/api/upload", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token ?? ""}` },
-    body: fd,
+const MAX_VIDEO_MB = 20;
+
+function readVideoAsBase64(f: File): Promise<string> {
+  if (f.size > MAX_VIDEO_MB * 1024 * 1024) {
+    return Promise.reject(new Error(`Video must be under ${MAX_VIDEO_MB}MB`));
+  }
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target?.result as string);
+    reader.onerror = () => reject(new Error("Failed to read video file"));
+    reader.readAsDataURL(f);
   });
-  const upJson = await up.json();
-  if (!up.ok) throw new Error(upJson?.error || "Upload failed");
-  return upJson.url as string;
 }
 
 async function postJson(path: string, body: any) {
@@ -653,7 +653,7 @@ function PickupVideoBlock({ orderId, existingUrl, onDone }: { orderId: number; e
     if (!f.type.startsWith("video/")) { toast({ variant: "destructive", title: "Please select a video file" }); return; }
     setBusy(true);
     try {
-      const videoUrl = await uploadVideoFile(f);
+      const videoUrl = await readVideoAsBase64(f);
       await postJson(`/api/transporter/orders/${orderId}/pickup`, { pickupVideoUrl: videoUrl, petCode: "SCAN" });
       setUrl(videoUrl);
       toast({ title: "Pickup confirmed", description: "Order moved to picked up." });
@@ -685,6 +685,7 @@ function StartInTransitBlock({ orderId, onDone }: { orderId: number; onDone: () 
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -692,7 +693,8 @@ function StartInTransitBlock({ orderId, onDone }: { orderId: number; onDone: () 
     if (!f.type.startsWith("video/")) { toast({ variant: "destructive", title: "Please select a video file" }); return; }
     setBusy(true);
     try {
-      const videoUrl = await uploadVideoFile(f);
+      const videoUrl = await readVideoAsBase64(f);
+      setPreviewUrl(videoUrl);
       await postJson(`/api/transporter/orders/${orderId}/in-transit`, { inTransitVideoUrl: videoUrl });
       toast({ title: "In transit!", description: "Order is now in transit." });
       onDone();
@@ -710,9 +712,10 @@ function StartInTransitBlock({ orderId, onDone }: { orderId: number; onDone: () 
         <Truck className="w-4 h-4" /> Mark In Transit
       </p>
       <p className="text-xs text-purple-700 mb-2">Upload a short video showing the pet is safely in transit.</p>
+      {previewUrl && <video src={previewUrl} controls className="w-full max-w-xs h-24 rounded-lg object-cover bg-black mb-2" />}
       <input ref={fileRef} type="file" accept="video/*" className="hidden" data-testid={`input-in-transit-video-${orderId}`} onChange={onPick} />
       <Button size="sm" variant="outline" className="rounded-xl border-purple-200 text-purple-700 hover:bg-purple-50" disabled={busy} onClick={() => fileRef.current?.click()}>
-        {busy ? "Uploading…" : "Upload & Start Transit"}
+        {busy ? "Processing…" : "Upload & Start Transit"}
       </Button>
     </div>
   );
@@ -730,7 +733,7 @@ function DeliveryVideoBlock({ orderId, existingUrl, onDone }: { orderId: number;
     if (!f.type.startsWith("video/")) { toast({ variant: "destructive", title: "Please select a video file" }); return; }
     setBusy(true);
     try {
-      const videoUrl = await uploadVideoFile(f);
+      const videoUrl = await readVideoAsBase64(f);
       await postJson(`/api/transporter/orders/${orderId}/delivery`, { deliveryVideoUrl: videoUrl });
       setUrl(videoUrl);
       toast({ title: "Delivery confirmed!", description: "Order marked as delivered." });

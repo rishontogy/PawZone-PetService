@@ -351,31 +351,29 @@ function PreparedVideoBlock({
       toast({ variant: "destructive", title: "Please select a video file" });
       return;
     }
+    if (f.size > 20 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "Video too large", description: "Please upload a video under 20MB." });
+      return;
+    }
     setBusy(true);
     try {
-      const token = localStorage.getItem("pawzone_token");
-      const fd = new FormData();
-      fd.append("file", f);
-      const up = await fetch("/api/upload", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token ?? ""}` },
-        body: fd,
+      const videoUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve(ev.target?.result as string);
+        reader.onerror = () => reject(new Error("Failed to read video"));
+        reader.readAsDataURL(f);
       });
-      const upJson = await up.json();
-      if (!up.ok) throw new Error(upJson?.error || "Upload failed");
 
+      const token = localStorage.getItem("pawzone_token");
       const save = await fetch(`/api/orders/${orderId}/prepared-video`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token ?? ""}`,
-        },
-        body: JSON.stringify({ videoUrl: upJson.url }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+        body: JSON.stringify({ videoUrl }),
       });
       const saveJson = await save.json();
       if (!save.ok) throw new Error(saveJson?.error || "Failed to save prepared video");
 
-      setLocalUrl(upJson.url);
+      setLocalUrl(videoUrl);
       toast({ title: "Prepared video uploaded", description: "You can now mark this order ready." });
       onUploaded();
     } catch (err: any) {
