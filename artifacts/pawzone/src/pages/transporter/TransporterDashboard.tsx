@@ -565,15 +565,10 @@ export function TransporterDashboard() {
                       </div>
                     )}
 
-                    {/* Video action blocks */}
+                    {/* Video action blocks — simplified 2-step flow */}
                     {order.transporterId === user?.id && order.status === "ready" && (
                       <div className="mt-3">
                         <PickupVideoBlock orderId={order.id} existingUrl={order.pickupVideoUrl} onDone={refetch} />
-                      </div>
-                    )}
-                    {order.transporterId === user?.id && order.status === "picked_up" && (
-                      <div className="mt-3">
-                        <StartInTransitBlock orderId={order.id} onDone={refetch} />
                       </div>
                     )}
                     {order.transporterId === user?.id && order.status === "in_transit" && (
@@ -734,7 +729,7 @@ function DeliveryVideoBlock({ orderId, existingUrl, onDone }: { orderId: number;
     setBusy(true);
     try {
       const videoUrl = await readVideoAsBase64(f);
-      await postJson(`/api/transporter/orders/${orderId}/delivery`, { deliveryVideoUrl: videoUrl });
+      await postJson(`/api/transporter/orders/${orderId}/deliver`, { deliveryVideoUrl: videoUrl });
       setUrl(videoUrl);
       toast({ title: "Delivery confirmed!", description: "Order marked as delivered." });
       onDone();

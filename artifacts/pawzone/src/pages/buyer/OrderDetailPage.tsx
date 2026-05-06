@@ -7,9 +7,9 @@ import { formatPrice, getStatusColor, statusLabel } from "@/lib/api";
 import {
   ChevronLeft, Shield, AlertCircle, Package, CheckCircle,
   Truck, Clock, MapPin, Phone, User, ShoppingBag, CreditCard,
-  PackageCheck, PackageOpen, Video, Upload
+  PackageCheck, PackageOpen, Video
 } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState } from "react";
 
 type Stage = {
   key: string;
@@ -352,9 +352,9 @@ export function OrderDetailPage() {
           </div>
         )}
 
-        {/* Received Video Upload (buyer confirmation step) */}
+        {/* Buyer Confirm Delivery (replaces received video upload) */}
         {isDelivered && !isReceived && (
-          <ReceivedVideoCard orderId={parseInt(id!)} onDone={() => refetch()} />
+          <ConfirmDeliveryCard orderId={parseInt(id!)} onDone={() => refetch()} />
         )}
 
         {/* Show videos uploaded throughout the journey */}
@@ -529,59 +529,21 @@ function VideoTile({ label, url }: { label: string; url: string }) {
   );
 }
 
-function ReceivedVideoCard({ orderId, onDone }: { orderId: number; onDone: () => void }) {
+function ConfirmDeliveryCard({ orderId, onDone }: { orderId: number; onDone: () => void }) {
   const { toast } = useToast();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
 
-  const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    if (!f.type.startsWith("video/")) {
-      toast({ variant: "destructive", title: "Please select a video file" });
-      return;
-    }
-    setBusy(true);
-    setPreview(URL.createObjectURL(f));
-    try {
-      const token = localStorage.getItem("pawzone_token");
-      const fd = new FormData();
-      fd.append("file", f);
-      const up = await fetch("/api/upload", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token ?? ""}` },
-        body: fd,
-      });
-      const upJson = await up.json();
-      if (!up.ok) throw new Error(upJson?.error || "Upload failed");
-      setUploadedUrl(upJson.url);
-      toast({ title: "Video uploaded", description: "Click Confirm Receipt to complete the order." });
-    } catch (err: any) {
-      toast({ variant: "destructive", title: "Upload failed", description: err?.message ?? "" });
-      setPreview(null);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const submit = async () => {
-    if (!uploadedUrl) return;
+  const confirm = async () => {
     setBusy(true);
     try {
       const token = localStorage.getItem("pawzone_token");
-      const res = await fetch(`/api/orders/${orderId}/received-video`, {
+      const res = await fetch(`/api/orders/${orderId}/confirm-delivery`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token ?? ""}`,
-        },
-        body: JSON.stringify({ videoUrl: uploadedUrl }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Failed to confirm receipt");
-      toast({ title: "🎉 Order completed!", description: "Thank you for confirming receipt." });
+      if (!res.ok) throw new Error(data?.error || "Failed to confirm delivery");
+      toast({ title: "Order completed!", description: "Thank you for confirming receipt of your pet." });
       onDone();
     } catch (err: any) {
       toast({ variant: "destructive", title: "Failed", description: err?.message ?? "" });
@@ -594,48 +556,23 @@ function ReceivedVideoCard({ orderId, onDone }: { orderId: number; onDone: () =>
     <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center flex-shrink-0">
-          <Video className="w-5 h-5" />
+          <PackageOpen className="w-5 h-5" />
         </div>
         <div className="flex-1">
-          <p className="font-bold text-emerald-900">Confirm you received your pet</p>
+          <p className="font-bold text-emerald-900">Your pet has arrived!</p>
           <p className="text-sm text-emerald-800 mt-0.5">
-            Upload a short video of your new pet to complete the order. This helps us verify safe delivery.
+            Confirm that you have received your pet to complete the order.
           </p>
-
-          {preview && (
-            <video src={preview} controls className="w-full max-w-xs h-40 object-cover rounded-xl bg-black mt-3" />
-          )}
-
-          <div className="flex gap-2 mt-3 flex-wrap">
-            <input
-              ref={fileRef}
-              type="file"
-              accept="video/*"
-              className="hidden"
-              data-testid="input-received-video"
-              onChange={onPick}
-            />
-            <Button
-              size="sm"
-              variant="outline"
-              className="rounded-xl"
-              onClick={() => fileRef.current?.click()}
-              disabled={busy}
-              data-testid="button-pick-received-video"
-            >
-              <Upload className="w-4 h-4 mr-1.5" />
-              {uploadedUrl ? "Replace Video" : busy ? "Uploading…" : "Choose Video"}
-            </Button>
-            <Button
-              size="sm"
-              className="rounded-xl bg-emerald-600 hover:bg-emerald-700"
-              onClick={submit}
-              disabled={!uploadedUrl || busy}
-              data-testid="button-confirm-received"
-            >
-              {busy ? "Submitting…" : "Confirm Receipt"}
-            </Button>
-          </div>
+          <Button
+            size="sm"
+            className="mt-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
+            onClick={confirm}
+            disabled={busy}
+            data-testid="button-confirm-delivery"
+          >
+            <CheckCircle className="w-4 h-4 mr-1.5" />
+            {busy ? "Confirming…" : "Confirm Delivery"}
+          </Button>
         </div>
       </div>
     </div>

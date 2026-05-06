@@ -193,6 +193,10 @@ export function CartPage() {
                   <span className="text-gray-500">Platform fees</span>
                   <span className="font-medium">{formatPrice(fees)}</span>
                 </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Transport charge</span>
+                  <span className="text-amber-600 font-medium text-xs italic">Added after transporter accepts</span>
+                </div>
                 <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-base">
                   <span>Total Amount</span>
                   <span className="text-teal-600 text-lg">{formatPrice(total)}</span>

@@ -599,14 +599,16 @@ router.post("/orders/:id/pickup-video", authMiddleware, async (req, res): Promis
     return;
   }
   const now = new Date();
+  // Simplified flow: pickup video auto-advances to in_transit
   const [updated] = await db.update(ordersTable)
-    .set({ pickupVideoUrl: url, pickedUpAt: now, status: "picked_up" })
+    .set({ pickupVideoUrl: url, pickedUpAt: now, inTransitAt: now, status: "in_transit" })
     .where(eq(ordersTable.id, id))
     .returning();
   await db.insert(orderTimelineTable).values({ orderId: id, status: "picked_up", note: "Transporter picked up — video uploaded", timestamp: now });
+  await db.insert(orderTimelineTable).values({ orderId: id, status: "in_transit", note: "Auto: package now in transit", timestamp: now });
   await db.insert(notificationsTable).values({
-    userId: order.buyerId, type: "order_update", title: "Pet Picked Up",
-    message: `Your order ${order.orderNumber} has been picked up by the transporter`, orderId: id,
+    userId: order.buyerId, type: "order_update", title: "Pet Picked Up & In Transit",
+    message: `Your order ${order.orderNumber} has been picked up and is on the way!`, orderId: id,
   });
   await db.insert(notificationsTable).values({
     userId: order.sellerId, type: "order_update", title: "Order Picked Up",
@@ -626,10 +628,6 @@ router.post("/orders/:id/in-transit", authMiddleware, async (req, res): Promise<
   }
   if (order.transporterId !== user.id && user.role !== "admin") {
     res.status(403).json({ error: "Only the assigned transporter can mark in transit" });
-    return;
-  }
-  if (order.status !== "picked_up") {
-    res.status(400).json({ error: "Order must be picked up first" });
     return;
   }
   const now = new Date();
@@ -679,6 +677,42 @@ router.post("/orders/:id/delivery-video", authMiddleware, async (req, res): Prom
     userId: order.sellerId, type: "order_update", title: "Order Delivered",
     message: `Order ${order.orderNumber} has been delivered`, orderId: id,
   });
+  res.json(updated);
+});
+
+router.post("/orders/:id/confirm-delivery", authMiddleware, async (req, res): Promise<void> => {
+  const user = (req as any).user;
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order) {
+    res.status(404).json({ error: "Order not found" });
+    return;
+  }
+  if (order.buyerId !== user.id && user.role !== "admin") {
+    res.status(403).json({ error: "Only the buyer can confirm delivery" });
+    return;
+  }
+  if (order.status !== "delivered") {
+    res.status(400).json({ error: "Order must be delivered before confirming" });
+    return;
+  }
+  const now = new Date();
+  const [updated] = await db.update(ordersTable)
+    .set({ status: "completed", receivedAt: now })
+    .where(eq(ordersTable.id, id))
+    .returning();
+  await db.insert(orderTimelineTable).values({ orderId: id, status: "completed", note: "Buyer confirmed delivery", timestamp: now });
+  await db.insert(notificationsTable).values({
+    userId: order.sellerId, type: "order_update", title: "Order Completed",
+    message: `Order ${order.orderNumber} has been confirmed by the buyer`, orderId: id,
+  });
+  if (order.transporterId) {
+    await db.insert(notificationsTable).values({
+      userId: order.transporterId, type: "order_update", title: "Delivery Confirmed",
+      message: `Buyer confirmed receipt for order ${order.orderNumber}`, orderId: id,
+    });
+  }
   res.json(updated);
 });
 

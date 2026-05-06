@@ -9,7 +9,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PawPrint, AlertCircle, CheckCircle, User, Mail, Phone, Lock, MapPin } from "lucide-react";
 
-const KERALA_CITIES = ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kollam", "Palakkad", "Alappuzha", "Malappuram", "Kottayam", "Kannur", "Kasaragod", "Wayanad", "Idukki", "Pathanamthitta"];
+const KERALA_DISTRICTS: Record<string, string[]> = {
+  "Thiruvananthapuram": ["Thiruvananthapuram", "Neyyattinkara", "Attingal", "Varkala", "Nedumangad", "Kazhakoottam", "Balaramapuram"],
+  "Kollam": ["Kollam", "Punalur", "Karunagappally", "Kottarakkara", "Paravur", "Chavara", "Kundara"],
+  "Pathanamthitta": ["Pathanamthitta", "Adoor", "Thiruvalla", "Ranni", "Pandalam", "Konni", "Kozhencherry"],
+  "Alappuzha": ["Alappuzha", "Chengannur", "Mavelikkara", "Kayamkulam", "Haripad", "Cherthala", "Kuttanad"],
+  "Kottayam": ["Kottayam", "Pala", "Changanassery", "Ettumanoor", "Vaikom", "Kanjirappally", "Erattupetta"],
+  "Idukki": ["Idukki", "Thodupuzha", "Munnar", "Kattappana", "Adimali", "Devikulam", "Kumily"],
+  "Ernakulam": ["Kochi", "Aluva", "Perumbavoor", "Angamaly", "North Paravur", "Kothamangalam", "Muvattupuzha", "Thrippunithura"],
+  "Thrissur": ["Thrissur", "Chalakudy", "Kunnamkulam", "Guruvayur", "Irinjalakuda", "Kodungallur", "Mala"],
+  "Palakkad": ["Palakkad", "Ottappalam", "Mannarkkad", "Chittur", "Pattambi", "Shornur", "Alathur"],
+  "Malappuram": ["Malappuram", "Manjeri", "Tirur", "Perinthalmanna", "Ponnani", "Kondotty", "Kalpetta"],
+  "Kozhikode": ["Kozhikode", "Vadakara", "Koyilandy", "Feroke", "Ramanattukara", "Mukkam", "Koduvally"],
+  "Wayanad": ["Kalpetta", "Sulthan Bathery", "Mananthavady", "Vythiri", "Ambalavayal", "Pulpally"],
+  "Kannur": ["Kannur", "Thalassery", "Iritty", "Payyanur", "Mattannur", "Sreekandapuram", "Panoor"],
+  "Kasaragod": ["Kasaragod", "Kanhangad", "Hosdurg", "Nileshwar", "Bekal", "Cheruvathur", "Uppala"],
+};
+
+const KERALA_CITIES = Object.keys(KERALA_DISTRICTS);
 
 const INDIA_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
@@ -36,10 +53,12 @@ export function SignupPage() {
     country: "India",
     pincode: "",
   });
+  const [district, setDistrict] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
   const isKerala = form.state === "Kerala";
+  const keralaTowns = district ? (KERALA_DISTRICTS[district] ?? []) : [];
 
   const signupMutation = useSignup({
     mutation: {
@@ -206,23 +225,45 @@ export function SignupPage() {
                       <Input className="mt-1 rounded-xl border-gray-200" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} placeholder="State/Province" />
                     )}
                   </div>
-                  <div>
-                    <Label className="text-xs text-gray-500">City *</Label>
-                    {isKerala ? (
-                      <Select value={form.city} onValueChange={(v) => setForm({ ...form, city: v })}>
-                        <SelectTrigger className="mt-1 rounded-xl border-gray-200">
-                          <SelectValue placeholder="Select city" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {KERALA_CITIES.map((c) => (
-                            <SelectItem key={c} value={c}>{c}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
+                  {isKerala ? (
+                    <>
+                      <div>
+                        <Label className="text-xs text-gray-500">District *</Label>
+                        <Select value={district} onValueChange={(v) => { setDistrict(v); setForm({ ...form, city: "" }); }}>
+                          <SelectTrigger className="mt-1 rounded-xl border-gray-200">
+                            <SelectValue placeholder="Select district" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {KERALA_CITIES.map((d) => (
+                              <SelectItem key={d} value={d}>{d}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">Town / City *</Label>
+                        <Select
+                          value={form.city}
+                          onValueChange={(v) => setForm({ ...form, city: v })}
+                          disabled={!district}
+                        >
+                          <SelectTrigger className="mt-1 rounded-xl border-gray-200">
+                            <SelectValue placeholder={district ? "Select town" : "Select district first"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {keralaTowns.map((t) => (
+                              <SelectItem key={t} value={t}>{t}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      <Label className="text-xs text-gray-500">City *</Label>
                       <Input className="mt-1 rounded-xl border-gray-200" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required placeholder="Your city" />
-                    )}
-                  </div>
+                    </div>
+                  )}
                   <div>
                     <Label className="text-xs text-gray-500">Pincode</Label>
                     <Input className="mt-1 rounded-xl border-gray-200" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} placeholder="PIN / ZIP code" />

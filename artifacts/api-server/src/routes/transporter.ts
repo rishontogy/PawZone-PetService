@@ -88,15 +88,11 @@ router.post("/transporter/routes", authMiddleware, async (req, res): Promise<voi
     ? rawStops.filter((s: any) => typeof s === "string" && s.trim() !== "")
     : [];
 
-  // Enforce: max 7 routes per transporter, and only 1 route per day
+  // Enforce: max 7 routes per transporter (multiple per day allowed)
   const existing = await db.select().from(transporterRoutesTable)
     .where(eq(transporterRoutesTable.transporterId, user.id));
   if (existing.length >= MAX_ROUTES_PER_TRANSPORTER) {
-    res.status(400).json({ error: `You can have at most ${MAX_ROUTES_PER_TRANSPORTER} routes (one per weekday).` });
-    return;
-  }
-  if (existing.some(r => r.dayOfWeek?.toLowerCase() === parsed.data.dayOfWeek.toLowerCase())) {
-    res.status(400).json({ error: "Route already exists for this day" });
+    res.status(400).json({ error: `You can have at most ${MAX_ROUTES_PER_TRANSPORTER} routes.` });
     return;
   }
 
@@ -144,14 +140,6 @@ router.patch("/transporter/routes/:id", authMiddleware, async (req, res): Promis
   const stops: string[] = Array.isArray(rawStops)
     ? rawStops.filter((s: any) => typeof s === "string" && s.trim() !== "")
     : [];
-
-  // Enforce: only 1 route per day (excluding this route)
-  const others = await db.select().from(transporterRoutesTable)
-    .where(eq(transporterRoutesTable.transporterId, user.id));
-  if (others.some(r => r.id !== id && r.dayOfWeek?.toLowerCase() === parsed.data.dayOfWeek.toLowerCase())) {
-    res.status(400).json({ error: "Route already exists for this day" });
-    return;
-  }
 
   const [updated] = await db.update(transporterRoutesTable).set({
     ...parsed.data,
@@ -399,8 +387,9 @@ router.post("/transporter/orders/:id/pickup", authMiddleware, async (req, res): 
   }
 
   const now = new Date();
+  // Simplified flow: pickup video auto-advances status to in_transit
   const [updated] = await db.update(ordersTable)
-    .set({ status: "picked_up", pickupVideoUrl, pickedUpAt: now })
+    .set({ status: "in_transit", pickupVideoUrl, pickedUpAt: now, inTransitAt: now })
     .where(eq(ordersTable.id, id))
     .returning();
 
@@ -410,12 +399,18 @@ router.post("/transporter/orders/:id/pickup", authMiddleware, async (req, res): 
     note: "Package picked up by transporter",
     timestamp: now,
   });
+  await db.insert(orderTimelineTable).values({
+    orderId: id,
+    status: "in_transit",
+    note: "Auto: package now in transit",
+    timestamp: now,
+  });
 
   await db.insert(notificationsTable).values({
     userId: order.buyerId,
     type: "order_update",
-    title: "Package Picked Up",
-    message: `Your order ${order.orderNumber} has been picked up`,
+    title: "Package Picked Up & In Transit",
+    message: `Your order ${order.orderNumber} has been picked up and is on the way!`,
     orderId: id,
   });
   await db.insert(notificationsTable).values({
