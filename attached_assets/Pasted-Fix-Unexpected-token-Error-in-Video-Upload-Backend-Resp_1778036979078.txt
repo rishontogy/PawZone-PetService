@@ -1,0 +1,220 @@
+Fix “Unexpected token '<'” Error in Video Upload (Backend Response Issue)
+
+---
+
+# 🔍 1. ROOT CAUSE
+
+---
+
+Frontend expects:
+
+```json
+{ "success": true }
+```
+
+But receives:
+
+```html
+<!DOCTYPE html> ...
+```
+
+---
+
+# ✅ 2. FIX FETCH REQUEST (CRITICAL)
+
+---
+
+## Replace your upload API call with SAFE VERSION:
+
+```js
+async function uploadVideo(file) {
+  const formData = new FormData();
+  formData.append("video", file);
+
+  try {
+    const response = await fetch("/api/upload-video", {
+      method: "POST",
+      body: formData
+    });
+
+    const text = await response.text(); // 👈 IMPORTANT
+
+    let data;
+
+    try {
+      data = JSON.parse(text);
+    } catch (err) {
+      console.error("Server returned HTML instead of JSON:", text);
+      alert("Upload failed: Server error");
+      return;
+    }
+
+    if (!response.ok) {
+      alert(data.message || "Upload failed");
+      return;
+    }
+
+    console.log("Upload success:", data);
+    return data;
+
+  } catch (error) {
+    console.error("Upload error:", error);
+    alert("Network error during upload");
+  }
+}
+```
+
+---
+
+# 🛠 3. FIX BACKEND (VERY IMPORTANT)
+
+---
+
+## Your backend MUST return JSON:
+
+### ❌ WRONG (causes your error):
+
+```js
+res.send("<html>Error</html>");
+```
+
+---
+
+### ✅ CORRECT:
+
+```js
+res.json({
+  success: true,
+  videoUrl: savedPath
+});
+```
+
+---
+
+---
+
+# 🔗 4. VERIFY API ROUTE
+
+---
+
+Make sure:
+
+```plaintext
+/api/upload-video
+```
+
+exists in backend
+
+NOT:
+
+```plaintext
+/upload-video
+/video
+/
+```
+
+---
+
+---
+
+# 📁 5. EXPRESS BACKEND EXAMPLE (WORKING)
+
+---
+
+```js
+app.post("/api/upload-video", (req, res) => {
+  try {
+    // handle file here
+
+    res.json({
+      success: true,
+      message: "Video uploaded"
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Upload failed"
+    });
+  }
+});
+```
+
+---
+
+---
+
+# ⚠️ 6. DEBUG STEP (VERY IMPORTANT)
+
+---
+
+Add this:
+
+```js
+const text = await response.text();
+console.log("SERVER RESPONSE:", text);
+```
+
+👉 If you see HTML → backend is wrong
+👉 If JSON → frontend parsing was wrong
+
+---
+
+---
+
+# 🚫 7. REMOVE WRONG LOGIC
+
+---
+
+❌ Remove direct:
+
+```js
+response.json()
+```
+
+Without checking response
+
+---
+
+---
+
+# 🧪 8. TEST CASES
+
+---
+
+✔ Upload video → success response
+✔ Server returns JSON
+✔ No "<!DOCTYPE html>" in console
+✔ No crash
+
+---
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After fix:
+
+✔ No JSON parse error
+✔ Upload works
+✔ Proper backend communication
+✔ Clean error handling
+
+---
+
+## FINAL RULE:
+
+Frontend must NEVER assume response is JSON
+Backend must ALWAYS send JSON
+
+---
+
+No HTML errors
+No broken API
+No silent failures
+
+---
+
+This must behave like a real API system.
