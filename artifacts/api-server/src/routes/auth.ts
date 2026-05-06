@@ -24,9 +24,10 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { loginId, password } = parsed.data;
+  const loginId = parsed.data.loginId.trim();
+  const password = parsed.data.password.trim();
 
-  if (loginId === ADMIN_LOGIN_ID && password === ADMIN_PASSWORD) {
+  if (loginId.toUpperCase() === ADMIN_LOGIN_ID.toUpperCase() && password === ADMIN_PASSWORD) {
     const [admin] = await db.select().from(usersTable).where(eq(usersTable.role, "admin"));
     if (!admin) {
       res.status(500).json({ error: "Admin account not found" });
@@ -37,7 +38,8 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     return;
   }
 
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, loginId));
+  const normalizedEmail = loginId.toLowerCase();
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, normalizedEmail));
   if (!user) {
     res.status(401).json({ error: "Invalid credentials" });
     return;
@@ -65,7 +67,9 @@ router.post("/auth/signup", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const { role, name, email, phone, password, address, city, state, pincode, country } = parsed.data;
+  const { role, name, phone, address, city, state, pincode, country } = parsed.data;
+  const email = parsed.data.email.trim().toLowerCase();
+  const password = parsed.data.password.trim();
 
   const [existing] = await db.select().from(usersTable).where(eq(usersTable.email, email));
   if (existing) {
