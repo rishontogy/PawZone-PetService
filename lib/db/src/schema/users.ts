@@ -1,4 +1,5 @@
 import { pgTable, text, serial, timestamp, numeric, real } from "drizzle-orm/pg-core";
+// Note: numeric imported but unused — kept for backward compatibility
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -21,6 +22,7 @@ export const usersTable = pgTable("users", {
   sellerScore: real("seller_score").default(5),
   platformSharePercent: real("platform_share_percent"),
   profilePhoto: text("profile_photo"),
+  deliveryPoints: text("delivery_points").array(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

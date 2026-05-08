@@ -71,6 +71,11 @@ router.post("/auth/signup", async (req, res): Promise<void> => {
   const email = parsed.data.email.trim().toLowerCase();
   const password = parsed.data.password.trim();
 
+  const rawDeliveryPoints = req.body?.deliveryPoints;
+  const deliveryPoints: string[] | null = Array.isArray(rawDeliveryPoints)
+    ? rawDeliveryPoints.filter((p: any) => typeof p === "string" && p.trim())
+    : null;
+
   const [existing] = await db.select().from(usersTable).where(eq(usersTable.email, email));
   if (existing) {
     res.status(400).json({ error: "Email already registered" });
@@ -96,6 +101,7 @@ router.post("/auth/signup", async (req, res): Promise<void> => {
     status,
     sellerId,
     sellerScore: 5,
+    deliveryPoints: deliveryPoints?.length ? deliveryPoints : null,
   }).returning();
 
   const token = await createSession(user.id);

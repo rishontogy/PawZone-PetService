@@ -1,0 +1,511 @@
+Update PawZone Buyer, Seller, and Transporter Route Matching System.
+
+This is a MAJOR logistics and delivery-point architecture update.
+
+The system must work exactly like the examples provided below.
+
+---
+
+# 🛒 1. BUYER PAGE – DELIVERY POINT SYSTEM
+
+---
+
+## ❌ Remove:
+
+```plaintext
+Delivery Address
+```
+
+---
+
+## ✅ Replace with:
+
+```plaintext
+Delivery Points
+```
+
+---
+
+# 📍 2. DELIVERY POINT SELECTION SYSTEM
+
+---
+
+## Use Excel-based District → Town mapping.
+
+Example:
+
+```js
+const districtTowns = {
+  "Kottayam": [
+    "Ettumanoor",
+    "Pala",
+    "Erattupetta"
+  ],
+  "Ernakulam": [
+    "Tripunithara",
+    "Kadavanthara",
+    "Kakkanad"
+  ]
+};
+```
+
+---
+
+# 👤 3. BUYER ACCOUNT SETUP
+
+---
+
+## During signup:
+
+Buyer selects:
+
+### A. District
+
+```html
+<select id="district"></select>
+```
+
+---
+
+### B. Towns (MULTI SELECT)
+
+Only towns inside selected district must appear.
+
+Example:
+
+If district = Kottayam
+
+Show ONLY:
+
+* Ettumanoor
+* Pala
+* Erattupetta
+
+NOT towns from other districts.
+
+---
+
+# ✅ MULTIPLE DELIVERY POINTS ALLOWED
+
+---
+
+Buyer can select:
+
+```plaintext
+✔ Ettumanoor
+✔ Pala
+✔ Changanassery
+```
+
+Store as:
+
+```js
+buyer.delivery_points = [
+  "Ettumanoor",
+  "Pala",
+  "Changanassery"
+];
+```
+
+---
+
+# 🎁 4. "ANOTHER DELIVERY POINT" OPTION
+
+---
+
+## Add button:
+
+```plaintext
++ Add Another Delivery Point
+```
+
+---
+
+## On click:
+
+Allow:
+
+* Another district
+* Another town
+* Another address
+
+---
+
+## Example:
+
+Primary:
+
+* Kottayam → Ettumanoor
+
+Additional:
+
+* Ernakulam → Kakkanad
+
+---
+
+# 📦 5. CART PAGE UPDATE
+
+---
+
+## In cart:
+
+Replace:
+
+```plaintext
+Delivery Address
+```
+
+with:
+
+```plaintext
+Select Delivery Point
+```
+
+---
+
+## Show ALL saved delivery points.
+
+Example:
+
+```plaintext
+○ Ettumanoor
+○ Pala
+○ Kakkanad
+```
+
+---
+
+## Selected point becomes:
+
+```js
+order.delivery_point
+```
+
+---
+
+# 🏪 6. SELLER PAGE – PICKUP POINT SYSTEM
+
+---
+
+## Seller signup already includes district + towns.
+
+---
+
+## Use seller delivery points as:
+
+```plaintext
+Pickup Points
+```
+
+---
+
+## Example:
+
+Seller selected:
+
+* Tripunithara
+* Kadavanthara
+* Kakkanad
+
+Then:
+
+```js
+seller.pickup_points = [
+  "Tripunithara",
+  "Kadavanthara",
+  "Kakkanad"
+];
+```
+
+---
+
+# 🚚 7. REMOVE DELIVERY POINT SECTION FROM TRANSPORTER
+
+---
+
+## ❌ Remove:
+
+* Delivery point field
+* District dropdown
+
+---
+
+## ✅ Transporter ONLY needs:
+
+```plaintext
+Route Stops
+```
+
+---
+
+Example:
+
+```plaintext
+Kozhikode
+Ernakulam
+Panampally
+Kadavanthara
+Thalayolaparampu
+Ettumanoor
+Kottayam
+```
+
+---
+
+# 🧠 8. NEW TRANSPORT MATCHING LOGIC (VERY IMPORTANT)
+
+---
+
+## ❌ OLD LOGIC:
+
+Match by city only
+
+---
+
+## ✅ NEW LOGIC:
+
+Transporter can accept IF:
+
+```plaintext
+ANY seller pickup point
+matches ANY transporter route stop
+
+AND
+
+ANY buyer delivery point
+matches ANY transporter route stop
+```
+
+---
+
+# 🔍 9. EXACT MATCHING EXAMPLE
+
+---
+
+## Buyer delivery points:
+
+```plaintext
+Ettumanoor
+Pala
+```
+
+---
+
+## Seller pickup points:
+
+```plaintext
+Tripunithara
+Kadavanthara
+Kakkanad
+```
+
+---
+
+## Transporter 1 route:
+
+```plaintext
+Kozhikode
+Ernakulam
+Panampally
+Kadavanthara
+Thalayolaparampu
+Ettumanoor
+Kottayam
+```
+
+---
+
+## RESULT:
+
+Transporter 1 CAN accept because:
+
+Seller match:
+✔ Kadavanthara
+
+Buyer match:
+✔ Ettumanoor
+
+---
+
+## Pickup point auto-selected:
+
+```plaintext
+Kadavanthara
+```
+
+---
+
+## Delivery point auto-selected:
+
+```plaintext
+Ettumanoor
+```
+
+---
+
+# 🚚 10. SECOND EXAMPLE
+
+---
+
+## Transporter 3 route:
+
+```plaintext
+Wayanad
+Ernakulam
+Panampally
+Tripunithara
+Thalayolaparampu
+Pala
+Idukki
+Kattapana
+```
+
+---
+
+## RESULT:
+
+Seller match:
+✔ Tripunithara
+
+Buyer match:
+✔ Pala
+
+---
+
+## Transporter CAN accept.
+
+Pickup:
+
+```plaintext
+Tripunithara
+```
+
+Delivery:
+
+```plaintext
+Pala
+```
+
+---
+
+# ⚙️ 11. AUTO POINT DETECTION FUNCTION
+
+---
+
+```js
+function findMatchingPoints(
+  sellerPoints,
+  buyerPoints,
+  transporterStops
+) {
+  const pickup = sellerPoints.find(p =>
+    transporterStops.includes(p)
+  );
+
+  const delivery = buyerPoints.find(p =>
+    transporterStops.includes(p)
+  );
+
+  if (pickup && delivery) {
+    return {
+      valid: true,
+      pickup,
+      delivery
+    };
+  }
+
+  return { valid: false };
+}
+```
+
+---
+
+# 📲 12. TRANSPORTER ACCEPT FLOW
+
+---
+
+When transporter accepts:
+
+Store:
+
+```js
+order.pickup_point = matchedPickup;
+order.delivery_point = matchedDelivery;
+```
+
+---
+
+## Show in ALL pages:
+
+### Seller:
+
+* Pickup point
+* Transporter info
+
+### Buyer:
+
+* Delivery point
+* Transporter info
+
+### Admin:
+
+* Both points
+* Route used
+
+---
+
+# 🔔 13. TRANSPORTER AVAILABILITY LOGIC
+
+---
+
+## If NO transporter available in next 2 days:
+
+Show:
+
+```plaintext
+No transporter available for selected route in next 2 days.
+Next available: Monday
+```
+
+---
+
+## Add button:
+
+```plaintext
+Notify Me When Available
+```
+
+---
+
+# 🎯 FINAL REQUIREMENT
+
+---
+
+After implementation:
+
+✔ Buyer can select multiple delivery points
+✔ Seller pickup points work correctly
+✔ Towns filtered by district
+✔ Transporters matched using route intersection logic
+✔ Pickup & delivery points auto-selected correctly
+✔ Multiple delivery points supported
+✔ Gifting / alternate address supported
+
+---
+
+## FINAL RULE:
+
+Transport assignment must be based on:
+
+→ REAL shared route points
+NOT district-only matching
+
+---
+
+No wrong transporter visibility
+No invalid assignments
+No city-only filtering
+
+---
+
+This must behave like a real logistics route-matching engine.

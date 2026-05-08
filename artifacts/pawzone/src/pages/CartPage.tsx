@@ -14,9 +14,13 @@ export function CartPage() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [deliveryAddress, setDeliveryAddress] = useState(user?.address || "");
+  const savedPoints: string[] = (user as any)?.deliveryPoints ?? [];
+  const [selectedDeliveryPoint, setSelectedDeliveryPoint] = useState(savedPoints[0] ?? "");
+  const [customAddress, setCustomAddress] = useState(user?.address || "");
   const [notes, setNotes] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const deliveryAddress = selectedDeliveryPoint || customAddress;
 
   const { data: cart, refetch } = useGetCart({ query: { enabled: !!user } } as any);
 
@@ -220,14 +224,54 @@ export function CartPage() {
             {/* Delivery & Checkout */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
               <h2 className="font-bold text-gray-900">Delivery Details</h2>
+
+              {/* Delivery Point selector */}
               <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-1.5">Delivery Address *</label>
-                <textarea
-                  className="w-full text-sm border border-gray-200 rounded-xl p-3 resize-none h-24 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
-                  placeholder="Enter your full delivery address..."
-                  value={deliveryAddress}
-                  onChange={(e) => setDeliveryAddress(e.target.value)}
-                />
+                <label className="text-sm font-semibold text-gray-700 block mb-2">
+                  Select Delivery Point *
+                </label>
+                {savedPoints.length > 0 ? (
+                  <div className="space-y-2">
+                    {savedPoints.map((point) => (
+                      <label
+                        key={point}
+                        className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                          selectedDeliveryPoint === point
+                            ? "border-teal-500 bg-teal-50"
+                            : "border-gray-200 hover:border-gray-300 bg-white"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="deliveryPoint"
+                          value={point}
+                          checked={selectedDeliveryPoint === point}
+                          onChange={() => setSelectedDeliveryPoint(point)}
+                          className="accent-teal-600"
+                        />
+                        <MapPin className="w-4 h-4 text-teal-600 flex-shrink-0" />
+                        <span className={`text-sm font-medium ${selectedDeliveryPoint === point ? "text-teal-800" : "text-gray-700"}`}>
+                          {point}
+                        </span>
+                      </label>
+                    ))}
+                    <p className="text-xs text-gray-400 mt-1">
+                      Transporter will be matched based on your selected delivery point.
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2">
+                      No delivery points saved. Add them in your profile settings, or enter an address below.
+                    </p>
+                    <textarea
+                      className="w-full text-sm border border-gray-200 rounded-xl p-3 resize-none h-20 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                      placeholder="Enter your delivery address..."
+                      value={customAddress}
+                      onChange={(e) => setCustomAddress(e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-sm font-semibold text-gray-700 block mb-1.5">Special Instructions</label>

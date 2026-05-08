@@ -42,20 +42,25 @@ PawZone is a full-featured pet marketplace web application serving Kerala, India
 - Admin: `PAWZONE_A2005` / `PawZone2005`
 
 ## Recent Updates (PRD v2 Final System Perfection)
-- **Gender Inventory System**: Listings now track `maleQuantity` + `femaleQuantity` separately. CreateListingPage and EditListingPage have ♂ Male / ♀ Female quantity inputs. ListingDetailPage shows gender selection buttons with available counts. Cart stores gender preference. Order creation deducts gender-specific stock.
-- **Safe Listing Delete**: DELETE /listings/:id checks for active orders. If active orders exist → soft delete (status=inactive, hidden from buyers). Otherwise → hard delete (clears cart items first to avoid FK constraint). Seller listings page shows no inactive listings.
-- **Vaccination UI Fix**: CreateListingPage and EditListingPage use consistent flex layout for the vaccination toggle with label + optional detail text.
-- **Missing Order Video Endpoints**: Added POST /orders/:id/pickup-video (transporter), POST /orders/:id/in-transit (transporter), POST /orders/:id/delivery-video (transporter). Existing: prepared-video (seller), received-video (buyer).
-- **Buyer Order Detail 8-Stage Timeline**: OrderDetailPage shows all 8 stages with timestamps: Order Requested → Seller Confirmed → Payment Completed → Transport Assigned → Picked Up → In Transit → Delivered → Received Confirmation.
-- **Seller Prepared Video**: SellerOrdersPage has PreparedVideoBlock — upload video before marking order "ready for pickup".
-- **Transporter Dashboard Complete**: Accept delivery dialog with transport fee input + earnings preview. PickupVideoBlock (status=ready), StartInTransitBlock (status=picked_up), DeliveryVideoBlock (status=in_transit).
-- **Admin Platform Share % Management**: Admin users page shows Platform Share % numeric input for each transporter. PATCH /admin/users/:id endpoint to update. Inline save with success toast.
-- **Notifications Page**: Full notifications list with mark-as-read, mark-all-read, clickable notifications routing to relevant order pages.
-- **Settings Page**: Name, email, phone, password, address update. Report an Issue to Admin form. Transporter earnings info block. Logout.
-- **Open Signup**: All users can sign up. Buyers get instant access, sellers/transporters need admin approval.
-- **Persistent Media Storage**: Uploads to Replit Object Storage (GCS). Upload accepts image/* and video/* up to 50MB.
-- **Cart 3-hour Auto-Expiry**: Background sweeper sends notifications at 2.5h, clears cart at 3h.
-- **Multi-stop Routes**: Transporter routes support intermediate stops.
+- **Gender Inventory System**: Listings now track `maleQuantity` + `femaleQuantity` separately.
+- **Safe Listing Delete**: Soft delete if active orders, hard delete otherwise.
+- **Buyer Order Detail 8-Stage Timeline**: Order Requested → Seller Confirmed → Payment Completed → Transport Assigned → Picked Up → In Transit → Delivered → Received Confirmation.
+- **Transport Flow Simplified**: Pickup video auto-advances to in_transit. Buyer confirms delivery with one button (no video needed).
+- **Delivery Point Architecture (v3)**: Full district→town matching system:
+  - Buyers select multiple delivery towns during signup (multi-select checkboxes per district)
+  - Sellers' towns serve as pickup points (stored as deliveryPoints array)
+  - Transporter route stops are exact town names (not keyword matching)
+  - New exact-intersection matching: order visible to transporter only if seller's pickup point AND buyer's delivery point are both in transporter's route stops
+  - Auto-detected pickupPoint and deliveryPoint stored on order when transporter accepts
+  - Cart page shows saved delivery points as radio buttons instead of text area
+  - Settings page allows buyers/sellers to add/remove delivery points (district + town picker)
+  - OrderDetailPage shows pickup → delivery route when both are set
+- **Notifications Page**: Full notifications list with mark-as-read and clickable routing.
+- **Settings Page**: Name, email, phone, password, address, delivery points update. Report an Issue. Logout.
+- **Open Signup**: Buyers instant, sellers/transporters need admin approval.
+- **Persistent Media Storage**: Replit Object Storage, up to 50MB images/videos.
+- **Cart 3-hour Auto-Expiry**: Background sweeper sends notifications at 2.5h, clears at 3h.
+- **Multi-stop Routes**: Transporter routes support intermediate stops. No limit on routes per day.
 
 ## Business Logic
 

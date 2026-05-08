@@ -5,8 +5,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, ChevronLeft, User, Mail, Phone, Lock, MapPin, LogOut, Truck, AlertCircle } from "lucide-react";
+import { Settings as SettingsIcon, User, Mail, Phone, Lock, MapPin, LogOut, Truck, AlertCircle, Plus, X } from "lucide-react";
+
+const KERALA_DISTRICTS: Record<string, string[]> = {
+  "Thiruvananthapuram": ["Thiruvananthapuram", "Neyyattinkara", "Attingal", "Varkala", "Nedumangad", "Kazhakoottam", "Balaramapuram"],
+  "Kollam": ["Kollam", "Punalur", "Karunagappally", "Kottarakkara", "Paravur", "Chavara", "Kundara"],
+  "Pathanamthitta": ["Pathanamthitta", "Adoor", "Thiruvalla", "Ranni", "Pandalam", "Konni", "Kozhencherry"],
+  "Alappuzha": ["Alappuzha", "Chengannur", "Mavelikkara", "Kayamkulam", "Haripad", "Cherthala", "Kuttanad"],
+  "Kottayam": ["Kottayam", "Pala", "Changanassery", "Ettumanoor", "Vaikom", "Kanjirappally", "Erattupetta"],
+  "Idukki": ["Idukki", "Thodupuzha", "Munnar", "Kattappana", "Adimali", "Devikulam", "Kumily"],
+  "Ernakulam": ["Kochi", "Aluva", "Perumbavoor", "Angamaly", "North Paravur", "Kothamangalam", "Muvattupuzha", "Thrippunithura"],
+  "Thrissur": ["Thrissur", "Chalakudy", "Kunnamkulam", "Guruvayur", "Irinjalakuda", "Kodungallur", "Mala"],
+  "Palakkad": ["Palakkad", "Ottappalam", "Mannarkkad", "Chittur", "Pattambi", "Shornur", "Alathur"],
+  "Malappuram": ["Malappuram", "Manjeri", "Tirur", "Perinthalmanna", "Ponnani", "Kondotty", "Kalpetta"],
+  "Kozhikode": ["Kozhikode", "Vadakara", "Koyilandy", "Feroke", "Ramanattukara", "Mukkam", "Koduvally"],
+  "Wayanad": ["Kalpetta", "Sulthan Bathery", "Mananthavady", "Vythiri", "Ambalavayal", "Pulpally"],
+  "Kannur": ["Kannur", "Thalassery", "Iritty", "Payyanur", "Mattannur", "Sreekandapuram", "Panoor"],
+  "Kasaragod": ["Kasaragod", "Kanhangad", "Hosdurg", "Nileshwar", "Bekal", "Cheruvathur", "Uppala"],
+};
 
 export function SettingsPage() {
   const { user, logout, refresh } = useAuth() as any;
@@ -25,6 +43,9 @@ export function SettingsPage() {
   const [reportOpen, setReportOpen] = useState(false);
   const [reportText, setReportText] = useState("");
   const [submittingReport, setSubmittingReport] = useState(false);
+  const [dpList, setDpList] = useState<string[]>((user as any)?.deliveryPoints ?? []);
+  const [dpDistrict, setDpDistrict] = useState("");
+  const [dpTown, setDpTown] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -34,7 +55,15 @@ export function SettingsPage() {
     setAddress((user as any)?.address ?? "");
     setCity((user as any)?.city ?? "");
     setPincode((user as any)?.pincode ?? "");
+    setDpList((user as any)?.deliveryPoints ?? []);
   }, [user]);
+
+  const addDpTown = () => {
+    if (!dpTown || dpList.includes(dpTown)) return;
+    setDpList(prev => [...prev, dpTown]);
+    setDpTown("");
+  };
+  const removeDpTown = (t: string) => setDpList(prev => prev.filter(p => p !== t));
 
   const callUpdate = async (payload: any, label: string) => {
     setSaving(label);
@@ -274,6 +303,77 @@ export function SettingsPage() {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Delivery Points — buyers and sellers only */}
+          {role !== "transporter" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-teal-600" />
+                  {role === "buyer" ? "Delivery Points" : "Pickup / Delivery Points"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-xs text-gray-500">
+                  {role === "buyer"
+                    ? "The towns where you can receive pet deliveries. Transporters are matched based on these."
+                    : "The towns where you can hand over pets to transporters for pickup."}
+                </p>
+
+                {/* Current points */}
+                {dpList.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {dpList.map(pt => (
+                      <span key={pt} className="inline-flex items-center gap-1 text-xs bg-teal-50 border border-teal-200 text-teal-700 rounded-full px-2.5 py-1 font-medium">
+                        📍 {pt}
+                        <button type="button" onClick={() => removeDpTown(pt)} className="hover:text-red-500 transition-colors">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 italic">No delivery points saved yet.</p>
+                )}
+
+                {/* Add new point */}
+                <div className="flex gap-2">
+                  <Select value={dpDistrict} onValueChange={(v) => { setDpDistrict(v); setDpTown(""); }}>
+                    <SelectTrigger className="flex-1 rounded-xl border-gray-200 text-sm h-9">
+                      <SelectValue placeholder="District" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.keys(KERALA_DISTRICTS).map(d => (
+                        <SelectItem key={d} value={d}>{d}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={dpTown} onValueChange={setDpTown} disabled={!dpDistrict}>
+                    <SelectTrigger className="flex-1 rounded-xl border-gray-200 text-sm h-9">
+                      <SelectValue placeholder={dpDistrict ? "Town" : "Select district first"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(KERALA_DISTRICTS[dpDistrict] ?? []).map(t => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button type="button" size="sm" variant="outline" className="rounded-xl flex-shrink-0" onClick={addDpTown} disabled={!dpTown}>
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <Button
+                  size="sm"
+                  data-testid="button-save-delivery-points"
+                  disabled={saving === "Delivery Points"}
+                  onClick={() => callUpdate({ deliveryPoints: dpList }, "Delivery Points")}
+                >
+                  {saving === "Delivery Points" ? "Saving…" : "Save Delivery Points"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {role === "transporter" && (
             <Card className="border-blue-200 bg-blue-50/40">

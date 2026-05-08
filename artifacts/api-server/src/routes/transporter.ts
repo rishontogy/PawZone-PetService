@@ -182,29 +182,25 @@ router.delete("/transporter/routes/:id", authMiddleware, async (req, res): Promi
 router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void> => {
   const user = (req as any).user;
 
-  // Load this transporter's routes. Keywords come from startCity, endCity, AND stops
-  // (in route-input order) — the matching algorithm walks them as priority list.
   const myRoutes = await db.select().from(transporterRoutesTable)
     .where(eq(transporterRoutesTable.transporterId, user.id));
 
-  const routeKeywords: string[] = [];
+  // Build the full set of unique stop names (exact strings) across all routes
+  const transporterAllStops: string[] = [];
   const routeDays = new Set<string>();
-  const seen = new Set<string>();
   for (const r of myRoutes) {
-    const tokens = [r.startCity, ...(r.stops ?? []), r.endCity].filter((s): s is string => !!s);
-    for (const t of tokens) {
-      const key = t.trim().toLowerCase();
-      if (key && !seen.has(key)) { seen.add(key); routeKeywords.push(t.trim()); }
+    const stops = [r.startCity, ...(r.stops ?? []), r.endCity].filter((s): s is string => !!s);
+    for (const s of stops) {
+      if (s.trim() && !transporterAllStops.includes(s.trim())) {
+        transporterAllStops.push(s.trim());
+      }
     }
     if (r.dayOfWeek) routeDays.add(r.dayOfWeek);
   }
 
-  // Days within next 2 days (today, tomorrow, day-after)
   const upcomingDays = new Set(nextNDays(3));
   const hasUpcomingRoute = Array.from(routeDays).some(d => upcomingDays.has(d));
 
-  // Query: orders assigned to me OR available (seller-confirmed + unassigned + not yet picked up).
-  // NEW FLOW: transporters bid BEFORE payment, so paymentStatus is no longer required to be 'paid'.
   const candidates = await db.select().from(ordersTable)
     .where(
       or(
@@ -218,12 +214,22 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
     );
 
   const result = await Promise.all(candidates.map(async (order) => {
-    const [buyer] = await db.select({ name: usersTable.name, city: usersTable.city, address: usersTable.address, phone: usersTable.phone })
-      .from(usersTable).where(eq(usersTable.id, order.buyerId));
-    const [seller] = await db.select({ name: usersTable.name, city: usersTable.city, address: usersTable.address, phone: usersTable.phone })
-      .from(usersTable).where(eq(usersTable.id, order.sellerId));
+    const [buyer] = await db.select({
+      name: usersTable.name,
+      city: usersTable.city,
+      address: usersTable.address,
+      phone: usersTable.phone,
+      deliveryPoints: usersTable.deliveryPoints,
+    }).from(usersTable).where(eq(usersTable.id, order.buyerId));
 
-    // Build full address text for both ends (for keyword matching)
+    const [seller] = await db.select({
+      name: usersTable.name,
+      city: usersTable.city,
+      address: usersTable.address,
+      phone: usersTable.phone,
+      deliveryPoints: usersTable.deliveryPoints,
+    }).from(usersTable).where(eq(usersTable.id, order.sellerId));
+
     const items = await db.select({
       listingId: listingsTable.id,
       city: listingsTable.city,
@@ -237,10 +243,21 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
       .from(orderItemsTable)
       .innerJoin(listingsTable, eq(orderItemsTable.listingId, listingsTable.id))
       .where(eq(orderItemsTable.orderId, order.id));
-    const pickupAddress = [items[0]?.address, items[0]?.city, seller?.address, seller?.city]
-      .filter(Boolean).join(" ");
-    const deliveryAddress = [order.deliveryAddress, buyer?.address, buyer?.city]
-      .filter(Boolean).join(" ");
+
+    // Seller pickup points: their saved deliveryPoints, or fallback to city
+    const sellerPickupPoints: string[] = seller?.deliveryPoints?.length
+      ? seller.deliveryPoints
+      : seller?.city ? [seller.city] : [];
+
+    // Buyer delivery points: their saved deliveryPoints, or fallback to city
+    const buyerDeliveryPoints: string[] = buyer?.deliveryPoints?.length
+      ? buyer.deliveryPoints
+      : buyer?.city ? [buyer.city] : [];
+
+    // Exact intersection: find first matching stop for each side
+    const matchedPickup = sellerPickupPoints.find(p => transporterAllStops.includes(p)) ?? null;
+    const matchedDelivery = buyerDeliveryPoints.find(p => transporterAllStops.includes(p)) ?? null;
+    const _isMatch = !!matchedPickup && !!matchedDelivery;
 
     return {
       ...order,
@@ -248,8 +265,10 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
       buyerPhone: buyer?.phone ?? null,
       sellerName: seller?.name ?? "",
       sellerPhone: seller?.phone ?? null,
-      pickupCity: items[0]?.city ?? seller?.city ?? null,
-      deliveryCity: extractCity(order.deliveryAddress, routeKeywords) ?? buyer?.city ?? null,
+      pickupCity: matchedPickup ?? items[0]?.city ?? seller?.city ?? null,
+      deliveryCity: matchedDelivery ?? buyer?.city ?? null,
+      matchedPickupPoint: matchedPickup,
+      matchedDeliveryPoint: matchedDelivery,
       items: items.map(it => ({
         listingId: it.listingId,
         name: it.breed,
@@ -258,23 +277,18 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
         price: it.price,
         quantity: it.quantity,
       })),
-      _pickupAddress: pickupAddress,
-      _deliveryAddress: deliveryAddress,
+      _isMatch,
     };
   }));
 
-  // Filter: assigned orders always show. For unassigned, BOTH pickup and delivery
-  // addresses must contain at least one of the transporter's route keywords.
+  // Filter: assigned orders always show. For unassigned, BOTH endpoints must match route stops exactly.
   const filtered = result.filter((o) => {
     if (o.transporterId === user.id) return true;
-    if (routeKeywords.length === 0) return false;
     if (!hasUpcomingRoute) return false;
-    return addressMatchesRouteKeywords(o._pickupAddress, routeKeywords)
-        && addressMatchesRouteKeywords(o._deliveryAddress, routeKeywords);
+    return o._isMatch;
   });
 
-  // Strip internal helper fields before returning
-  res.json(filtered.map(({ _pickupAddress, _deliveryAddress, ...rest }) => rest));
+  res.json(filtered.map(({ _isMatch, ...rest }) => rest));
 });
 
 router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): Promise<void> => {
@@ -328,6 +342,29 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
   // Recompute total to include transport fee, so the buyer's payment includes it.
   const newTotal = Number(order.subtotal) + Number(order.platformFee) + transportFee;
 
+  // Auto-detect pickup and delivery points using exact route intersection
+  const acceptRoutes = await db.select().from(transporterRoutesTable)
+    .where(eq(transporterRoutesTable.transporterId, user.id));
+  const acceptStops: string[] = [];
+  for (const r of acceptRoutes) {
+    const stops = [r.startCity, ...(r.stops ?? []), r.endCity].filter((s): s is string => !!s);
+    for (const s of stops) {
+      if (s.trim() && !acceptStops.includes(s.trim())) acceptStops.push(s.trim());
+    }
+  }
+  const [acceptBuyer] = await db.select({ city: usersTable.city, deliveryPoints: usersTable.deliveryPoints })
+    .from(usersTable).where(eq(usersTable.id, order.buyerId));
+  const [acceptSeller] = await db.select({ city: usersTable.city, deliveryPoints: usersTable.deliveryPoints })
+    .from(usersTable).where(eq(usersTable.id, order.sellerId));
+  const sellerPts: string[] = acceptSeller?.deliveryPoints?.length
+    ? acceptSeller.deliveryPoints
+    : acceptSeller?.city ? [acceptSeller.city] : [];
+  const buyerPts: string[] = acceptBuyer?.deliveryPoints?.length
+    ? acceptBuyer.deliveryPoints
+    : acceptBuyer?.city ? [acceptBuyer.city] : [];
+  const autoPickupPoint = sellerPts.find(p => acceptStops.includes(p)) ?? null;
+  const autoDeliveryPoint = buyerPts.find(p => acceptStops.includes(p)) ?? null;
+
   const [updated] = await db.update(ordersTable).set({
     transporterId: user.id,
     pickupTime: parsed.data.pickupTime,
@@ -335,6 +372,8 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
     transportFee,
     transporterShareAmount,
     total: newTotal,
+    pickupPoint: autoPickupPoint ?? undefined,
+    deliveryPoint: autoDeliveryPoint ?? undefined,
   }).where(eq(ordersTable.id, id)).returning();
 
   await db.insert(orderTimelineTable).values({

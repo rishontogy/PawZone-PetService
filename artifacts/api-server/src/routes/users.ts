@@ -46,6 +46,12 @@ router.put("/users/profile", authMiddleware, async (req, res): Promise<void> => 
     updates.platformSharePercent = pct;
   }
 
+  // Delivery points — buyers and sellers can update their saved delivery/pickup towns
+  if (Array.isArray(req.body?.deliveryPoints)) {
+    const pts = (req.body.deliveryPoints as any[]).filter((p) => typeof p === "string" && p.trim());
+    updates.deliveryPoints = pts.length > 0 ? pts : null;
+  }
+
   if (Object.keys(updates).length === 0) {
     res.status(400).json({ error: "No valid fields to update" });
     return;

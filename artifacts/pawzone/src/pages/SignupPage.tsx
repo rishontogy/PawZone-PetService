@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PawPrint, AlertCircle, CheckCircle, User, Mail, Phone, Lock, MapPin } from "lucide-react";
+import { PawPrint, AlertCircle, CheckCircle, User, Mail, Phone, Lock, MapPin, Plus, X } from "lucide-react";
 
 const KERALA_DISTRICTS: Record<string, string[]> = {
   "Thiruvananthapuram": ["Thiruvananthapuram", "Neyyattinkara", "Attingal", "Varkala", "Nedumangad", "Kazhakoottam", "Balaramapuram"],
@@ -38,6 +38,8 @@ const INDIA_STATES = [
 
 const COUNTRIES = ["India", "United Arab Emirates", "United Kingdom", "United States", "Canada", "Australia", "Singapore", "Other"];
 
+type DPEntry = { district: string; towns: string[] };
+
 export function SignupPage() {
   const [, setLocation] = useLocation();
   const { login } = useAuth();
@@ -54,11 +56,35 @@ export function SignupPage() {
     pincode: "",
   });
   const [district, setDistrict] = useState("");
+  const [dpEntries, setDpEntries] = useState<DPEntry[]>([{ district: "", towns: [] }]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
   const isKerala = form.state === "Kerala";
   const keralaTowns = district ? (KERALA_DISTRICTS[district] ?? []) : [];
+
+  const allDeliveryPoints = dpEntries.flatMap(e => e.towns);
+
+  const toggleTown = (entryIdx: number, town: string) => {
+    setDpEntries(prev => prev.map((e, i) => {
+      if (i !== entryIdx) return e;
+      const already = e.towns.includes(town);
+      return { ...e, towns: already ? e.towns.filter(t => t !== town) : [...e.towns, town] };
+    }));
+  };
+
+  const setEntryDistrict = (entryIdx: number, d: string) => {
+    setDpEntries(prev => prev.map((e, i) =>
+      i === entryIdx ? { district: d, towns: [] } : e
+    ));
+  };
+
+  const addEntry = () => setDpEntries(prev => [...prev, { district: "", towns: [] }]);
+  const removeEntry = (idx: number) => setDpEntries(prev => prev.filter((_, i) => i !== idx));
+
+  const removeTown = (town: string) => {
+    setDpEntries(prev => prev.map(e => ({ ...e, towns: e.towns.filter(t => t !== town) })));
+  };
 
   const signupMutation = useSignup({
     mutation: {
@@ -78,7 +104,16 @@ export function SignupPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    signupMutation.mutate({ data: form });
+    const firstTown = dpEntries[0]?.towns[0] ?? "";
+    const city = form.city || firstTown;
+    const payload: any = {
+      ...form,
+      city,
+    };
+    if (isKerala && form.role !== "transporter" && allDeliveryPoints.length > 0) {
+      payload.deliveryPoints = allDeliveryPoints;
+    }
+    signupMutation.mutate({ data: payload });
   };
 
   if (success) {
@@ -225,10 +260,12 @@ export function SignupPage() {
                       <Input className="mt-1 rounded-xl border-gray-200" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} placeholder="State/Province" />
                     )}
                   </div>
-                  {isKerala ? (
+
+                  {/* For Kerala buyers/sellers: district for primary city only */}
+                  {isKerala && form.role !== "transporter" ? (
                     <>
                       <div>
-                        <Label className="text-xs text-gray-500">District *</Label>
+                        <Label className="text-xs text-gray-500">District (primary)</Label>
                         <Select value={district} onValueChange={(v) => { setDistrict(v); setForm({ ...form, city: "" }); }}>
                           <SelectTrigger className="mt-1 rounded-xl border-gray-200">
                             <SelectValue placeholder="Select district" />
@@ -241,7 +278,40 @@ export function SignupPage() {
                         </Select>
                       </div>
                       <div>
-                        <Label className="text-xs text-gray-500">Town / City *</Label>
+                        <Label className="text-xs text-gray-500">Primary Town</Label>
+                        <Select
+                          value={form.city}
+                          onValueChange={(v) => setForm({ ...form, city: v })}
+                          disabled={!district}
+                        >
+                          <SelectTrigger className="mt-1 rounded-xl border-gray-200">
+                            <SelectValue placeholder={district ? "Select town" : "Select district first"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {keralaTowns.map((t) => (
+                              <SelectItem key={t} value={t}>{t}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  ) : isKerala && form.role === "transporter" ? (
+                    <>
+                      <div>
+                        <Label className="text-xs text-gray-500">District</Label>
+                        <Select value={district} onValueChange={(v) => { setDistrict(v); setForm({ ...form, city: "" }); }}>
+                          <SelectTrigger className="mt-1 rounded-xl border-gray-200">
+                            <SelectValue placeholder="Select district" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {KERALA_CITIES.map((d) => (
+                              <SelectItem key={d} value={d}>{d}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-500">Town / City</Label>
                         <Select
                           value={form.city}
                           onValueChange={(v) => setForm({ ...form, city: v })}
@@ -264,6 +334,7 @@ export function SignupPage() {
                       <Input className="mt-1 rounded-xl border-gray-200" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required placeholder="Your city" />
                     </div>
                   )}
+
                   <div>
                     <Label className="text-xs text-gray-500">Pincode</Label>
                     <Input className="mt-1 rounded-xl border-gray-200" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} placeholder="PIN / ZIP code" />
@@ -279,6 +350,90 @@ export function SignupPage() {
                   </p>
                 )}
               </div>
+
+              {/* Delivery Points — for Kerala buyers and sellers only */}
+              {isKerala && form.role !== "transporter" && (
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-700 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-teal-600" />
+                      {form.role === "buyer" ? "Delivery Points" : "Pickup / Delivery Points"}
+                    </Label>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {form.role === "buyer"
+                        ? "Select the towns where you can receive deliveries. Transporters will match based on these."
+                        : "Select towns where you can hand over pets to transporters."}
+                    </p>
+                  </div>
+
+                  {/* Selected delivery point tags */}
+                  {allDeliveryPoints.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {allDeliveryPoints.map(town => (
+                        <span key={town} className="inline-flex items-center gap-1 text-xs bg-teal-50 border border-teal-200 text-teal-700 rounded-full px-2.5 py-1 font-medium">
+                          📍 {town}
+                          <button type="button" onClick={() => removeTown(town)} className="hover:text-red-500 transition-colors">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Per-district entry rows */}
+                  {dpEntries.map((entry, idx) => {
+                    const entryTowns = entry.district ? (KERALA_DISTRICTS[entry.district] ?? []) : [];
+                    return (
+                      <div key={idx} className="border border-gray-100 rounded-xl p-3 bg-gray-50 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Select value={entry.district} onValueChange={(v) => setEntryDistrict(idx, v)}>
+                            <SelectTrigger className="flex-1 rounded-lg border-gray-200 bg-white text-sm h-9">
+                              <SelectValue placeholder="Select district" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {KERALA_CITIES.map((d) => (
+                                <SelectItem key={d} value={d}>{d}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {idx > 0 && (
+                            <button type="button" onClick={() => removeEntry(idx)} className="w-8 h-8 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center transition-colors flex-shrink-0">
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                        {entry.district && (
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {entryTowns.map(town => {
+                              const checked = entry.towns.includes(town);
+                              return (
+                                <label key={town} className={`flex items-center gap-2 text-xs rounded-lg px-2.5 py-1.5 cursor-pointer transition-colors ${checked ? "bg-teal-50 border border-teal-200 text-teal-700 font-medium" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+                                  <input
+                                    type="checkbox"
+                                    className="w-3 h-3 accent-teal-600"
+                                    checked={checked}
+                                    onChange={() => toggleTown(idx, town)}
+                                  />
+                                  {town}
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  <button
+                    type="button"
+                    onClick={addEntry}
+                    className="flex items-center gap-1.5 text-sm text-teal-600 font-medium hover:text-teal-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Another Delivery Point (different district)
+                  </button>
+                </div>
+              )}
 
               <Button type="submit" className="w-full h-12 rounded-xl text-base font-bold" disabled={signupMutation.isPending}>
                 {signupMutation.isPending ? "Creating account..." : "Create Account"}
