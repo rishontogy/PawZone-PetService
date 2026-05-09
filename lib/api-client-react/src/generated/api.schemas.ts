@@ -142,6 +142,10 @@ export interface Listing {
   vaccinationDetails?: string | null;
   photos: string[];
   videoUrl?: string | null;
+  fatherPhoto?: string | null;
+  motherPhoto?: string | null;
+  maleQuantity?: number;
+  femaleQuantity?: number;
   description: string;
   status: ListingStatus;
   petCode?: string | null;
@@ -182,10 +186,14 @@ export interface CreateListingBody {
   breed: string;
   price: number;
   quantity: number;
+  maleQuantity?: number;
+  femaleQuantity?: number;
   vaccinated: boolean;
   vaccinationDetails?: string;
   photos?: string[];
   videoUrl?: string;
+  fatherPhoto?: string;
+  motherPhoto?: string;
   description: string;
   address: string;
   city: string;

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, X, ImagePlus, CheckCircle, Upload } from "lucide-react";
+import { ChevronLeft, X, ImagePlus, CheckCircle, Upload, Loader2 } from "lucide-react";
 import { getApiBase } from "@/lib/api";
 
 const CATEGORIES = ["dogs", "cats", "birds", "fish", "rabbits", "others"];
@@ -20,6 +20,8 @@ export function EditListingPage() {
   const { user, token } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fatherInputRef = useRef<HTMLInputElement>(null);
+  const motherInputRef = useRef<HTMLInputElement>(null);
 
   const { data: listing, isLoading } = useGetListing(parseInt(id!));
 
@@ -37,8 +39,12 @@ export function EditListingPage() {
   });
   const [photos, setPhotos] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string>("");
+  const [fatherPhoto, setFatherPhoto] = useState<string>("");
+  const [motherPhoto, setMotherPhoto] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [videoUploading, setVideoUploading] = useState(false);
+  const [fatherUploading, setFatherUploading] = useState(false);
+  const [motherUploading, setMotherUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -59,6 +65,8 @@ export function EditListingPage() {
       });
       setPhotos(l.photos || []);
       setVideoUrl(l.videoUrl || "");
+      setFatherPhoto(l.fatherPhoto || "");
+      setMotherPhoto(l.motherPhoto || "");
     }
   }, [listing]);
 
@@ -122,6 +130,56 @@ export function EditListingPage() {
     });
   };
 
+  const uploadParentPhoto = async (file: File): Promise<string | null> => {
+    if (!file.type.startsWith("image/")) {
+      toast({ variant: "destructive", title: "Invalid file", description: "Only image files allowed" });
+      return null;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "File too large", description: "Max 10MB per image" });
+      return null;
+    }
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch(`${getApiBase()}/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: fd,
+    });
+    if (!res.ok) {
+      toast({ variant: "destructive", title: "Upload failed", description: "Could not upload parent photo. Try again." });
+      return null;
+    }
+    const data = await res.json();
+    return data.url;
+  };
+
+  const handleFatherPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFatherUploading(true);
+    try {
+      const url = await uploadParentPhoto(file);
+      if (url) setFatherPhoto(url);
+    } finally {
+      setFatherUploading(false);
+      if (fatherInputRef.current) fatherInputRef.current.value = "";
+    }
+  };
+
+  const handleMotherPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setMotherUploading(true);
+    try {
+      const url = await uploadParentPhoto(file);
+      if (url) setMotherPhoto(url);
+    } finally {
+      setMotherUploading(false);
+      if (motherInputRef.current) motherInputRef.current.value = "";
+    }
+  };
+
   const handleFiles = useCallback(async (files: FileList | File[]) => {
     const arr = Array.from(files).slice(0, 5 - photos.length);
     if (!arr.length) return;
@@ -168,6 +226,8 @@ export function EditListingPage() {
           description: form.description || undefined,
           photos: photos.length > 0 ? photos : undefined,
           videoUrl: videoUrl || undefined,
+          fatherPhoto: fatherPhoto || undefined,
+          motherPhoto: motherPhoto || undefined,
           address: form.address,
           city: form.city,
         }),
@@ -242,7 +302,6 @@ export function EditListingPage() {
                 </div>
               </div>
 
-              {/* Price */}
               <div className="space-y-1.5">
                 <Label className="font-semibold text-gray-700">Price per pet (₹) *</Label>
                 <Input
@@ -255,7 +314,6 @@ export function EditListingPage() {
                 />
               </div>
 
-              {/* Gender Inventory */}
               <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
                 <Label className="font-semibold text-gray-700 block">Gender-based Inventory *</Label>
                 <p className="text-xs text-gray-500">Update male and female counts. At least one must be &gt; 0.</p>
@@ -298,7 +356,6 @@ export function EditListingPage() {
                 />
               </div>
 
-              {/* Vaccination */}
               <div className="space-y-3 p-4 bg-green-50 border border-green-200 rounded-xl">
                 <label
                   htmlFor="vaccinatedToggleEdit"
@@ -334,6 +391,7 @@ export function EditListingPage() {
                 )}
               </div>
 
+              {/* Pet Photos */}
               <div className="space-y-3">
                 <Label className="font-semibold text-gray-700">Photos (up to 5)</Label>
                 {photos.length > 0 && (
@@ -393,6 +451,86 @@ export function EditListingPage() {
                 )}
               </div>
 
+              {/* Parent Photos */}
+              <div className="space-y-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <div>
+                  <Label className="font-semibold text-gray-700 block">Parent Photos</Label>
+                  <p className="text-xs text-gray-500 mt-0.5">Upload father and/or mother photos. Buyers trust listings with visible parentage.</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Father Photo */}
+                  <div>
+                    <Label className="text-sm font-medium text-blue-700 block mb-1">♂ Father Photo</Label>
+                    {fatherPhoto ? (
+                      <div className="relative rounded-xl overflow-hidden aspect-square bg-gray-100 group">
+                        <img src={fatherPhoto} alt="Father" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        <button
+                          type="button"
+                          onClick={() => setFatherPhoto("")}
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="absolute bottom-1 left-1 bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded font-medium">Father</span>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => fatherInputRef.current?.click()}
+                        className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${fatherUploading ? "opacity-60 pointer-events-none border-blue-200" : "border-blue-200 hover:border-blue-400 hover:bg-blue-50"}`}
+                      >
+                        <input ref={fatherInputRef} type="file" accept="image/*" className="hidden" onChange={handleFatherPhotoChange} />
+                        {fatherUploading ? (
+                          <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+                        ) : (
+                          <>
+                            <Upload className="w-6 h-6 text-blue-300 mb-1" />
+                            <span className="text-xs text-gray-400">Upload</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {/* Mother Photo */}
+                  <div>
+                    <Label className="text-sm font-medium text-pink-600 block mb-1">♀ Mother Photo</Label>
+                    {motherPhoto ? (
+                      <div className="relative rounded-xl overflow-hidden aspect-square bg-gray-100 group">
+                        <img src={motherPhoto} alt="Mother" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        <button
+                          type="button"
+                          onClick={() => setMotherPhoto("")}
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="absolute bottom-1 left-1 bg-pink-500 text-white text-xs px-1.5 py-0.5 rounded font-medium">Mother</span>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => motherInputRef.current?.click()}
+                        className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${motherUploading ? "opacity-60 pointer-events-none border-pink-200" : "border-pink-200 hover:border-pink-400 hover:bg-pink-50"}`}
+                      >
+                        <input ref={motherInputRef} type="file" accept="image/*" className="hidden" onChange={handleMotherPhotoChange} />
+                        {motherUploading ? (
+                          <Loader2 className="w-6 h-6 text-pink-500 animate-spin" />
+                        ) : (
+                          <>
+                            <Upload className="w-6 h-6 text-pink-300 mb-1" />
+                            <span className="text-xs text-gray-400">Upload</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {(fatherPhoto || motherPhoto) && (
+                  <p className="text-xs text-green-700 flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5" /> {fatherPhoto && motherPhoto ? "Both parent photos uploaded" : fatherPhoto ? "Father photo uploaded" : "Mother photo uploaded"}
+                  </p>
+                )}
+              </div>
+
+              {/* Pet Video */}
               <div className="space-y-2">
                 <Label className="font-semibold text-gray-700">Pet Video (optional)</Label>
                 <p className="text-xs text-gray-500">Upload or replace the pet video — .mp4 or .mov, max 50MB.</p>

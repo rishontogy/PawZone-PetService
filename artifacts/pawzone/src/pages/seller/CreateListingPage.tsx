@@ -135,8 +135,15 @@ export function CreateListingPage() {
     }
     const fd = new FormData();
     fd.append("file", file);
-    const res = await fetch(`${getApiBase()}/upload`, { method: "POST", body: fd });
-    if (!res.ok) return null;
+    const res = await fetch(`${getApiBase()}/upload`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: fd,
+    });
+    if (!res.ok) {
+      toast({ variant: "destructive", title: "Upload failed", description: "Could not upload parent photo. Try again." });
+      return null;
+    }
     const data = await res.json();
     return data.url;
   };

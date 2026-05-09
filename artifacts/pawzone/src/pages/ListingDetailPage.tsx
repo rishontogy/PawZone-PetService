@@ -183,34 +183,38 @@ export function ListingDetailPage() {
             )}
 
             {/* Parent Photos */}
-            {((listing as any).fatherPhoto || (listing as any).motherPhoto) && (
-              <div>
-                <h3 className="font-semibold mb-2">Parent Photos</h3>
+            {(listing.fatherPhoto || listing.motherPhoto) && (
+              <div className="space-y-2">
+                <h3 className="font-semibold">Parent Photos</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  {(listing as any).fatherPhoto && (
-                    <div className="space-y-1">
-                      <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 border border-blue-100">
+                  {listing.fatherPhoto && (
+                    <div className="space-y-1.5">
+                      <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 border-blue-100 shadow-sm">
                         <img
-                          src={(listing as any).fatherPhoto}
+                          src={listing.fatherPhoto}
                           alt="Father"
                           className="w-full h-full object-cover"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                         />
                       </div>
-                      <p className="text-xs text-center font-medium text-blue-700">♂ Father</p>
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">♂ Father</span>
+                      </div>
                     </div>
                   )}
-                  {(listing as any).motherPhoto && (
-                    <div className="space-y-1">
-                      <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 border border-pink-100">
+                  {listing.motherPhoto && (
+                    <div className="space-y-1.5">
+                      <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 border-pink-100 shadow-sm">
                         <img
-                          src={(listing as any).motherPhoto}
+                          src={listing.motherPhoto}
                           alt="Mother"
                           className="w-full h-full object-cover"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                         />
                       </div>
-                      <p className="text-xs text-center font-medium text-pink-600">♀ Mother</p>
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="inline-flex items-center gap-1 text-xs bg-pink-100 text-pink-700 font-semibold px-2 py-0.5 rounded-full">♀ Mother</span>
+                      </div>
                     </div>
                   )}
                 </div>

@@ -1373,6 +1373,16 @@ components:
         videoUrl:
           type: string
           nullable: true
+        fatherPhoto:
+          type: string
+          nullable: true
+        motherPhoto:
+          type: string
+          nullable: true
+        maleQuantity:
+          type: integer
+        femaleQuantity:
+          type: integer
         description:
           type: string
         status:
@@ -1431,6 +1441,10 @@ components:
           type: number
         quantity:
           type: integer
+        maleQuantity:
+          type: integer
+        femaleQuantity:
+          type: integer
         vaccinated:
           type: boolean
         vaccinationDetails:
@@ -1440,6 +1454,10 @@ components:
           items:
             type: string
         videoUrl:
+          type: string
+        fatherPhoto:
+          type: string
+        motherPhoto:
           type: string
         description:
           type: string

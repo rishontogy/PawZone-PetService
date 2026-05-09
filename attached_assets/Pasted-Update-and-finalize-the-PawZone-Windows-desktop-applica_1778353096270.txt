@@ -1,0 +1,230 @@
+Update and finalize the PawZone Windows desktop application with the following CRITICAL parent photo visibility and approval system improvements.
+
+This is a FULL FEATURE FIX + UI VISIBILITY + DATA FLOW VALIDATION task.
+
+If any issue is found during implementation:
+→ FIX immediately
+→ Retest
+→ Ensure synchronization across Buyer, Seller, Transporter, and Admin roles.
+
+---------------------------------------------------
+🐾 PARENT PHOTO SYSTEM – COMPLETE IMPLEMENTATION
+---------------------------------------------------
+
+# 🎯 OBJECTIVE
+
+Seller can upload:
+- Father photo
+- Mother photo
+
+Buyer and Admin must be able to:
+- View those photos correctly
+- Identify which is father and which is mother
+- See them in product details and approval pages
+
+The system must support:
+- Uploading only father photo
+- Uploading only mother photo
+- Uploading both
+
+Everything must persist correctly in database/storage.
+
+---------------------------------------------------
+📸 1. SELLER LISTING PAGE – PARENT PHOTO UPLOAD
+---------------------------------------------------
+
+In Add Listing page:
+
+Add two dedicated upload sections:
+
+1. Father Photo
+2. Mother Photo
+
+Each section must include:
+- Upload button
+- Image preview
+- Remove/Re-upload option
+
+---------------------------------------------------
+✅ RULES
+---------------------------------------------------
+
+Seller can:
+- Upload only father photo
+- Upload only mother photo
+- Upload both
+
+Validation:
+- At least one parent photo OPTIONAL
+- No upload failure
+- No unauthorized error
+- Accept jpg/png/webp
+
+---------------------------------------------------
+💾 DATABASE STORAGE
+---------------------------------------------------
+
+Store separately:
+
+father_photo_url
+mother_photo_url
+
+Ensure:
+- URLs save properly
+- Images persist after refresh
+- Images visible in all roles
+
+---------------------------------------------------
+🛒 2. BUYER PRODUCT DETAILS PAGE
+---------------------------------------------------
+
+When buyer opens a pet card:
+
+Add new section:
+
+🐶 Parent Details
+
+---------------------------------------------------
+DISPLAY:
+---------------------------------------------------
+
+If father photo exists:
+
+[Father Tag]
+- Show image
+- Label:
+  "Father"
+
+If mother photo exists:
+
+[Mother Tag]
+- Show image
+- Label:
+  "Mother"
+
+---------------------------------------------------
+UI REQUIREMENTS
+---------------------------------------------------
+
+- Clean card layout
+- Side-by-side if both exist
+- Responsive design
+- Proper spacing
+- Rounded preview images
+
+---------------------------------------------------
+⚠️ IMPORTANT
+---------------------------------------------------
+
+If only one exists:
+- Show only available parent
+
+No broken image placeholders.
+
+---------------------------------------------------
+🛠 3. ADMIN REVIEW LISTING PAGE
+---------------------------------------------------
+
+When admin clicks a listing card in:
+Review Listings page
+
+Admin must see FULL listing details including:
+
+- Pet images
+- Pet videos
+- Father photo
+- Mother photo
+
+---------------------------------------------------
+ADD CLEAR TAGS:
+---------------------------------------------------
+
+🟦 Father
+🟪 Mother
+
+---------------------------------------------------
+ADMIN MUST VERIFY:
+---------------------------------------------------
+
+- Parent photos uploaded correctly
+- Correct labels
+- Proper visibility
+- No broken links
+
+---------------------------------------------------
+✅ APPROVAL FLOW
+---------------------------------------------------
+
+Admin approval page must include:
+- Approve button
+- Reject button
+- Parent image verification section
+
+---------------------------------------------------
+🔄 4. DATA FLOW VALIDATION
+---------------------------------------------------
+
+Ensure parent photos are visible in:
+
+✔ Seller listing preview
+✔ Buyer product details
+✔ Admin review listing page
+✔ Admin approved listing view
+
+---------------------------------------------------
+⚠️ FIX THESE POSSIBLE ISSUES
+---------------------------------------------------
+
+If found:
+- Upload failed
+- Unauthorized
+- Missing image
+- Broken preview
+- Wrong parent tag
+- Image not syncing
+
+→ FIX immediately
+
+---------------------------------------------------
+🧪 5. REQUIRED TEST CASES
+---------------------------------------------------
+
+CASE 1:
+Upload only father photo
+→ Visible to buyer/admin
+
+CASE 2:
+Upload only mother photo
+→ Visible correctly
+
+CASE 3:
+Upload both
+→ Both visible with correct tags
+
+CASE 4:
+Refresh app
+→ Images persist
+
+CASE 5:
+Approve listing
+→ Images still visible
+
+CASE 6:
+Buyer opens product
+→ Parent images load instantly
+
+---------------------------------------------------
+🎯 FINAL REQUIREMENT
+---------------------------------------------------
+
+After implementation:
+
+✔ Parent photos upload correctly
+✔ Parent photos stored correctly
+✔ Buyer can view them
+✔ Admin can review them
+✔ Proper Father/Mother labels shown
+✔ No upload errors
+✔ No broken images
+✔ Fully synced across app
+✔ Production-ready implementation
