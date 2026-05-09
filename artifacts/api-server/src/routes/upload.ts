@@ -1,7 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
 import { randomUUID } from "crypto";
-import { authMiddleware } from "../lib/auth";
 import { objectStorageClient } from "../lib/objectStorage";
 
 const router = Router();
@@ -36,7 +35,9 @@ function parsePath(fullPath: string): { bucketName: string; objectName: string }
   return { bucketName: clean.slice(0, slash), objectName: clean.slice(slash + 1) };
 }
 
-router.post("/upload", authMiddleware, upload.single("file"), async (req, res): Promise<void> => {
+// Public endpoint — no auth required so users can upload documents during signup
+// before their account is created. Files are stored under random UUIDs.
+router.post("/upload", upload.single("file"), async (req, res): Promise<void> => {
   if (!req.file) {
     res.status(400).json({ error: "No file uploaded" });
     return;

@@ -1,0 +1,278 @@
+# PAWZONE – SIGNUP DOCUMENT UPLOAD + DISTRICT UI FIX PROMPT
+
+Update and fix the PawZone Windows desktop application with the following REQUIRED corrections for signup document uploads and district selection UI.
+
+This is a CRITICAL AUTHENTICATION + FILE UPLOAD FIX.
+
+---
+
+# 1. SELLER SIGNUP DOCUMENT UPLOAD FIX
+
+---
+
+❌ Current Problem:
+While uploading Government ID document in Seller Signup:
+
+* Showing “Unauthorized”
+* Upload fails
+* Signup cannot complete
+
+---
+
+## REQUIRED FIX
+
+---
+
+Ensure seller signup document upload works correctly.
+
+Seller signup must support:
+
+* Government ID image upload
+* Preview before submit
+* Proper storage in backend/database
+* Retrieval by admin panel
+
+---
+
+## VALIDATION
+
+---
+
+Seller must be able to:
+
+* Select image
+* Upload successfully
+* Complete signup
+* Login after admin approval
+
+---
+
+## BACKEND FIXES
+
+---
+
+Check and fix:
+
+* Authentication middleware blocking public signup upload
+* Upload API permissions
+* Token validation
+* Multipart/form-data handling
+* File path handling
+
+Ensure:
+Signup uploads DO NOT require logged-in token.
+
+These endpoints must be public:
+
+* seller signup upload
+* transporter signup upload
+
+---
+
+# 2. TRANSPORTER SIGNUP DOCUMENT FIX
+
+---
+
+❌ Current Problem:
+RC Book / Government ID upload also showing:
+“Unauthorized”
+
+---
+
+## REQUIRED FIX
+
+---
+
+Transporter signup uploads must work properly.
+
+Transporter must be able to upload:
+
+* RC Book
+* Government ID
+
+Before account creation.
+
+---
+
+## STORAGE REQUIREMENT
+
+---
+
+Store uploaded documents securely:
+
+* database reference
+* local/cloud storage
+
+Admin must later access:
+
+* preview
+* approve/reject
+
+---
+
+# 3. REMOVE “ADD ANOTHER DISTRICT”
+
+---
+
+❌ Current Problem:
+Buyer and Seller signup pages show:
+“Add Another District”
+
+This is NOT needed.
+
+---
+
+## REQUIRED CHANGE
+
+---
+
+REMOVE:
+❌ Add Another District button/section
+
+---
+
+## KEEP ONLY:
+
+---
+
+Single District Selection
+
+AND
+
+Multiple Town/Pickup Point Selection
+inside the selected district only.
+
+---
+
+# 4. REQUIRED SIGNUP FLOW
+
+---
+
+---
+
+## BUYER SIGNUP
+
+---
+
+Fields:
+
+* Name
+* Phone
+* Email
+* Password
+* District (single)
+* Delivery Towns (multiple from same district)
+
+NO:
+❌ Add Another District
+
+---
+
+## SELLER SIGNUP
+
+---
+
+Fields:
+
+* Name
+* Phone
+* Email
+* Password
+* District (single)
+* Pickup Towns (multiple from same district)
+* Government ID upload
+
+NO:
+❌ Add Another District
+
+---
+
+## TRANSPORTER SIGNUP
+
+---
+
+Fields:
+
+* Name
+* Phone
+* Email
+* Password
+* RC Book upload
+* Government ID upload
+
+NO district delivery point section needed.
+
+---
+
+# 5. TOWN FILTERING MUST STILL WORK
+
+---
+
+When district selected:
+ONLY towns from that district appear.
+
+Example:
+District = Kottayam
+Show:
+
+* Ettumanoor
+* Pala
+* Vaikom
+  etc.
+
+---
+
+# 6. ADMIN PANEL VALIDATION
+
+---
+
+Admin approval page must show:
+
+* Uploaded Government ID
+* RC Book
+* User details
+
+Buttons:
+
+* Approve
+* Reject
+
+Approval must properly unlock dashboard access.
+
+---
+
+# 7. FINAL VALIDATION
+
+---
+
+Test and ensure:
+
+✅ Seller signup works
+✅ Transporter signup works
+✅ Document uploads work
+✅ No Unauthorized error
+✅ Files stored correctly
+✅ Admin can view uploads
+✅ District dropdown works
+✅ Town filtering works
+✅ No “Add Another District”
+✅ Signup completes successfully
+
+---
+
+# FINAL RULE
+
+---
+
+Do NOT patch UI only.
+
+Fix:
+
+* backend auth
+* upload APIs
+* permissions
+* storage
+* validation
+* frontend upload flow
+
+The signup process must work smoothly like a real production application.

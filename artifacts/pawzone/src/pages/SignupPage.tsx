@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PawPrint, AlertCircle, CheckCircle, User, Mail, Phone, Lock, MapPin, Plus, X, Upload, Loader2, FileText } from "lucide-react";
+import { PawPrint, AlertCircle, CheckCircle, User, Mail, Phone, Lock, MapPin, Upload, Loader2, FileText, X } from "lucide-react";
 
 const KERALA_DISTRICTS: Record<string, string[]> = {
   "Thiruvananthapuram": ["Thiruvananthapuram", "Neyyattinkara", "Attingal", "Varkala", "Nedumangad", "Kazhakoottam", "Balaramapuram"],
@@ -26,7 +26,7 @@ const KERALA_DISTRICTS: Record<string, string[]> = {
   "Kasaragod": ["Kasaragod", "Kanhangad", "Hosdurg", "Nileshwar", "Bekal", "Cheruvathur", "Uppala"],
 };
 
-const KERALA_CITIES = Object.keys(KERALA_DISTRICTS);
+const KERALA_DISTRICTS_LIST = Object.keys(KERALA_DISTRICTS);
 
 const INDIA_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
@@ -38,15 +38,11 @@ const INDIA_STATES = [
 
 const COUNTRIES = ["India", "United Arab Emirates", "United Kingdom", "United States", "Canada", "Australia", "Singapore", "Other"];
 
-type DPEntry = { district: string; towns: string[] };
-
 async function uploadFile(file: File): Promise<string> {
-  const token = localStorage.getItem("pawzone_token") ?? "";
   const formData = new FormData();
   formData.append("file", file);
   const res = await fetch("/api/upload", {
     method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
   });
   if (!res.ok) {
@@ -137,36 +133,30 @@ export function SignupPage() {
     country: "India",
     pincode: "",
   });
-  const [district, setDistrict] = useState("");
-  const [dpEntries, setDpEntries] = useState<DPEntry[]>([{ district: "", towns: [] }]);
+
+  // Location
+  const [locationDistrict, setLocationDistrict] = useState("");
+
+  // Delivery / Pickup points — single district, multiple towns
+  const [dpDistrict, setDpDistrict] = useState("");
+  const [dpTowns, setDpTowns] = useState<string[]>([]);
+
   const [governmentIdUrl, setGovernmentIdUrl] = useState("");
   const [rcBookUrl, setRcBookUrl] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
   const isKerala = form.state === "Kerala";
-  const keralaTowns = district ? (KERALA_DISTRICTS[district] ?? []) : [];
-  const allDeliveryPoints = dpEntries.flatMap(e => e.towns);
+  const locationTowns = locationDistrict ? (KERALA_DISTRICTS[locationDistrict] ?? []) : [];
+  const dpTownOptions = dpDistrict ? (KERALA_DISTRICTS[dpDistrict] ?? []) : [];
 
-  const toggleTown = (entryIdx: number, town: string) => {
-    setDpEntries(prev => prev.map((e, i) => {
-      if (i !== entryIdx) return e;
-      const already = e.towns.includes(town);
-      return { ...e, towns: already ? e.towns.filter(t => t !== town) : [...e.towns, town] };
-    }));
+  const toggleDpTown = (town: string) => {
+    setDpTowns(prev =>
+      prev.includes(town) ? prev.filter(t => t !== town) : [...prev, town]
+    );
   };
 
-  const setEntryDistrict = (entryIdx: number, d: string) => {
-    setDpEntries(prev => prev.map((e, i) =>
-      i === entryIdx ? { district: d, towns: [] } : e
-    ));
-  };
-
-  const addEntry = () => setDpEntries(prev => [...prev, { district: "", towns: [] }]);
-  const removeEntry = (idx: number) => setDpEntries(prev => prev.filter((_, i) => i !== idx));
-  const removeTown = (town: string) => {
-    setDpEntries(prev => prev.map(e => ({ ...e, towns: e.towns.filter(t => t !== town) })));
-  };
+  const removeDpTown = (town: string) => setDpTowns(prev => prev.filter(t => t !== town));
 
   const signupMutation = useSignup({
     mutation: {
@@ -200,12 +190,11 @@ export function SignupPage() {
       return;
     }
 
-    const firstTown = dpEntries[0]?.towns[0] ?? "";
-    const city = form.city || firstTown;
+    const city = form.city || dpTowns[0] || "";
     const payload: any = { ...form, city };
 
-    if (isKerala && form.role !== "transporter" && allDeliveryPoints.length > 0) {
-      payload.deliveryPoints = allDeliveryPoints;
+    if (isKerala && form.role !== "transporter" && dpTowns.length > 0) {
+      payload.deliveryPoints = dpTowns;
     }
     if (governmentIdUrl) payload.governmentIdUrl = governmentIdUrl;
     if (rcBookUrl) payload.rcBookUrl = rcBookUrl;
@@ -263,7 +252,11 @@ export function SignupPage() {
                     <button
                       key={r.value}
                       type="button"
-                      onClick={() => setForm({ ...form, role: r.value })}
+                      onClick={() => {
+                        setForm({ ...form, role: r.value });
+                        setDpDistrict("");
+                        setDpTowns([]);
+                      }}
                       className={`flex flex-col items-center gap-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
                         form.role === r.value
                           ? "border-teal-500 bg-teal-50 text-teal-700"
@@ -278,7 +271,7 @@ export function SignupPage() {
                 {form.role !== "buyer" && (
                   <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
-                    Requires admin approval (document verification) before dashboard access
+                    Requires admin approval before dashboard access
                   </p>
                 )}
                 {form.role === "buyer" && (
@@ -289,7 +282,7 @@ export function SignupPage() {
                 )}
               </div>
 
-              {/* Name + Email + Phone + Password */}
+              {/* Personal details */}
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <Label className="text-sm font-semibold text-gray-700">Full Name *</Label>
@@ -321,7 +314,7 @@ export function SignupPage() {
                 </div>
               </div>
 
-              {/* Location */}
+              {/* Location fields */}
               <div>
                 <Label className="text-sm font-semibold text-gray-700 mb-2 block flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5" /> Location
@@ -362,12 +355,12 @@ export function SignupPage() {
                     <>
                       <div>
                         <Label className="text-xs text-gray-500">District</Label>
-                        <Select value={district} onValueChange={(v) => { setDistrict(v); setForm({ ...form, city: "" }); }}>
+                        <Select value={locationDistrict} onValueChange={(v) => { setLocationDistrict(v); setForm({ ...form, city: "" }); }}>
                           <SelectTrigger className="mt-1 rounded-xl border-gray-200">
                             <SelectValue placeholder="Select district" />
                           </SelectTrigger>
                           <SelectContent>
-                            {KERALA_CITIES.map((d) => (
+                            {KERALA_DISTRICTS_LIST.map((d) => (
                               <SelectItem key={d} value={d}>{d}</SelectItem>
                             ))}
                           </SelectContent>
@@ -375,12 +368,12 @@ export function SignupPage() {
                       </div>
                       <div>
                         <Label className="text-xs text-gray-500">Town / City</Label>
-                        <Select value={form.city} onValueChange={(v) => setForm({ ...form, city: v })} disabled={!district}>
+                        <Select value={form.city} onValueChange={(v) => setForm({ ...form, city: v })} disabled={!locationDistrict}>
                           <SelectTrigger className="mt-1 rounded-xl border-gray-200">
-                            <SelectValue placeholder={district ? "Select town" : "Select district first"} />
+                            <SelectValue placeholder={locationDistrict ? "Select town" : "Select district first"} />
                           </SelectTrigger>
                           <SelectContent>
-                            {keralaTowns.map((t) => (
+                            {locationTowns.map((t) => (
                               <SelectItem key={t} value={t}>{t}</SelectItem>
                             ))}
                           </SelectContent>
@@ -410,13 +403,13 @@ export function SignupPage() {
                 )}
               </div>
 
-              {/* Delivery / Pickup Points — Buyers and Sellers only */}
+              {/* Delivery / Pickup Points — Buyers and Sellers only, single district */}
               {isKerala && form.role !== "transporter" && (
                 <div className="space-y-3">
                   <div>
                     <Label className="text-sm font-semibold text-gray-700 flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5 text-teal-600" />
-                      {form.role === "buyer" ? "Delivery Points" : "Pickup Points"}
+                      {form.role === "buyer" ? "Delivery Towns" : "Pickup Towns"}
                     </Label>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {form.role === "buyer"
@@ -425,70 +418,69 @@ export function SignupPage() {
                     </p>
                   </div>
 
-                  {allDeliveryPoints.length > 0 && (
+                  {/* District selector */}
+                  <div>
+                    <Label className="text-xs text-gray-500 mb-1 block">District</Label>
+                    <Select
+                      value={dpDistrict}
+                      onValueChange={(v) => { setDpDistrict(v); setDpTowns([]); }}
+                    >
+                      <SelectTrigger className="rounded-xl border-gray-200">
+                        <SelectValue placeholder="Select district" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {KERALA_DISTRICTS_LIST.map((d) => (
+                          <SelectItem key={d} value={d}>{d}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Town checkboxes — only shown once district is selected */}
+                  {dpDistrict && (
+                    <div>
+                      <Label className="text-xs text-gray-500 mb-1.5 block">
+                        Towns in {dpDistrict} — select all that apply
+                      </Label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {dpTownOptions.map(town => {
+                          const checked = dpTowns.includes(town);
+                          return (
+                            <label
+                              key={town}
+                              className={`flex items-center gap-2 text-xs rounded-xl px-3 py-2 cursor-pointer transition-colors ${
+                                checked
+                                  ? "bg-teal-50 border border-teal-300 text-teal-700 font-medium"
+                                  : "bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                className="w-3.5 h-3.5 accent-teal-600 flex-shrink-0"
+                                checked={checked}
+                                onChange={() => toggleDpTown(town)}
+                              />
+                              {town}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Selected towns summary */}
+                  {dpTowns.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
-                      {allDeliveryPoints.map(town => (
-                        <span key={town} className="inline-flex items-center gap-1 text-xs bg-teal-50 border border-teal-200 text-teal-700 rounded-full px-2.5 py-1 font-medium">
+                      {dpTowns.map(town => (
+                        <span key={town} className="inline-flex items-center gap-1 text-xs bg-teal-600 text-white rounded-full px-2.5 py-1 font-medium">
                           📍 {town}
-                          <button type="button" onClick={() => removeTown(town)} className="hover:text-red-500 transition-colors">
+                          <button type="button" onClick={() => removeDpTown(town)} className="hover:text-teal-200 transition-colors">
                             <X className="w-3 h-3" />
                           </button>
                         </span>
                       ))}
                     </div>
                   )}
-
-                  {dpEntries.map((entry, idx) => {
-                    const entryTowns = entry.district ? (KERALA_DISTRICTS[entry.district] ?? []) : [];
-                    return (
-                      <div key={idx} className="border border-gray-100 rounded-xl p-3 bg-gray-50 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Select value={entry.district} onValueChange={(v) => setEntryDistrict(idx, v)}>
-                            <SelectTrigger className="flex-1 rounded-lg border-gray-200 bg-white text-sm h-9">
-                              <SelectValue placeholder="Select district" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {KERALA_CITIES.map((d) => (
-                                <SelectItem key={d} value={d}>{d}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {idx > 0 && (
-                            <button type="button" onClick={() => removeEntry(idx)} className="w-8 h-8 rounded-lg bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center transition-colors flex-shrink-0">
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                        {entry.district && (
-                          <div className="grid grid-cols-2 gap-1.5">
-                            {entryTowns.map(town => {
-                              const checked = entry.towns.includes(town);
-                              return (
-                                <label key={town} className={`flex items-center gap-2 text-xs rounded-lg px-2.5 py-1.5 cursor-pointer transition-colors ${checked ? "bg-teal-50 border border-teal-200 text-teal-700 font-medium" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
-                                  <input
-                                    type="checkbox"
-                                    className="w-3 h-3 accent-teal-600"
-                                    checked={checked}
-                                    onChange={() => toggleTown(idx, town)}
-                                  />
-                                  {town}
-                                </label>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  <button
-                    type="button"
-                    onClick={addEntry}
-                    className="flex items-center gap-1.5 text-sm text-teal-600 font-medium hover:text-teal-700 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add from another district
-                  </button>
                 </div>
               )}
 
@@ -497,12 +489,12 @@ export function SignupPage() {
                 <div className="space-y-3 pt-1">
                   <div className="flex items-center gap-2 mb-1">
                     <FileText className="w-4 h-4 text-purple-600" />
-                    <Label className="text-sm font-semibold text-gray-700">Verification Documents</Label>
+                    <Label className="text-sm font-semibold text-gray-700">Verification Document</Label>
                   </div>
-                  <div className="bg-purple-50 border border-purple-100 rounded-xl p-4 space-y-3">
+                  <div className="bg-purple-50 border border-purple-100 rounded-xl p-4">
                     <DocUpload
                       label="Government Approved ID Card"
-                      hint="Upload a clear photo of your Aadhaar, Voter ID, Passport, or Driving Licence. Must show your phone number or address."
+                      hint="Upload a clear photo of your Aadhaar, Voter ID, Passport, or Driving Licence."
                       url={governmentIdUrl}
                       onUrl={setGovernmentIdUrl}
                     />
@@ -538,6 +530,7 @@ export function SignupPage() {
                 {signupMutation.isPending ? "Creating account..." : "Create Account"}
               </Button>
             </form>
+
             <div className="mt-5 text-center text-sm text-gray-500">
               Already have an account?{" "}
               <Link href="/login" className="text-teal-600 hover:underline font-semibold">Sign in</Link>
