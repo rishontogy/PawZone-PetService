@@ -1,0 +1,600 @@
+# PAWZONE – COMPLETE LOCATION + ROUTE MATCHING + SIGNUP + TRANSPORT SYSTEM UPDATE PROMPT
+
+Update and finalize the PawZone Windows desktop application with the following COMPLETE location-based transport system, signup validation system, town filtering system, and transporter matching logic.
+
+This is a FULL SYSTEM ARCHITECTURE UPDATE.
+
+DO NOT partially implement.
+DO NOT skip any validation.
+Everything must work exactly as described.
+
+---
+
+# 1. BUYER CART DELIVERY POINT SYSTEM
+
+---
+
+REMOVE:
+❌ “Select Delivery Point” dropdown from cart.
+
+NEW REQUIRED FLOW:
+
+Buyer account already contains:
+
+* District
+* Multiple delivery towns/points
+
+When buyer places an order:
+
+* ALL saved delivery points are automatically used
+* Transporters matching ANY buyer point + ANY seller point can receive request
+
+NO manual delivery point selection needed in cart.
+
+---
+
+# 2. BUYER CART PAGE UPDATE
+
+---
+
+In cart page:
+
+REPLACE:
+“Delivery Address”
+
+WITH:
+“Delivery Points”
+
+Show:
+
+* All saved buyer delivery towns
+* Add Another Delivery Point button
+
+---
+
+# 3. ADD ANOTHER DELIVERY POINT (BUYER ONLY)
+
+---
+
+ONLY buyers can add extra delivery points.
+
+DO NOT show delivery point addition during signup anymore.
+
+NEW FLOW:
+Inside buyer cart/profile:
+
+* Add Delivery Point button
+
+When clicked:
+Open modal/page:
+
+Fields:
+
+* District dropdown
+* Town dropdown (filtered by district)
+
+Save multiple points.
+
+---
+
+# 4. DISTRICT → TOWN FILTERING SYSTEM
+
+---
+
+Implement FULL Kerala district-town mapping.
+
+Use uploaded Excel / provided data.
+
+RULE:
+When user selects district:
+→ ONLY towns belonging to that district appear.
+
+Examples:
+
+If district = Kottayam
+Show:
+
+* Ettumanoor
+* Pala
+* Vaikom
+* Changanassery
+  etc.
+
+If district = Ernakulam
+Show:
+
+* Tripunithura
+* Kakkanad
+* Kadavanthara
+  etc.
+
+---
+
+# 5. APPLY TOWN FILTERING TO:
+
+---
+
+Buyer Signup
+Seller Signup
+Buyer Add Delivery Point
+Any address/location forms
+
+---
+
+# 6. REMOVE DELIVERY POINT FROM TRANSPORTER SIGNUP
+
+---
+
+Transporters DO NOT need delivery point selection.
+
+REMOVE:
+❌ delivery point fields from transporter signup/profile.
+
+---
+
+# 7. SELLER PICKUP POINT SYSTEM
+
+---
+
+Seller signup should contain:
+
+* District
+* Pickup Towns
+
+Seller can select MULTIPLE pickup towns.
+
+These become:
+Seller pickup points for transport matching.
+
+---
+
+# 8. TRANSPORTER SIGNUP VERIFICATION DOCUMENTS
+
+---
+
+ADD REQUIRED DOCUMENT UPLOADS
+
+---
+
+## Seller Signup
+
+---
+
+Seller MUST upload:
+
+* Government Approved ID card
+
+Requirements:
+
+* Must include phone number
+* Image upload required
+
+---
+
+## Transporter Signup
+
+---
+
+Transporter MUST upload:
+
+* RC Book
+* Government Approved ID
+
+Uploads required before approval.
+
+---
+
+# 9. ADMIN VERIFICATION SYSTEM
+
+---
+
+Admin panel must show uploaded documents.
+
+Admin can:
+
+* View documents
+* Approve seller
+* Reject seller
+* Approve transporter
+* Reject transporter
+
+Seller/Transporter dashboard access ONLY after approval.
+
+Buyer DOES NOT need approval.
+
+---
+
+# 10. ADVANCED TRANSPORTER MATCHING SYSTEM
+
+---
+
+Implement COMPLETE route matching logic.
+
+---
+
+## TRANSPORTER ROUTES
+
+---
+
+Transporters can add:
+
+* Multiple routes
+* Multiple towns
+* Multiple routes same day
+
+Routes are stored as:
+ordered town arrays
+
+Example:
+[
+"Tripunithura",
+"Kadavanthara",
+"Panampally",
+"Ettumanoor",
+"Kottayam"
+]
+
+---
+
+# 11. ORDER → TRANSPORTER MATCHING LOGIC
+
+---
+
+When buyer orders from seller:
+
+SYSTEM MUST:
+Check ALL seller pickup towns
+AND ALL buyer delivery towns.
+
+Transporter is eligible IF:
+ANY seller point exists in transporter route
+AND
+ANY buyer point exists later in same transporter route.
+
+---
+
+# 12. EXAMPLE (MUST WORK EXACTLY)
+
+---
+
+Buyer towns:
+
+* Ettumanoor
+* Pala
+
+Seller towns:
+
+* Tripunithura
+* Kadavanthara
+* Kakkanad
+
+---
+
+## Transporter 1 route:
+
+Kozhikode
+Ernakulam
+Panampally
+Kadavanthara
+Thalayolaparambu
+Ettumanoor
+Kottayam
+Chengannur
+
+Eligible:
+YES
+
+Pickup:
+Kadavanthara
+
+Delivery:
+Ettumanoor
+
+---
+
+## Transporter 2 route:
+
+Kottayam
+Ettumanoor
+Pala
+Erattupetta
+Wagamon
+
+Eligible:
+NO
+
+(no seller point)
+
+---
+
+## Transporter 3 route:
+
+Wayanad
+Ernakulam
+Panampally
+Tripunithura
+Thalayolaparambu
+Pala
+Idukki
+
+Eligible:
+YES
+
+Pickup:
+Tripunithura
+
+Delivery:
+Pala
+
+---
+
+# 13. TRANSPORT ASSIGNMENT FLOW
+
+---
+
+When order is confirmed:
+
+1. Seller accepts
+2. System checks transporters
+3. Matching transporters get notification
+4. First transporter accepting gets order
+
+Automatically assign:
+
+* pickup town
+* delivery town
+
+---
+
+# 14. IF NO TRANSPORTER AVAILABLE
+
+---
+
+If NO transporter route exists in next 2 days:
+
+Show:
+“No transporter available for next 2 days.”
+
+Also show:
+Nearest available day.
+
+Buyer/Seller receive notification.
+
+---
+
+# 15. TRANSPORTER ORDER DETAILS PAGE
+
+---
+
+Transporter active orders page must show:
+
+* Seller pickup town
+* Buyer delivery town
+* Pickup date
+* Delivery ETA
+* Seller phone
+* Buyer phone
+
+---
+
+# 16. TRANSPORTER ORDER PET CARDS
+
+---
+
+Inside transporter order details:
+
+Instead of plain text:
+“Animals in this order”
+
+Show:
+Small pet cards for each pet.
+
+Each card must include:
+
+* Pet image
+* Pet name
+* Quantity
+* Breed
+* Gender
+
+On click:
+Open full pet details page.
+
+---
+
+# 17. TRANSPORTER VIDEO FLOW
+
+---
+
+NEW FLOW:
+
+1. Pickup video upload
+   → Status automatically:
+   Picked Up
+   In Transit
+
+2. Delivery video upload
+   → Status:
+   Delivered
+
+NO extra “In Transit video” step.
+
+---
+
+# 18. BUYER DELIVERY CONFIRMATION
+
+---
+
+After delivery video upload:
+
+Buyer gets:
+“Confirm Delivery” button
+
+When clicked:
+
+* Order completed
+* Timeline completed
+* Revenue finalized
+
+---
+
+# 19. PAYMENT SUMMARY UPDATE
+
+---
+
+Buyer order details page must show:
+
+Payment Summary:
+
+* Item Total
+* Buyer Platform Fee
+* Transportation Fee
+* Final Amount
+
+---
+
+# 20. PLATFORM FEE RULES
+
+---
+
+BUYER:
+₹20 per pet above ₹100
+₹5 for low-cost item
+
+SELLER:
+Same deduction from seller payout
+
+TRANSPORTER:
+₹40 deduction per transport
+If transport amount below ₹200:
+deduct ₹20 only
+
+---
+
+# 21. REVENUE CALCULATION
+
+---
+
+Example:
+
+Dog price = ₹8000
+Transport = ₹400
+
+Buyer pays:
+₹8000 + ₹20 + ₹400
+= ₹8420
+
+Seller receives:
+₹7980
+
+Transporter receives:
+₹360
+
+Platform revenue:
+₹20 (buyer)
+
+* ₹20 (seller)
+* ₹40 (transporter)
+  = ₹80
+
+---
+
+# 22. IMAGE & VIDEO STORAGE FIX
+
+---
+
+Ensure ALL uploaded:
+
+* pet images
+* pet videos
+* seller prepared videos
+* transporter videos
+* payment screenshots
+
+are:
+
+* stored correctly
+* accessible to all roles
+* rendered correctly
+* persisted after refresh/restart
+
+---
+
+# 23. FILE UPLOAD FIX
+
+---
+
+Fix:
+“Upload failed”
+“Unexpected token '<'”
+“URL required”
+
+Ensure backend returns proper JSON response.
+
+Use multipart/form-data uploads correctly.
+
+---
+
+# 24. SECURITY RULES
+
+---
+
+Seller:
+Can ONLY access:
+
+* own listings
+* own orders
+
+Transporter:
+Can ONLY access:
+
+* assigned orders
+
+Buyers:
+Can ONLY access:
+
+* own orders
+
+Admin:
+Full access.
+
+---
+
+# 25. FINAL VALIDATION REQUIREMENT
+
+---
+
+After implementing:
+
+TEST EVERYTHING:
+
+* Signup
+* Login
+* Uploads
+* Route matching
+* Transport assignment
+* Payment calculations
+* Notifications
+* Delivery confirmation
+* Admin approvals
+* Route filtering
+* District-town filtering
+* Buyer/Seller/Transporter visibility
+
+---
+
+# 26. FINAL RULE
+
+---
+
+This system must behave like a REAL production-ready logistics marketplace.
+
+NO dummy logic.
+NO broken buttons.
+NO NaN.
+NO failed uploads.
+NO invalid route matching.
+NO incorrect financial calculations.
+NO UI-only patches.
+
+Everything must work end-to-end exactly as described.

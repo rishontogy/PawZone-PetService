@@ -76,6 +76,11 @@ router.post("/auth/signup", async (req, res): Promise<void> => {
     ? rawDeliveryPoints.filter((p: any) => typeof p === "string" && p.trim())
     : null;
 
+  const governmentIdUrl = typeof req.body?.governmentIdUrl === "string" && req.body.governmentIdUrl.trim()
+    ? req.body.governmentIdUrl.trim() : null;
+  const rcBookUrl = typeof req.body?.rcBookUrl === "string" && req.body.rcBookUrl.trim()
+    ? req.body.rcBookUrl.trim() : null;
+
   const [existing] = await db.select().from(usersTable).where(eq(usersTable.email, email));
   if (existing) {
     res.status(400).json({ error: "Email already registered" });
@@ -102,6 +107,8 @@ router.post("/auth/signup", async (req, res): Promise<void> => {
     sellerId,
     sellerScore: 5,
     deliveryPoints: deliveryPoints?.length ? deliveryPoints : null,
+    governmentIdUrl,
+    rcBookUrl,
   }).returning();
 
   const token = await createSession(user.id);

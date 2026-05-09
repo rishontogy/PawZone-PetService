@@ -23,6 +23,8 @@ export const usersTable = pgTable("users", {
   platformSharePercent: real("platform_share_percent"),
   profilePhoto: text("profile_photo"),
   deliveryPoints: text("delivery_points").array(),
+  governmentIdUrl: text("government_id_url"),
+  rcBookUrl: text("rc_book_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

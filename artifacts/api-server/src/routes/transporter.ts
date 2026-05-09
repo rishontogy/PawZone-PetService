@@ -42,16 +42,27 @@ function extractCity(text: string | null | undefined, knownCities: string[]): st
   return null;
 }
 
-// Returns true if `address` contains ANY of the route's keywords (case-insensitive,
-// partial match). Keyword priority is the order they appear in the keywords array.
-function addressMatchesRouteKeywords(address: string | null | undefined, keywords: string[]): boolean {
-  if (!address || keywords.length === 0) return false;
-  const lower = address.toLowerCase();
-  for (const kw of keywords) {
-    const k = kw?.trim().toLowerCase();
-    if (k && k.length >= 2 && lower.includes(k)) return true;
+// Directional route matching: seller point must appear BEFORE buyer point in the same route.
+// Returns the matched pickup and delivery towns, or null if no match found.
+function findDirectionalMatch(
+  sellerPoints: string[],
+  buyerPoints: string[],
+  routes: { startCity: string; stops: string[] | null; endCity: string }[]
+): { pickup: string | null; delivery: string | null; isMatch: boolean } {
+  for (const route of routes) {
+    const stops = [route.startCity, ...(route.stops ?? []), route.endCity].filter((s): s is string => !!s);
+    for (const sp of sellerPoints) {
+      const sellerIdx = stops.indexOf(sp);
+      if (sellerIdx === -1) continue;
+      for (const bp of buyerPoints) {
+        const buyerIdx = stops.indexOf(bp);
+        if (buyerIdx !== -1 && buyerIdx > sellerIdx) {
+          return { pickup: sp, delivery: bp, isMatch: true };
+        }
+      }
+    }
   }
-  return false;
+  return { pickup: null, delivery: null, isMatch: false };
 }
 
 // Tiered platform fee: ≥₹200 transport fee → ₹40 platform; otherwise → ₹20 platform.
@@ -254,10 +265,8 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
       ? buyer.deliveryPoints
       : buyer?.city ? [buyer.city] : [];
 
-    // Exact intersection: find first matching stop for each side
-    const matchedPickup = sellerPickupPoints.find(p => transporterAllStops.includes(p)) ?? null;
-    const matchedDelivery = buyerDeliveryPoints.find(p => transporterAllStops.includes(p)) ?? null;
-    const _isMatch = !!matchedPickup && !!matchedDelivery;
+    // Directional match: seller point must appear BEFORE buyer point in the same route
+    const match = findDirectionalMatch(sellerPickupPoints, buyerDeliveryPoints, myRoutes);
 
     return {
       ...order,
@@ -265,10 +274,10 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
       buyerPhone: buyer?.phone ?? null,
       sellerName: seller?.name ?? "",
       sellerPhone: seller?.phone ?? null,
-      pickupCity: matchedPickup ?? items[0]?.city ?? seller?.city ?? null,
-      deliveryCity: matchedDelivery ?? buyer?.city ?? null,
-      matchedPickupPoint: matchedPickup,
-      matchedDeliveryPoint: matchedDelivery,
+      pickupCity: match.pickup ?? items[0]?.city ?? seller?.city ?? null,
+      deliveryCity: match.delivery ?? buyer?.city ?? null,
+      matchedPickupPoint: match.pickup,
+      matchedDeliveryPoint: match.delivery,
       items: items.map(it => ({
         listingId: it.listingId,
         name: it.breed,
@@ -277,11 +286,11 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
         price: it.price,
         quantity: it.quantity,
       })),
-      _isMatch,
+      _isMatch: match.isMatch,
     };
   }));
 
-  // Filter: assigned orders always show. For unassigned, BOTH endpoints must match route stops exactly.
+  // Filter: assigned orders always show. For unassigned, directional match must be found.
   const filtered = result.filter((o) => {
     if (o.transporterId === user.id) return true;
     if (!hasUpcomingRoute) return false;
@@ -362,8 +371,9 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
   const buyerPts: string[] = acceptBuyer?.deliveryPoints?.length
     ? acceptBuyer.deliveryPoints
     : acceptBuyer?.city ? [acceptBuyer.city] : [];
-  const autoPickupPoint = sellerPts.find(p => acceptStops.includes(p)) ?? null;
-  const autoDeliveryPoint = buyerPts.find(p => acceptStops.includes(p)) ?? null;
+  const dirMatch = findDirectionalMatch(sellerPts, buyerPts, acceptRoutes);
+  const autoPickupPoint = dirMatch.pickup;
+  const autoDeliveryPoint = dirMatch.delivery;
 
   const [updated] = await db.update(ordersTable).set({
     transporterId: user.id,

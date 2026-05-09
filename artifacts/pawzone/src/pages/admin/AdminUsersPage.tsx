@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { getStatusColor } from "@/lib/api";
-import { Users, Search, CheckCircle, XCircle, MessageSquare, Phone, MapPin, Shield, ShoppingBag, Truck, ArrowLeft } from "lucide-react";
+import { Users, Search, CheckCircle, XCircle, MessageSquare, Phone, MapPin, Shield, ShoppingBag, Truck, ArrowLeft, FileText, ExternalLink } from "lucide-react";
 import { Link } from "wouter";
 
 function mockWhatsApp(name: string, phone: string, role: string) {
@@ -192,6 +192,40 @@ export function AdminUsersPage() {
                           {u.city && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{u.city}</span>}
                         </div>
                         {u.sellerId && <p className="text-xs font-mono text-teal-600 mt-0.5">{u.sellerId}</p>}
+                        {/* Document links for sellers and transporters */}
+                        {(u.role === "seller" || u.role === "transporter") && (u.governmentIdUrl || u.rcBookUrl) && (
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {u.governmentIdUrl && (
+                              <a
+                                href={u.governmentIdUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5 hover:bg-blue-100 transition-colors"
+                              >
+                                <FileText className="w-3 h-3" />
+                                Gov ID
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            )}
+                            {u.rcBookUrl && (
+                              <a
+                                href={u.rcBookUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs text-purple-700 bg-purple-50 border border-purple-200 rounded-full px-2 py-0.5 hover:bg-purple-100 transition-colors"
+                              >
+                                <FileText className="w-3 h-3" />
+                                RC Book
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            )}
+                          </div>
+                        )}
+                        {(u.role === "seller" || u.role === "transporter") && u.status === "pending" && !u.governmentIdUrl && (
+                          <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                            <FileText className="w-3 h-3" /> No documents uploaded
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">

@@ -4,23 +4,124 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, platformFee } from "@/lib/api";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Trash2, ShoppingCart, PawPrint, AlertCircle, Plus, Minus, ArrowLeft,
-  Tag, MapPin, CheckCircle, Clock, Shield
+  Tag, MapPin, CheckCircle, Clock, Shield, X
 } from "lucide-react";
 import { useState } from "react";
 
+const KERALA_DISTRICTS: Record<string, string[]> = {
+  "Thiruvananthapuram": ["Thiruvananthapuram", "Neyyattinkara", "Attingal", "Varkala", "Nedumangad", "Kazhakoottam", "Balaramapuram"],
+  "Kollam": ["Kollam", "Punalur", "Karunagappally", "Kottarakkara", "Paravur", "Chavara", "Kundara"],
+  "Pathanamthitta": ["Pathanamthitta", "Adoor", "Thiruvalla", "Ranni", "Pandalam", "Konni", "Kozhencherry"],
+  "Alappuzha": ["Alappuzha", "Chengannur", "Mavelikkara", "Kayamkulam", "Haripad", "Cherthala", "Kuttanad"],
+  "Kottayam": ["Kottayam", "Pala", "Changanassery", "Ettumanoor", "Vaikom", "Kanjirappally", "Erattupetta"],
+  "Idukki": ["Idukki", "Thodupuzha", "Munnar", "Kattappana", "Adimali", "Devikulam", "Kumily"],
+  "Ernakulam": ["Kochi", "Aluva", "Perumbavoor", "Angamaly", "North Paravur", "Kothamangalam", "Muvattupuzha", "Thrippunithura", "Tripunithura", "Kakkanad", "Kadavanthara", "Panampally"],
+  "Thrissur": ["Thrissur", "Chalakudy", "Kunnamkulam", "Guruvayur", "Irinjalakuda", "Kodungallur", "Mala"],
+  "Palakkad": ["Palakkad", "Ottappalam", "Mannarkkad", "Chittur", "Pattambi", "Shornur", "Alathur"],
+  "Malappuram": ["Malappuram", "Manjeri", "Tirur", "Perinthalmanna", "Ponnani", "Kondotty", "Kalpetta"],
+  "Kozhikode": ["Kozhikode", "Vadakara", "Koyilandy", "Feroke", "Ramanattukara", "Mukkam", "Koduvally"],
+  "Wayanad": ["Kalpetta", "Sulthan Bathery", "Mananthavady", "Vythiri", "Ambalavayal", "Pulpally"],
+  "Kannur": ["Kannur", "Thalassery", "Iritty", "Payyanur", "Mattannur", "Sreekandapuram", "Panoor"],
+  "Kasaragod": ["Kasaragod", "Kanhangad", "Hosdurg", "Nileshwar", "Bekal", "Cheruvathur", "Uppala"],
+};
+
+const KERALA_CITIES = Object.keys(KERALA_DISTRICTS);
+
+function AddDeliveryPointModal({
+  onAdd,
+  onClose,
+  existing,
+}: {
+  onAdd: (town: string) => Promise<void>;
+  onClose: () => void;
+  existing: string[];
+}) {
+  const [district, setDistrict] = useState("");
+  const [town, setTown] = useState("");
+  const [saving, setSaving] = useState(false);
+  const towns = district ? (KERALA_DISTRICTS[district] ?? []) : [];
+
+  const handleAdd = async () => {
+    if (!town || existing.includes(town)) return;
+    setSaving(true);
+    try {
+      await onAdd(town);
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-gray-900 flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-teal-600" /> Add Delivery Point
+          </h3>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+            <X className="w-4 h-4 text-gray-600" />
+          </button>
+        </div>
+        <p className="text-xs text-gray-500">
+          Add a town where you can receive pet deliveries. Transporters will be matched based on all your delivery points.
+        </p>
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm font-semibold text-gray-700 block mb-1">District</label>
+            <Select value={district} onValueChange={(v) => { setDistrict(v); setTown(""); }}>
+              <SelectTrigger className="rounded-xl border-gray-200">
+                <SelectValue placeholder="Select district" />
+              </SelectTrigger>
+              <SelectContent>
+                {KERALA_CITIES.map((d) => (
+                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-sm font-semibold text-gray-700 block mb-1">Town</label>
+            <Select value={town} onValueChange={setTown} disabled={!district}>
+              <SelectTrigger className="rounded-xl border-gray-200">
+                <SelectValue placeholder={district ? "Select town" : "Select district first"} />
+              </SelectTrigger>
+              <SelectContent>
+                {towns.map((t) => (
+                  <SelectItem key={t} value={t} disabled={existing.includes(t)}>
+                    {t} {existing.includes(t) ? "(already added)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="flex gap-2 pt-1">
+          <Button variant="outline" className="flex-1 rounded-xl" onClick={onClose}>Cancel</Button>
+          <Button
+            className="flex-1 rounded-xl"
+            disabled={!town || existing.includes(town) || saving}
+            onClick={handleAdd}
+          >
+            {saving ? "Saving..." : "Add Point"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CartPage() {
-  const { user } = useAuth();
+  const { user, refresh } = useAuth() as any;
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const savedPoints: string[] = (user as any)?.deliveryPoints ?? [];
-  const [selectedDeliveryPoint, setSelectedDeliveryPoint] = useState(savedPoints[0] ?? "");
-  const [customAddress, setCustomAddress] = useState(user?.address || "");
   const [notes, setNotes] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
-
-  const deliveryAddress = selectedDeliveryPoint || customAddress;
+  const [showAddPoint, setShowAddPoint] = useState(false);
 
   const { data: cart, refetch } = useGetCart({ query: { enabled: !!user } } as any);
 
@@ -41,7 +142,7 @@ export function CartPage() {
       onSuccess: (order: any) => {
         toast({
           title: "🎉 Order placed!",
-          description: `Order #${order.orderNumber} sent to seller. Once accepted, a transporter will set the delivery charge — you'll be notified to pay the final total.`,
+          description: `Order #${order.orderNumber} sent to seller. Once a transporter accepts, you'll be notified to complete payment.`,
         });
         setLocation("/buyer/orders");
       },
@@ -51,7 +152,6 @@ export function CartPage() {
     },
   });
 
-  // Backend returns: { items: [{listingId, listing:{...}, quantity, subtotal, platformFee}], subtotal, platformFee, total, itemCount }
   const items: any[] = (cart as any)?.items ?? [];
   const subtotal = Number((cart as any)?.subtotal ?? 0);
   const fees = Number((cart as any)?.platformFee ?? 0);
@@ -59,6 +159,25 @@ export function CartPage() {
 
   const hour = new Date().getHours();
   const isNightTime = hour >= 21;
+
+  const handleAddDeliveryPoint = async (town: string) => {
+    const newPoints = [...savedPoints, town];
+    const token = localStorage.getItem("pawzone_token") ?? "";
+    const res = await fetch("/api/users/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ deliveryPoints: newPoints }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body?.error || "Failed to save delivery point");
+    }
+    toast({ title: `📍 ${town} added as delivery point` });
+    if (typeof refresh === "function") await refresh();
+  };
+
+  const deliveryAddress = savedPoints.length > 0 ? savedPoints.join(", ") : (user?.address || user?.city || "");
+  const canPlaceOrder = deliveryAddress.trim().length > 0;
 
   if (!items.length) {
     return (
@@ -89,7 +208,6 @@ export function CartPage() {
           <p className="text-sm text-gray-500">{items.length} item{items.length !== 1 ? "s" : ""} in your cart</p>
         </div>
 
-        {/* Night warning — informational only, orders still allowed */}
         {isNightTime && (
           <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-sm text-amber-800 mb-6">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -115,7 +233,6 @@ export function CartPage() {
               return (
                 <div key={item.listingId} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex gap-4">
-                    {/* Image */}
                     <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
                       {photo ? (
                         <img src={photo} alt={listing.breed} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
@@ -124,7 +241,6 @@ export function CartPage() {
                       )}
                     </div>
 
-                    {/* Details */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
@@ -147,7 +263,6 @@ export function CartPage() {
                       </div>
 
                       <div className="flex items-center justify-between mt-3">
-                        {/* Quantity */}
                         <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-1">
                           <button
                             className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors"
@@ -221,58 +336,51 @@ export function CartPage() {
               ))}
             </div>
 
-            {/* Delivery & Checkout */}
+            {/* Delivery Points & Checkout */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
-              <h2 className="font-bold text-gray-900">Delivery Details</h2>
+              <h2 className="font-bold text-gray-900">Delivery Points</h2>
 
-              {/* Delivery Point selector */}
-              <div>
-                <label className="text-sm font-semibold text-gray-700 block mb-2">
-                  Select Delivery Point *
-                </label>
-                {savedPoints.length > 0 ? (
-                  <div className="space-y-2">
+              {savedPoints.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-gray-500">
+                    Your order will be delivered to any of these towns. Transporters match based on ALL your delivery points.
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
                     {savedPoints.map((point) => (
-                      <label
+                      <span
                         key={point}
-                        className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                          selectedDeliveryPoint === point
-                            ? "border-teal-500 bg-teal-50"
-                            : "border-gray-200 hover:border-gray-300 bg-white"
-                        }`}
+                        className="inline-flex items-center gap-1.5 text-xs bg-teal-50 border border-teal-200 text-teal-700 rounded-full px-3 py-1.5 font-medium"
                       >
-                        <input
-                          type="radio"
-                          name="deliveryPoint"
-                          value={point}
-                          checked={selectedDeliveryPoint === point}
-                          onChange={() => setSelectedDeliveryPoint(point)}
-                          className="accent-teal-600"
-                        />
-                        <MapPin className="w-4 h-4 text-teal-600 flex-shrink-0" />
-                        <span className={`text-sm font-medium ${selectedDeliveryPoint === point ? "text-teal-800" : "text-gray-700"}`}>
-                          {point}
-                        </span>
-                      </label>
+                        <MapPin className="w-3 h-3" />
+                        {point}
+                      </span>
                     ))}
-                    <p className="text-xs text-gray-400 mt-1">
-                      Transporter will be matched based on your selected delivery point.
-                    </p>
                   </div>
-                ) : (
-                  <div>
-                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2">
-                      No delivery points saved. Add them in your profile settings, or enter an address below.
-                    </p>
-                    <textarea
-                      className="w-full text-sm border border-gray-200 rounded-xl p-3 resize-none h-20 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
-                      placeholder="Enter your delivery address..."
-                      value={customAddress}
-                      onChange={(e) => setCustomAddress(e.target.value)}
-                    />
-                  </div>
-                )}
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddPoint(true)}
+                    className="flex items-center gap-1.5 text-sm text-teal-600 font-medium hover:text-teal-700 transition-colors mt-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Another Delivery Point
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    No delivery points saved. Add at least one town where you can receive deliveries.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddPoint(true)}
+                    className="flex items-center gap-1.5 text-sm text-teal-600 font-semibold hover:text-teal-700 transition-colors border border-teal-200 rounded-xl px-4 py-2.5 w-full justify-center"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Delivery Point
+                  </button>
+                </div>
+              )}
+
               <div>
                 <label className="text-sm font-semibold text-gray-700 block mb-1.5">Special Instructions</label>
                 <textarea
@@ -282,14 +390,18 @@ export function CartPage() {
                   onChange={(e) => setNotes(e.target.value)}
                 />
               </div>
+
               <Button
                 className="w-full h-12 rounded-xl text-base font-bold"
                 data-testid="button-place-order"
-                disabled={!deliveryAddress.trim() || placeOrder.isPending}
+                disabled={!canPlaceOrder || placeOrder.isPending}
                 onClick={() => setConfirmOpen(true)}
               >
                 {placeOrder.isPending ? "Placing order..." : `Place Order · ${formatPrice(total)}`}
               </Button>
+              {!canPlaceOrder && (
+                <p className="text-xs text-red-500 text-center">Please add at least one delivery point to continue.</p>
+              )}
               <p className="text-xs text-gray-400 text-center">
                 ⏰ Payment due within 3 hours of order placement
               </p>
@@ -304,8 +416,16 @@ export function CartPage() {
                       <div className="flex-1">
                         <h3 className="font-bold text-gray-900 mb-1">Before you continue</h3>
                         <p className="text-sm text-gray-600">
-                          Transport charges will be added after a transporter accepts the order. You can complete payment after that.
+                          Transport charges will be added after a transporter accepts the order. You will complete payment after that.
                         </p>
+                        {savedPoints.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            <span className="text-xs text-gray-500">Delivery to:</span>
+                            {savedPoints.map(p => (
+                              <span key={p} className="text-xs bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full font-medium">{p}</span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-2 justify-end pt-2">
@@ -333,7 +453,14 @@ export function CartPage() {
           </div>
         </div>
       </div>
+
+      {showAddPoint && (
+        <AddDeliveryPointModal
+          existing={savedPoints}
+          onAdd={handleAddDeliveryPoint}
+          onClose={() => setShowAddPoint(false)}
+        />
+      )}
     </div>
   );
 }
-

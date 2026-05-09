@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useSignup } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PawPrint, AlertCircle, CheckCircle, User, Mail, Phone, Lock, MapPin, Plus, X } from "lucide-react";
+import { PawPrint, AlertCircle, CheckCircle, User, Mail, Phone, Lock, MapPin, Plus, X, Upload, Loader2, FileText } from "lucide-react";
 
 const KERALA_DISTRICTS: Record<string, string[]> = {
   "Thiruvananthapuram": ["Thiruvananthapuram", "Neyyattinkara", "Attingal", "Varkala", "Nedumangad", "Kazhakoottam", "Balaramapuram"],
@@ -16,7 +16,7 @@ const KERALA_DISTRICTS: Record<string, string[]> = {
   "Alappuzha": ["Alappuzha", "Chengannur", "Mavelikkara", "Kayamkulam", "Haripad", "Cherthala", "Kuttanad"],
   "Kottayam": ["Kottayam", "Pala", "Changanassery", "Ettumanoor", "Vaikom", "Kanjirappally", "Erattupetta"],
   "Idukki": ["Idukki", "Thodupuzha", "Munnar", "Kattappana", "Adimali", "Devikulam", "Kumily"],
-  "Ernakulam": ["Kochi", "Aluva", "Perumbavoor", "Angamaly", "North Paravur", "Kothamangalam", "Muvattupuzha", "Thrippunithura"],
+  "Ernakulam": ["Kochi", "Aluva", "Perumbavoor", "Angamaly", "North Paravur", "Kothamangalam", "Muvattupuzha", "Thrippunithura", "Tripunithura", "Kakkanad", "Kadavanthara", "Panampally"],
   "Thrissur": ["Thrissur", "Chalakudy", "Kunnamkulam", "Guruvayur", "Irinjalakuda", "Kodungallur", "Mala"],
   "Palakkad": ["Palakkad", "Ottappalam", "Mannarkkad", "Chittur", "Pattambi", "Shornur", "Alathur"],
   "Malappuram": ["Malappuram", "Manjeri", "Tirur", "Perinthalmanna", "Ponnani", "Kondotty", "Kalpetta"],
@@ -40,6 +40,88 @@ const COUNTRIES = ["India", "United Arab Emirates", "United Kingdom", "United St
 
 type DPEntry = { district: string; towns: string[] };
 
+async function uploadFile(file: File): Promise<string> {
+  const token = localStorage.getItem("pawzone_token") ?? "";
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.error || "Upload failed");
+  }
+  const data = await res.json();
+  return data.url as string;
+}
+
+function DocUpload({
+  label,
+  hint,
+  url,
+  onUrl,
+}: {
+  label: string;
+  hint: string;
+  url: string;
+  onUrl: (u: string) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState("");
+  const ref = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setErr("");
+    setUploading(true);
+    try {
+      const u = await uploadFile(file);
+      onUrl(u);
+    } catch (ex: any) {
+      setErr(ex?.message || "Upload failed");
+    } finally {
+      setUploading(false);
+      if (ref.current) ref.current.value = "";
+    }
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-semibold text-gray-700">{label} *</Label>
+      <p className="text-xs text-gray-500">{hint}</p>
+      <div
+        className={`flex items-center gap-3 p-3 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${url ? "border-green-300 bg-green-50" : "border-gray-200 bg-gray-50 hover:border-teal-300 hover:bg-teal-50"}`}
+        onClick={() => ref.current?.click()}
+      >
+        <input ref={ref} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+        {uploading ? (
+          <Loader2 className="w-5 h-5 text-teal-600 animate-spin flex-shrink-0" />
+        ) : url ? (
+          <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+        ) : (
+          <Upload className="w-5 h-5 text-gray-400 flex-shrink-0" />
+        )}
+        <span className={`text-sm flex-1 ${url ? "text-green-700 font-medium" : "text-gray-500"}`}>
+          {uploading ? "Uploading..." : url ? "Document uploaded ✓" : "Click to upload image"}
+        </span>
+        {url && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onUrl(""); }}
+            className="text-red-400 hover:text-red-600"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+      {err && <p className="text-xs text-red-600">{err}</p>}
+    </div>
+  );
+}
+
 export function SignupPage() {
   const [, setLocation] = useLocation();
   const { login } = useAuth();
@@ -57,12 +139,13 @@ export function SignupPage() {
   });
   const [district, setDistrict] = useState("");
   const [dpEntries, setDpEntries] = useState<DPEntry[]>([{ district: "", towns: [] }]);
+  const [governmentIdUrl, setGovernmentIdUrl] = useState("");
+  const [rcBookUrl, setRcBookUrl] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
   const isKerala = form.state === "Kerala";
   const keralaTowns = district ? (KERALA_DISTRICTS[district] ?? []) : [];
-
   const allDeliveryPoints = dpEntries.flatMap(e => e.towns);
 
   const toggleTown = (entryIdx: number, town: string) => {
@@ -81,7 +164,6 @@ export function SignupPage() {
 
   const addEntry = () => setDpEntries(prev => [...prev, { district: "", towns: [] }]);
   const removeEntry = (idx: number) => setDpEntries(prev => prev.filter((_, i) => i !== idx));
-
   const removeTown = (town: string) => {
     setDpEntries(prev => prev.map(e => ({ ...e, towns: e.towns.filter(t => t !== town) })));
   };
@@ -104,15 +186,30 @@ export function SignupPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (form.role === "seller" && !governmentIdUrl) {
+      setError("Please upload your Government ID card before submitting.");
+      return;
+    }
+    if (form.role === "transporter" && !governmentIdUrl) {
+      setError("Please upload your Government ID card before submitting.");
+      return;
+    }
+    if (form.role === "transporter" && !rcBookUrl) {
+      setError("Please upload your RC Book before submitting.");
+      return;
+    }
+
     const firstTown = dpEntries[0]?.towns[0] ?? "";
     const city = form.city || firstTown;
-    const payload: any = {
-      ...form,
-      city,
-    };
+    const payload: any = { ...form, city };
+
     if (isKerala && form.role !== "transporter" && allDeliveryPoints.length > 0) {
       payload.deliveryPoints = allDeliveryPoints;
     }
+    if (governmentIdUrl) payload.governmentIdUrl = governmentIdUrl;
+    if (rcBookUrl) payload.rcBookUrl = rcBookUrl;
+
     signupMutation.mutate({ data: payload });
   };
 
@@ -125,7 +222,7 @@ export function SignupPage() {
           </div>
           <h2 className="text-2xl font-bold mb-2 text-gray-900">Account Created!</h2>
           <p className="text-gray-500 text-sm leading-relaxed">
-            Your account is pending admin approval. You'll receive a notification once approved. Usually takes 24 hours.
+            Your account is pending admin approval. Our team will review your documents and approve your account within 24 hours.
           </p>
           <Button className="mt-6 w-full" onClick={() => setLocation("/login")}>Go to Login</Button>
         </Card>
@@ -181,7 +278,7 @@ export function SignupPage() {
                 {form.role !== "buyer" && (
                   <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
-                    Requires admin approval before dashboard access
+                    Requires admin approval (document verification) before dashboard access
                   </p>
                 )}
                 {form.role === "buyer" && (
@@ -192,7 +289,7 @@ export function SignupPage() {
                 )}
               </div>
 
-              {/* Name + Email */}
+              {/* Name + Email + Phone + Password */}
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <Label className="text-sm font-semibold text-gray-700">Full Name *</Label>
@@ -261,41 +358,7 @@ export function SignupPage() {
                     )}
                   </div>
 
-                  {/* For Kerala buyers/sellers: district for primary city only */}
-                  {isKerala && form.role !== "transporter" ? (
-                    <>
-                      <div>
-                        <Label className="text-xs text-gray-500">District (primary)</Label>
-                        <Select value={district} onValueChange={(v) => { setDistrict(v); setForm({ ...form, city: "" }); }}>
-                          <SelectTrigger className="mt-1 rounded-xl border-gray-200">
-                            <SelectValue placeholder="Select district" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {KERALA_CITIES.map((d) => (
-                              <SelectItem key={d} value={d}>{d}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label className="text-xs text-gray-500">Primary Town</Label>
-                        <Select
-                          value={form.city}
-                          onValueChange={(v) => setForm({ ...form, city: v })}
-                          disabled={!district}
-                        >
-                          <SelectTrigger className="mt-1 rounded-xl border-gray-200">
-                            <SelectValue placeholder={district ? "Select town" : "Select district first"} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {keralaTowns.map((t) => (
-                              <SelectItem key={t} value={t}>{t}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </>
-                  ) : isKerala && form.role === "transporter" ? (
+                  {isKerala ? (
                     <>
                       <div>
                         <Label className="text-xs text-gray-500">District</Label>
@@ -312,11 +375,7 @@ export function SignupPage() {
                       </div>
                       <div>
                         <Label className="text-xs text-gray-500">Town / City</Label>
-                        <Select
-                          value={form.city}
-                          onValueChange={(v) => setForm({ ...form, city: v })}
-                          disabled={!district}
-                        >
+                        <Select value={form.city} onValueChange={(v) => setForm({ ...form, city: v })} disabled={!district}>
                           <SelectTrigger className="mt-1 rounded-xl border-gray-200">
                             <SelectValue placeholder={district ? "Select town" : "Select district first"} />
                           </SelectTrigger>
@@ -346,27 +405,26 @@ export function SignupPage() {
                 </div>
                 {!isKerala && (
                   <p className="text-xs text-amber-600 mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    ⚠️ Full services (buying, selling, transport) are currently available within Kerala. We're expanding soon — you can sign up now and be ready!
+                    ⚠️ Full services are currently available within Kerala. You can sign up now and be ready when we expand!
                   </p>
                 )}
               </div>
 
-              {/* Delivery Points — for Kerala buyers and sellers only */}
+              {/* Delivery / Pickup Points — Buyers and Sellers only */}
               {isKerala && form.role !== "transporter" && (
                 <div className="space-y-3">
                   <div>
                     <Label className="text-sm font-semibold text-gray-700 flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5 text-teal-600" />
-                      {form.role === "buyer" ? "Delivery Points" : "Pickup / Delivery Points"}
+                      {form.role === "buyer" ? "Delivery Points" : "Pickup Points"}
                     </Label>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {form.role === "buyer"
-                        ? "Select the towns where you can receive deliveries. Transporters will match based on these."
-                        : "Select towns where you can hand over pets to transporters."}
+                        ? "Select towns where you can receive pet deliveries. Transporters match based on these."
+                        : "Select towns where you can hand over pets to transporters for delivery."}
                     </p>
                   </div>
 
-                  {/* Selected delivery point tags */}
                   {allDeliveryPoints.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {allDeliveryPoints.map(town => (
@@ -380,7 +438,6 @@ export function SignupPage() {
                     </div>
                   )}
 
-                  {/* Per-district entry rows */}
                   {dpEntries.map((entry, idx) => {
                     const entryTowns = entry.district ? (KERALA_DISTRICTS[entry.district] ?? []) : [];
                     return (
@@ -430,8 +487,50 @@ export function SignupPage() {
                     className="flex items-center gap-1.5 text-sm text-teal-600 font-medium hover:text-teal-700 transition-colors"
                   >
                     <Plus className="w-4 h-4" />
-                    Add Another Delivery Point (different district)
+                    Add from another district
                   </button>
+                </div>
+              )}
+
+              {/* Document Uploads — Seller */}
+              {form.role === "seller" && (
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FileText className="w-4 h-4 text-purple-600" />
+                    <Label className="text-sm font-semibold text-gray-700">Verification Documents</Label>
+                  </div>
+                  <div className="bg-purple-50 border border-purple-100 rounded-xl p-4 space-y-3">
+                    <DocUpload
+                      label="Government Approved ID Card"
+                      hint="Upload a clear photo of your Aadhaar, Voter ID, Passport, or Driving Licence. Must show your phone number or address."
+                      url={governmentIdUrl}
+                      onUrl={setGovernmentIdUrl}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Document Uploads — Transporter */}
+              {form.role === "transporter" && (
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FileText className="w-4 h-4 text-blue-600" />
+                    <Label className="text-sm font-semibold text-gray-700">Verification Documents (Required)</Label>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-4">
+                    <DocUpload
+                      label="RC Book (Registration Certificate)"
+                      hint="Upload a clear photo of your vehicle's RC book."
+                      url={rcBookUrl}
+                      onUrl={setRcBookUrl}
+                    />
+                    <DocUpload
+                      label="Government Approved ID Card"
+                      hint="Upload a clear photo of your Aadhaar, Voter ID, Passport, or Driving Licence."
+                      url={governmentIdUrl}
+                      onUrl={setGovernmentIdUrl}
+                    />
+                  </div>
                 </div>
               )}
 
