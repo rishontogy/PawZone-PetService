@@ -1,0 +1,301 @@
+# PAWZONE – CART DELIVERY POINT + PARENT PHOTO LISTING UPDATE
+
+Update the PawZone Windows desktop application with the following REQUIRED buyer cart delivery point logic and seller listing media enhancements.
+
+This is a FUNCTIONAL + DATA FLOW UPDATE.
+Implement exactly as described.
+
+---
+
+# 1. BUYER CART – ADD DELIVERY POINT FEATURE
+
+---
+
+Currently:
+Buyer has saved default delivery towns.
+
+Now add support for:
+“Add Delivery Point For This Order”
+
+IMPORTANT:
+This must apply ONLY to the CURRENT ORDER.
+It must NOT affect:
+
+* profile default delivery points
+* other orders
+* future orders
+
+---
+
+# 2. REQUIRED CART FLOW
+
+---
+
+Inside cart page:
+
+Show:
+
+* Default delivery towns from buyer profile
+
+Add button:
+➕ Add Delivery Point
+
+---
+
+# 3. ADD DELIVERY POINT MODAL
+
+---
+
+When clicked:
+
+Open modal/page with:
+
+---
+
+## Fields
+
+---
+
+1. District dropdown
+2. Town multi-select dropdown
+
+---
+
+## FILTER LOGIC
+
+---
+
+After selecting district:
+ONLY towns from that district must appear.
+
+Example:
+
+District:
+Kottayam
+
+Available towns:
+
+* Ettumanoor
+* Pala
+* Vaikom
+  etc.
+
+---
+
+# 4. ORDER-SPECIFIC DELIVERY POINT RULE
+
+---
+
+CRITICAL RULE:
+
+Newly added delivery points are ONLY for:
+THIS SPECIFIC ORDER.
+
+DO NOT:
+❌ save to buyer profile permanently
+❌ affect other orders
+❌ affect account delivery points
+
+---
+
+# 5. ORDER STORAGE REQUIREMENT
+
+---
+
+Store order delivery points separately:
+
+Example:
+
+```js id="dlv001"
+order.deliveryPoints = [
+  {
+    district: "Kottayam",
+    towns: ["Ettumanoor", "Pala"]
+  }
+]
+```
+
+Use these order-specific points for:
+
+* transporter matching
+* pickup/drop calculation
+* notifications
+
+---
+
+# 6. TRANSPORT MATCHING UPDATE
+
+---
+
+Transporters should match using:
+
+Seller pickup towns
++
+Current order delivery towns
+
+NOT all buyer saved towns.
+
+---
+
+# 7. UI REQUIREMENTS
+
+---
+
+Inside cart:
+Clearly separate:
+
+---
+
+## Default Delivery Points
+
+---
+
+(saved in profile)
+
+---
+
+## Additional Delivery Points For This Order
+
+---
+
+(order-specific only)
+
+Allow:
+
+* Add
+* Remove
+* Edit before placing order
+
+---
+
+# 8. SELLER LISTING PAGE – PARENT PHOTO FEATURE
+
+---
+
+Update seller Add Listing page.
+
+---
+
+## ADD NEW MEDIA FIELDS
+
+---
+
+Add:
+
+* Father Photo Upload
+* Mother Photo Upload
+
+---
+
+# 9. VALIDATION RULE
+
+---
+
+At least ONE parent photo is REQUIRED.
+
+Allowed:
+✅ Only father photo
+✅ Only mother photo
+✅ Both photos
+
+NOT allowed:
+❌ neither uploaded
+
+---
+
+# 10. MEDIA STORAGE REQUIREMENT
+
+---
+
+Store parent photos properly in backend/database.
+
+Each listing should contain:
+
+```js id="media001"
+{
+  fatherPhoto: "...",
+  motherPhoto: "..."
+}
+```
+
+---
+
+# 11. BUYER PRODUCT DETAILS UPDATE
+
+---
+
+Buyer product details page must display:
+
+---
+
+## Parent Section
+
+---
+
+Show:
+
+* Father Photo (if available)
+* Mother Photo (if available)
+
+Use proper image cards/gallery.
+
+---
+
+# 12. ADMIN REVIEW UPDATE
+
+---
+
+Admin listing review page must also show:
+
+* Father photo
+* Mother photo
+
+for verification.
+
+---
+
+# 13. IMAGE HANDLING REQUIREMENTS
+
+---
+
+Ensure:
+
+* uploads work correctly
+* previews render properly
+* images persist after refresh
+* no broken URLs
+* accessible across all roles
+
+---
+
+# 14. VALIDATION TESTS (MUST PASS)
+
+---
+
+✅ Add order-specific delivery points
+✅ District-town filtering works
+✅ Multiple towns selectable
+✅ Points apply only to current order
+✅ Transport matching uses order points
+✅ Seller uploads father photo
+✅ Seller uploads mother photo
+✅ At least one required
+✅ Parent photos visible to buyer
+✅ Parent photos visible to admin
+✅ Images stored correctly
+
+---
+
+# FINAL RULE
+
+---
+
+Do NOT implement temporary UI-only logic.
+
+Everything must:
+
+* store properly
+* sync properly
+* persist correctly
+* work across refresh/restart
+* integrate into transporter matching system correctly

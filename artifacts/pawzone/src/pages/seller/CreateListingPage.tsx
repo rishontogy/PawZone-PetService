@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Upload, X, ImagePlus, CheckCircle } from "lucide-react";
+import { ChevronLeft, Upload, X, ImagePlus, CheckCircle, Loader2 } from "lucide-react";
 import { getApiBase } from "@/lib/api";
 
 const CATEGORIES = ["dogs", "cats", "birds", "fish", "rabbits", "others"];
@@ -34,9 +34,15 @@ export function CreateListingPage() {
 
   const [photos, setPhotos] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string>("");
+  const [fatherPhoto, setFatherPhoto] = useState<string>("");
+  const [motherPhoto, setMotherPhoto] = useState<string>("");
+  const [fatherUploading, setFatherUploading] = useState(false);
+  const [motherUploading, setMotherUploading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [videoUploading, setVideoUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const fatherInputRef = useRef<HTMLInputElement>(null);
+  const motherInputRef = useRef<HTMLInputElement>(null);
 
   const uploadFile = async (file: File): Promise<string | null> => {
     if (!file.type.startsWith("image/")) {
@@ -118,6 +124,49 @@ export function CreateListingPage() {
 
   const removePhoto = (idx: number) => setPhotos((prev) => prev.filter((_, i) => i !== idx));
 
+  const uploadParentPhoto = async (file: File): Promise<string | null> => {
+    if (!file.type.startsWith("image/")) {
+      toast({ variant: "destructive", title: "Invalid file", description: "Only image files allowed" });
+      return null;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "File too large", description: "Max 10MB per image" });
+      return null;
+    }
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch(`${getApiBase()}/upload`, { method: "POST", body: fd });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.url;
+  };
+
+  const handleFatherPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFatherUploading(true);
+    try {
+      const url = await uploadParentPhoto(file);
+      if (url) setFatherPhoto(url);
+    } finally {
+      setFatherUploading(false);
+      if (fatherInputRef.current) fatherInputRef.current.value = "";
+    }
+  };
+
+  const handleMotherPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setMotherUploading(true);
+    try {
+      const url = await uploadParentPhoto(file);
+      if (url) setMotherPhoto(url);
+    } finally {
+      setMotherUploading(false);
+      if (motherInputRef.current) motherInputRef.current.value = "";
+    }
+  };
+
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -126,6 +175,10 @@ export function CreateListingPage() {
     const female = parseInt(form.femaleQuantity) || 0;
     if (male + female <= 0) {
       toast({ variant: "destructive", title: "Invalid quantity", description: "Add at least 1 male or female." });
+      return;
+    }
+    if (!fatherPhoto && !motherPhoto) {
+      toast({ variant: "destructive", title: "Parent photo required", description: "Please upload at least one parent photo (father or mother)." });
       return;
     }
     setSubmitting(true);
@@ -145,6 +198,8 @@ export function CreateListingPage() {
           description: form.description || "—",
           photos: photos.length > 0 ? photos : undefined,
           videoUrl: videoUrl || undefined,
+          fatherPhoto: fatherPhoto || undefined,
+          motherPhoto: motherPhoto || undefined,
           address: form.address,
           city: form.city,
         }),
@@ -354,6 +409,90 @@ export function CreateListingPage() {
                       </>
                     )}
                   </div>
+                )}
+              </div>
+
+              {/* Parent Photos */}
+              <div className="space-y-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <div>
+                  <Label className="font-semibold text-gray-700 block">Parent Photos *</Label>
+                  <p className="text-xs text-gray-500 mt-0.5">Upload at least one parent photo. Buyers trust listings with visible parentage.</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Father Photo */}
+                  <div>
+                    <Label className="text-sm font-medium text-blue-700 block mb-1">♂ Father Photo</Label>
+                    {fatherPhoto ? (
+                      <div className="relative rounded-xl overflow-hidden aspect-square bg-gray-100 group">
+                        <img src={fatherPhoto} alt="Father" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setFatherPhoto("")}
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="absolute bottom-1 left-1 bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded font-medium">Father</span>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => fatherInputRef.current?.click()}
+                        className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${fatherUploading ? "opacity-60 pointer-events-none border-blue-200" : "border-blue-200 hover:border-blue-400 hover:bg-blue-50"}`}
+                      >
+                        <input ref={fatherInputRef} type="file" accept="image/*" className="hidden" onChange={handleFatherPhotoChange} />
+                        {fatherUploading ? (
+                          <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+                        ) : (
+                          <>
+                            <Upload className="w-6 h-6 text-blue-300 mb-1" />
+                            <span className="text-xs text-gray-400">Upload</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {/* Mother Photo */}
+                  <div>
+                    <Label className="text-sm font-medium text-pink-600 block mb-1">♀ Mother Photo</Label>
+                    {motherPhoto ? (
+                      <div className="relative rounded-xl overflow-hidden aspect-square bg-gray-100 group">
+                        <img src={motherPhoto} alt="Mother" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setMotherPhoto("")}
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="absolute bottom-1 left-1 bg-pink-500 text-white text-xs px-1.5 py-0.5 rounded font-medium">Mother</span>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => motherInputRef.current?.click()}
+                        className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${motherUploading ? "opacity-60 pointer-events-none border-pink-200" : "border-pink-200 hover:border-pink-400 hover:bg-pink-50"}`}
+                      >
+                        <input ref={motherInputRef} type="file" accept="image/*" className="hidden" onChange={handleMotherPhotoChange} />
+                        {motherUploading ? (
+                          <Loader2 className="w-6 h-6 text-pink-500 animate-spin" />
+                        ) : (
+                          <>
+                            <Upload className="w-6 h-6 text-pink-300 mb-1" />
+                            <span className="text-xs text-gray-400">Upload</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {!fatherPhoto && !motherPhoto && (
+                  <p className="text-xs text-amber-700 flex items-center gap-1">
+                    ⚠️ At least one parent photo is required before submitting.
+                  </p>
+                )}
+                {(fatherPhoto || motherPhoto) && (
+                  <p className="text-xs text-green-700 flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5" /> {fatherPhoto && motherPhoto ? "Both parent photos uploaded" : fatherPhoto ? "Father photo uploaded" : "Mother photo uploaded"}
+                  </p>
                 )}
               </div>
 

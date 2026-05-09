@@ -17,6 +17,8 @@ export const listingsTable = pgTable("listings", {
   vaccinationDetails: text("vaccination_details"),
   photos: text("photos").array().notNull().default([]),
   videoUrl: text("video_url"),
+  fatherPhoto: text("father_photo"),
+  motherPhoto: text("mother_photo"),
   description: text("description").notNull(),
   status: text("status").notNull().default("pending").$type<"pending" | "approved" | "rejected" | "sold_out" | "inactive">(),
   rejectionReason: text("rejection_reason"),

@@ -182,6 +182,41 @@ export function ListingDetailPage() {
               </div>
             )}
 
+            {/* Parent Photos */}
+            {((listing as any).fatherPhoto || (listing as any).motherPhoto) && (
+              <div>
+                <h3 className="font-semibold mb-2">Parent Photos</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {(listing as any).fatherPhoto && (
+                    <div className="space-y-1">
+                      <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 border border-blue-100">
+                        <img
+                          src={(listing as any).fatherPhoto}
+                          alt="Father"
+                          className="w-full h-full object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                        />
+                      </div>
+                      <p className="text-xs text-center font-medium text-blue-700">♂ Father</p>
+                    </div>
+                  )}
+                  {(listing as any).motherPhoto && (
+                    <div className="space-y-1">
+                      <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 border border-pink-100">
+                        <img
+                          src={(listing as any).motherPhoto}
+                          alt="Mother"
+                          className="w-full h-full object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                        />
+                      </div>
+                      <p className="text-xs text-center font-medium text-pink-600">♀ Mother</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>{listing.availableQuantity} of {listing.quantity} available</span>
             </div>
