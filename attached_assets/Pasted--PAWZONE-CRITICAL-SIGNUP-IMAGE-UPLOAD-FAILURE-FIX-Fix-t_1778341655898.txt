@@ -1,0 +1,285 @@
+# PAWZONE – CRITICAL SIGNUP IMAGE UPLOAD FAILURE FIX
+
+Fix the CRITICAL image upload failure issue in the PawZone application immediately.
+
+Currently BOTH:
+
+* Seller signup
+* Transporter signup
+
+are showing:
+❌ “Upload Failed”
+
+while uploading document images.
+
+This is a BACKEND + FRONTEND upload handling issue.
+Do NOT patch only UI.
+
+---
+
+# 1. ROOT ISSUE TO FIX
+
+---
+
+The upload APIs are failing during signup because of one or more of these issues:
+
+* Wrong API endpoint
+* Unauthorized middleware blocking public upload
+* multipart/form-data not handled
+* File parser not configured
+* Backend returning HTML instead of JSON
+* Invalid storage path
+* Missing upload directory
+* Incorrect frontend request format
+* File size/type validation failure
+* Wrong field names
+
+Find the exact cause and FIX IT completely.
+
+---
+
+# 2. REQUIRED BEHAVIOR
+
+---
+
+---
+
+## Seller Signup
+
+---
+
+Seller must upload:
+
+* Government ID image
+
+Flow:
+
+1. Select image
+2. Preview image
+3. Upload successfully
+4. Continue signup
+5. Store image path in database
+
+---
+
+## Transporter Signup
+
+---
+
+Transporter must upload:
+
+* RC Book image
+* Government ID image
+
+Flow:
+
+1. Select images
+2. Preview images
+3. Upload successfully
+4. Continue signup
+5. Store paths in database
+
+---
+
+# 3. BACKEND FIX REQUIREMENTS
+
+---
+
+Ensure signup upload endpoints are PUBLIC.
+
+REMOVE auth requirement from:
+
+* seller signup upload
+* transporter signup upload
+
+---
+
+## Proper upload middleware
+
+---
+
+Use proper multipart handling:
+
+Examples:
+
+* multer
+* express-fileupload
+* formData parser
+
+Ensure:
+Content-Type:
+multipart/form-data
+
+---
+
+## Storage
+
+---
+
+Ensure upload folder exists:
+
+Example:
+uploads/
+uploads/documents/
+uploads/ids/
+
+Auto-create directories if missing.
+
+---
+
+## Backend response format
+
+---
+
+Return VALID JSON only.
+
+Example success:
+
+```json
+{
+  "success": true,
+  "fileUrl": "/uploads/documents/id_123.jpg"
+}
+```
+
+Example failure:
+
+```json
+{
+  "success": false,
+  "message": "Upload failed"
+}
+```
+
+NEVER return HTML error pages.
+
+---
+
+# 4. FRONTEND FIX REQUIREMENTS
+
+---
+
+Ensure frontend uses:
+FormData()
+
+Example:
+
+```js
+const formData = new FormData();
+formData.append("document", file);
+```
+
+Send correctly to backend.
+
+---
+
+## Required frontend features
+
+---
+
+* Image preview
+* Upload progress
+* Proper error handling
+* Retry upload support
+
+---
+
+# 5. FILE VALIDATION
+
+---
+
+Allow:
+
+* jpg
+* jpeg
+* png
+* webp
+
+Set reasonable size limit:
+Example:
+10MB
+
+---
+
+# 6. DATABASE STORAGE
+
+---
+
+Store:
+
+* uploaded file path
+* user reference
+* upload type
+
+Examples:
+
+* seller_id_document
+* transporter_rc
+* transporter_id
+
+---
+
+# 7. ADMIN ACCESS
+
+---
+
+Admin approval page must display uploaded images correctly.
+
+Admin can:
+
+* preview
+* zoom
+* approve
+* reject
+
+---
+
+# 8. VALIDATION TESTS (MUST PASS)
+
+---
+
+TEST ALL:
+
+✅ Seller uploads ID successfully
+✅ Transporter uploads RC successfully
+✅ Transporter uploads ID successfully
+✅ Images preview correctly
+✅ Images persist after refresh
+✅ Signup completes successfully
+✅ Admin can view uploads
+✅ No Unauthorized error
+✅ No Upload Failed error
+✅ No invalid JSON response
+✅ No broken image URLs
+
+---
+
+# 9. DEBUGGING REQUIREMENT
+
+---
+
+While fixing:
+
+* Check browser console
+* Check network requests
+* Check backend logs
+* Check API responses
+
+If upload fails:
+log exact reason and fix immediately.
+
+---
+
+# FINAL RULE
+
+---
+
+This must behave like a REAL production signup upload system.
+
+No fake uploads.
+No temporary storage only.
+No broken preview.
+No unauthorized errors.
+No failed API responses.
+
+Everything must upload and store correctly.
