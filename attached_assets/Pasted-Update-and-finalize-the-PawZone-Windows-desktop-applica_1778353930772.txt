@@ -1,0 +1,259 @@
+Update and finalize the PawZone Windows desktop application with the following CRITICAL seller listing improvements.
+
+This is a DATABASE STORAGE + ADMIN VERIFICATION + BUYER VISIBILITY + LOCATION LOGIC FIX task.
+
+If any issue is found:
+→ FIX immediately
+→ Re-test
+→ Ensure proper synchronization across Seller, Buyer, and Admin.
+
+---------------------------------------------------
+🐾 1. PARENT PHOTOS – PERMANENT DATABASE STORAGE
+---------------------------------------------------
+
+# ❌ CURRENT ISSUE
+
+Parent photos uploaded by seller are:
+- Not reliably stored
+- Not visible everywhere
+- Missing in admin verification
+- Missing in buyer product details
+
+---------------------------------------------------
+✅ REQUIRED FIX
+---------------------------------------------------
+
+When seller uploads:
+- Father photo
+- Mother photo
+
+Store BOTH permanently in database/storage.
+
+---------------------------------------------------
+💾 DATABASE REQUIREMENTS
+---------------------------------------------------
+
+Save properly as:
+
+father_photo_url
+mother_photo_url
+
+Ensure:
+- URLs are permanent
+- Images persist after refresh
+- Images survive app restart
+- Images visible in all roles
+
+---------------------------------------------------
+⚠️ IMPORTANT
+---------------------------------------------------
+
+Do NOT use temporary local-only preview URLs.
+
+Use:
+- Proper storage path
+- Persistent database entry
+- Correct retrieval API
+
+---------------------------------------------------
+🛠 VALIDATION
+---------------------------------------------------
+
+After upload:
+✔ Refresh app
+✔ Logout/login
+✔ Open listing again
+
+Images must STILL exist.
+
+---------------------------------------------------
+🛒 2. BUYER PRODUCT DETAILS PAGE
+---------------------------------------------------
+
+When buyer opens product details:
+
+Add dedicated section:
+
+🐶 Parent Verification
+
+---------------------------------------------------
+DISPLAY:
+---------------------------------------------------
+
+If father photo exists:
+- Show image card
+- Label:
+  "Father"
+
+If mother photo exists:
+- Show image card
+- Label:
+  "Mother"
+
+---------------------------------------------------
+UI REQUIREMENTS
+---------------------------------------------------
+
+- Clean card layout
+- Responsive
+- Proper image scaling
+- No broken placeholders
+- Side-by-side if both available
+
+---------------------------------------------------
+⚠️ PURPOSE
+---------------------------------------------------
+
+Buyer must be able to:
+- Verify parent lineage
+- Inspect father/mother visually before purchase
+
+---------------------------------------------------
+🛠 3. ADMIN APPROVAL PAGE – PARENT VERIFICATION
+---------------------------------------------------
+
+When admin opens:
+Review Listings → Listing Details
+
+Admin MUST see:
+
+✔ Pet images
+✔ Pet videos
+✔ Father photo
+✔ Mother photo
+
+---------------------------------------------------
+ADD CLEAR TAGS:
+---------------------------------------------------
+
+🟦 Father Photo
+🟪 Mother Photo
+
+---------------------------------------------------
+ADMIN VERIFICATION PURPOSE
+---------------------------------------------------
+
+Admin must verify:
+- Authenticity
+- Proper upload
+- Correct visibility
+- No fake/broken media
+
+---------------------------------------------------
+⚠️ IMPORTANT
+---------------------------------------------------
+
+If parent photo missing:
+- Show “Not Uploaded”
+
+Do NOT break layout.
+
+---------------------------------------------------
+📍 4. REMOVE CITY & ADDRESS FROM ADD LISTING
+---------------------------------------------------
+
+# ❌ CURRENT PROBLEM
+
+Seller currently enters:
+- City
+- Address
+
+inside Add Listing page.
+
+This is unnecessary and causes mismatch.
+
+---------------------------------------------------
+✅ REQUIRED CHANGE
+---------------------------------------------------
+
+REMOVE from Add Listing page:
+
+❌ City field
+❌ Address field
+
+---------------------------------------------------
+✅ NEW LOGIC
+---------------------------------------------------
+
+Pet district MUST automatically use:
+
+Seller Account District
+
+Example:
+Seller registered in:
+Kottayam
+
+→ ALL pets listed by that seller automatically belong to:
+Kottayam district
+
+---------------------------------------------------
+🧠 IMPLEMENTATION RULE
+---------------------------------------------------
+
+When creating listing:
+
+listing.district = seller.account.district
+
+---------------------------------------------------
+⚠️ IMPORTANT
+---------------------------------------------------
+
+Seller must NOT manually override district.
+
+This ensures:
+✔ Accurate transporter filtering
+✔ Consistent location logic
+✔ Cleaner listings
+
+---------------------------------------------------
+🧪 5. REQUIRED TEST CASES
+---------------------------------------------------
+
+CASE 1:
+Upload father photo only
+→ Stored permanently
+→ Visible to buyer/admin
+
+CASE 2:
+Upload mother photo only
+→ Stored correctly
+
+CASE 3:
+Upload both
+→ Both visible everywhere
+
+CASE 4:
+Refresh app
+→ Images still available
+
+CASE 5:
+Admin opens review listing
+→ Parent photos visible
+
+CASE 6:
+Buyer opens product details
+→ Parent photos visible
+
+CASE 7:
+Create listing
+→ District auto-filled from seller profile
+
+CASE 8:
+No city/address fields visible in Add Listing page
+
+---------------------------------------------------
+🎯 FINAL REQUIREMENT
+---------------------------------------------------
+
+After implementation:
+
+✔ Parent photos stored permanently
+✔ Parent photos visible to admin
+✔ Parent photos visible to buyers
+✔ Father/Mother labels shown properly
+✔ No upload failures
+✔ No broken images
+✔ Seller district auto-used for listings
+✔ No city/address fields in listing page
+✔ Transport/location logic remains accurate
+✔ Production-ready implementation

@@ -107,6 +107,8 @@ router.post("/listings", authMiddleware, async (req, res): Promise<void> => {
     status: "pending",
     petCode,
     photos: parsed.data.photos ?? [],
+    city: user.city || parsed.data.city || "",
+    address: user.address || parsed.data.address || "",
   }).returning();
 
   const [seller] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, user.id));

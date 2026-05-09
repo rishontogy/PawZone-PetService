@@ -12,7 +12,6 @@ import { ChevronLeft, X, ImagePlus, CheckCircle, Upload, Loader2 } from "lucide-
 import { getApiBase } from "@/lib/api";
 
 const CATEGORIES = ["dogs", "cats", "birds", "fish", "rabbits", "others"];
-const KERALA_CITIES = ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kollam", "Palakkad", "Alappuzha", "Malappuram", "Kottayam", "Kannur", "Kasaragod", "Wayanad", "Idukki", "Pathanamthitta"];
 
 export function EditListingPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,9 +33,8 @@ export function EditListingPage() {
     vaccinated: false,
     vaccinationDetails: "",
     description: "",
-    address: "",
-    city: "",
   });
+  const [listingCity, setListingCity] = useState<string>("");
   const [photos, setPhotos] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string>("");
   const [fatherPhoto, setFatherPhoto] = useState<string>("");
@@ -60,9 +58,8 @@ export function EditListingPage() {
         vaccinated: Boolean(l.vaccinated),
         vaccinationDetails: l.vaccinationDetails || "",
         description: l.description || "",
-        address: l.address || "",
-        city: l.city || "",
       });
+      setListingCity(l.city || "");
       setPhotos(l.photos || []);
       setVideoUrl(l.videoUrl || "");
       setFatherPhoto(l.fatherPhoto || "");
@@ -228,8 +225,6 @@ export function EditListingPage() {
           videoUrl: videoUrl || undefined,
           fatherPhoto: fatherPhoto || undefined,
           motherPhoto: motherPhoto || undefined,
-          address: form.address,
-          city: form.city,
         }),
       });
       const data = await res.json();
@@ -567,34 +562,19 @@ export function EditListingPage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="font-semibold text-gray-700">Address *</Label>
-                  <Input
-                    className="rounded-xl border-gray-200"
-                    value={form.address}
-                    onChange={(e) => setForm({ ...form, address: e.target.value })}
-                    required
-                    placeholder="Street address"
-                  />
+              {/* Location — from seller profile, read-only */}
+              {listingCity && (
+                <div className="flex items-center gap-2 p-3 bg-teal-50 border border-teal-200 rounded-xl">
+                  <span className="text-sm text-teal-700 font-medium">📍 Listing location:</span>
+                  <span className="text-sm text-teal-900 font-semibold">{listingCity}, Kerala</span>
+                  <span className="text-xs text-teal-500 ml-auto">Set from seller profile</span>
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="font-semibold text-gray-700">City *</Label>
-                  <Select value={form.city} onValueChange={(v) => setForm({ ...form, city: v })}>
-                    <SelectTrigger className="rounded-xl border-gray-200">
-                      <SelectValue placeholder="Select city" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {KERALA_CITIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              )}
 
               <Button
                 type="submit"
                 className="w-full h-12 rounded-xl text-base font-bold"
-                disabled={submitting || !form.category || !form.breed || !form.price || !form.city || ((parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0) <= 0)}
+                disabled={submitting || !form.category || !form.breed || !form.price || ((parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0) <= 0)}
               >
                 {submitting ? "Saving..." : "Save Changes"}
               </Button>

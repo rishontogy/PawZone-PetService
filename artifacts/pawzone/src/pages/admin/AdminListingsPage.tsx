@@ -189,40 +189,46 @@ export function AdminListingsPage() {
                         </div>
                       )}
 
-                      {/* Parent Photos */}
-                      {(listing.fatherPhoto || listing.motherPhoto) && (
-                        <div className="bg-amber-50 border border-amber-100 rounded-xl p-3">
-                          <p className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-semibold">Parent Photos</p>
-                          <div className="flex gap-3">
-                            {listing.fatherPhoto && (
-                              <div className="space-y-1">
-                                <div className="w-28 h-28 rounded-xl overflow-hidden bg-gray-100 border border-blue-100">
-                                  <img
-                                    src={listing.fatherPhoto}
-                                    alt="Father"
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                                  />
-                                </div>
-                                <p className="text-xs text-center text-blue-700 font-medium">♂ Father</p>
+                      {/* Parent Photos — always shown */}
+                      <div className="bg-amber-50 border border-amber-100 rounded-xl p-3">
+                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-semibold">Parent Verification Photos</p>
+                        <div className="flex gap-3">
+                          <div className="space-y-1">
+                            {listing.fatherPhoto ? (
+                              <div className="w-28 h-28 rounded-xl overflow-hidden bg-gray-100 border-2 border-blue-200">
+                                <img
+                                  src={listing.fatherPhoto}
+                                  alt="Father"
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-28 h-28 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
+                                <span className="text-xs text-gray-400 text-center px-1">Not Uploaded</span>
                               </div>
                             )}
-                            {listing.motherPhoto && (
-                              <div className="space-y-1">
-                                <div className="w-28 h-28 rounded-xl overflow-hidden bg-gray-100 border border-pink-100">
-                                  <img
-                                    src={listing.motherPhoto}
-                                    alt="Mother"
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                                  />
-                                </div>
-                                <p className="text-xs text-center text-pink-600 font-medium">♀ Mother</p>
+                            <p className="text-xs text-center text-blue-700 font-medium">🟦 Father</p>
+                          </div>
+                          <div className="space-y-1">
+                            {listing.motherPhoto ? (
+                              <div className="w-28 h-28 rounded-xl overflow-hidden bg-gray-100 border-2 border-pink-200">
+                                <img
+                                  src={listing.motherPhoto}
+                                  alt="Mother"
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-28 h-28 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
+                                <span className="text-xs text-gray-400 text-center px-1">Not Uploaded</span>
                               </div>
                             )}
+                            <p className="text-xs text-center text-pink-600 font-medium">🟪 Mother</p>
                           </div>
                         </div>
-                      )}
+                      </div>
 
                       {/* Video */}
                       {listing.videoUrl && (

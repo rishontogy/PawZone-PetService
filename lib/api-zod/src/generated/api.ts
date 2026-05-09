@@ -161,8 +161,8 @@ export const CreateListingBody = zod.object({
   fatherPhoto: zod.string().optional(),
   motherPhoto: zod.string().optional(),
   description: zod.string(),
-  address: zod.string(),
-  city: zod.string(),
+  address: zod.string().optional(),
+  city: zod.string().optional(),
 });
 
 /**
@@ -259,8 +259,8 @@ export const UpdateListingBody = zod.object({
   fatherPhoto: zod.string().optional(),
   motherPhoto: zod.string().optional(),
   description: zod.string(),
-  address: zod.string(),
-  city: zod.string(),
+  address: zod.string().optional(),
+  city: zod.string().optional(),
 });
 
 export const UpdateListingResponse = zod.object({

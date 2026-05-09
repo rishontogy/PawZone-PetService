@@ -11,7 +11,6 @@ import { ChevronLeft, Upload, X, ImagePlus, CheckCircle, Loader2 } from "lucide-
 import { getApiBase } from "@/lib/api";
 
 const CATEGORIES = ["dogs", "cats", "birds", "fish", "rabbits", "others"];
-const KERALA_CITIES = ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kollam", "Palakkad", "Alappuzha", "Malappuram", "Kottayam", "Kannur", "Kasaragod", "Wayanad", "Idukki", "Pathanamthitta"];
 
 export function CreateListingPage() {
   const [, setLocation] = useLocation();
@@ -28,8 +27,6 @@ export function CreateListingPage() {
     vaccinated: false,
     vaccinationDetails: "",
     description: "",
-    address: user?.address || "",
-    city: user?.city || "",
   });
 
   const [photos, setPhotos] = useState<string[]>([]);
@@ -207,8 +204,6 @@ export function CreateListingPage() {
           videoUrl: videoUrl || undefined,
           fatherPhoto: fatherPhoto || undefined,
           motherPhoto: motherPhoto || undefined,
-          address: form.address,
-          city: form.city,
         }),
       });
       const data = await res.json();
@@ -541,35 +536,19 @@ export function CreateListingPage() {
                 )}
               </div>
 
-              {/* Location */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="font-semibold text-gray-700">Address *</Label>
-                  <Input
-                    className="rounded-xl border-gray-200"
-                    value={form.address}
-                    onChange={(e) => setForm({ ...form, address: e.target.value })}
-                    required
-                    placeholder="Street address"
-                  />
+              {/* Location — auto-filled from seller profile */}
+              {user?.city && (
+                <div className="flex items-center gap-2 p-3 bg-teal-50 border border-teal-200 rounded-xl">
+                  <span className="text-sm text-teal-700 font-medium">📍 Listing location:</span>
+                  <span className="text-sm text-teal-900 font-semibold">{user.city}, Kerala</span>
+                  <span className="text-xs text-teal-500 ml-auto">Auto-set from your profile</span>
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="font-semibold text-gray-700">City *</Label>
-                  <Select value={form.city} onValueChange={(v) => setForm({ ...form, city: v })}>
-                    <SelectTrigger className="rounded-xl border-gray-200">
-                      <SelectValue placeholder="Select city" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {KERALA_CITIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              )}
 
               <Button
                 type="submit"
                 className="w-full h-12 rounded-xl text-base font-bold"
-                disabled={submitting || !form.category || !form.breed || !form.price || !form.city || ((parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0) <= 0)}
+                disabled={submitting || !form.category || !form.breed || !form.price || ((parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0) <= 0)}
               >
                 {submitting ? "Submitting..." : "Submit for Approval"}
               </Button>

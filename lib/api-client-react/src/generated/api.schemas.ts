@@ -195,8 +195,8 @@ export interface CreateListingBody {
   fatherPhoto?: string;
   motherPhoto?: string;
   description: string;
-  address: string;
-  city: string;
+  address?: string;
+  city?: string;
 }
 
 export interface CartItem {
