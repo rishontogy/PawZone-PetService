@@ -165,6 +165,11 @@ router.post("/orders", authMiddleware, async (req, res): Promise<void> => {
   const petCode = generatePetCode();
   const inventoryLockedUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
 
+  const customDeliveryPoints =
+    Array.isArray(parsed.data.customDeliveryPoints) && parsed.data.customDeliveryPoints.length > 0
+      ? parsed.data.customDeliveryPoints
+      : null;
+
   const [order] = await db.insert(ordersTable).values({
     orderNumber,
     buyerId: user.id,
@@ -176,6 +181,7 @@ router.post("/orders", authMiddleware, async (req, res): Promise<void> => {
     deliveryFee: 0,
     total: subtotal + platformFee,
     deliveryAddress: parsed.data.deliveryAddress,
+    customDeliveryPoints: customDeliveryPoints ?? undefined,
     petCode,
     inventoryLockedUntil,
   }).returning();

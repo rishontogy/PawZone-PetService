@@ -513,7 +513,7 @@ export function CartPage() {
                         data-testid="button-confirm-place-order"
                         onClick={() => {
                           setConfirmOpen(false);
-                          placeOrder.mutate({ data: { deliveryAddress, notes: notes || undefined } as any });
+                          placeOrder.mutate({ data: { deliveryAddress, customDeliveryPoints: isOverrideMode ? extraPoints : undefined, notes: notes || undefined } as any });
                         }}
                       >
                         OK, Continue

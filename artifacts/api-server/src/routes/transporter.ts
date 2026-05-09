@@ -260,10 +260,12 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
       ? seller.deliveryPoints
       : seller?.city ? [seller.city] : [];
 
-    // Buyer delivery points: their saved deliveryPoints, or fallback to city
-    const buyerDeliveryPoints: string[] = buyer?.deliveryPoints?.length
-      ? buyer.deliveryPoints
-      : buyer?.city ? [buyer.city] : [];
+    // Buyer delivery points: order-specific custom points take priority over profile points
+    const buyerDeliveryPoints: string[] = order.customDeliveryPoints?.length
+      ? order.customDeliveryPoints
+      : buyer?.deliveryPoints?.length
+        ? buyer.deliveryPoints
+        : buyer?.city ? [buyer.city] : [];
 
     // Directional match: seller point must appear BEFORE buyer point in the same route
     const match = findDirectionalMatch(sellerPickupPoints, buyerDeliveryPoints, myRoutes);
@@ -368,9 +370,12 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
   const sellerPts: string[] = acceptSeller?.deliveryPoints?.length
     ? acceptSeller.deliveryPoints
     : acceptSeller?.city ? [acceptSeller.city] : [];
-  const buyerPts: string[] = acceptBuyer?.deliveryPoints?.length
-    ? acceptBuyer.deliveryPoints
-    : acceptBuyer?.city ? [acceptBuyer.city] : [];
+  // Order-specific custom delivery points take priority over buyer profile points
+  const buyerPts: string[] = order.customDeliveryPoints?.length
+    ? order.customDeliveryPoints
+    : acceptBuyer?.deliveryPoints?.length
+      ? acceptBuyer.deliveryPoints
+      : acceptBuyer?.city ? [acceptBuyer.city] : [];
   const dirMatch = findDirectionalMatch(sellerPts, buyerPts, acceptRoutes);
   const autoPickupPoint = dirMatch.pickup;
   const autoDeliveryPoint = dirMatch.delivery;

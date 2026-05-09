@@ -292,6 +292,8 @@ export type OrderDetail = Order & {
 export interface PlaceOrderBody {
   deliveryAddressId?: number;
   deliveryAddress: string;
+  customDeliveryPoints?: string[];
+  notes?: string;
 }
 
 export interface UpdateOrderStatusBody {

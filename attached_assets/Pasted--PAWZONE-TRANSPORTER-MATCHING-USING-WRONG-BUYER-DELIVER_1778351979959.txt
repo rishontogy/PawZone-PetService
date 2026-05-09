@@ -1,0 +1,245 @@
+# PAWZONE – TRANSPORTER MATCHING USING WRONG BUYER DELIVERY POINT FIX
+
+Fix the CRITICAL transporter matching bug in the PawZone application.
+
+Currently:
+✅ Buyer order correctly stores the newly added delivery points for that specific order.
+
+BUT:
+
+❌ Transporter filtering/matching is STILL using:
+buyer.savedDeliveryPoints
+
+instead of:
+order.customDeliveryPoints
+
+This causes wrong transporters to receive requests.
+
+---
+
+# 1. REQUIRED FIX
+
+---
+
+Transporter matching MUST prioritize:
+
+```js id="fix001"
+order.customDeliveryPoints
+```
+
+ONLY.
+
+If custom delivery points exist for that order:
+DO NOT use:
+❌ buyer.savedDeliveryPoints
+
+---
+
+# 2. CURRENT WRONG BEHAVIOR
+
+---
+
+Buyer saved profile towns:
+
+* Ettumanoor
+* Pala
+* Kottayam
+
+Buyer adds custom order delivery towns:
+
+* Kochi
+* Kakkanad
+* Kadavanthara
+
+---
+
+## CURRENT BUG
+
+---
+
+Transporters matching:
+Ettumanoor/Pala/Kottayam
+
+are still getting the request.
+
+This is WRONG.
+
+---
+
+# 3. CORRECT REQUIRED BEHAVIOR
+
+---
+
+ONLY transporters matching:
+
+* Kochi
+* Kakkanad
+* Kadavanthara
+
+must receive the order request.
+
+---
+
+# 4. FIX THE TRANSPORT MATCHING ENGINE
+
+---
+
+Find ALL places where transporter filtering logic uses:
+
+```js id="wrong001"
+buyer.deliveryPoints
+buyer.savedDeliveryPoints
+buyer.addresses
+buyer.profile.deliveryPoints
+```
+
+Replace with:
+
+```js id="correct001"
+const deliveryPoints =
+    order.customDeliveryPoints?.length > 0
+        ? order.customDeliveryPoints
+        : buyer.savedDeliveryPoints;
+```
+
+---
+
+# 5. APPLY THIS FIX TO ALL:
+
+---
+
+Use corrected deliveryPoints in:
+
+✅ transporter route matching
+✅ pickup/drop calculation
+✅ transporter notifications
+✅ available transporter filtering
+✅ ETA generation
+✅ delivery assignment logic
+✅ transport request creation
+
+---
+
+# 6. TRANSPORT REQUEST STORAGE
+
+---
+
+When transporter receives request:
+
+Store selected points INSIDE order:
+
+```js id="transport001"
+{
+  pickupPoint: "Tripunithura",
+  deliveryPoint: "Kakkanad"
+}
+```
+
+These must come from:
+custom order delivery points.
+
+---
+
+# 7. UI VALIDATION
+
+---
+
+Inside transporter request details page:
+
+Show:
+
+* Correct pickup point
+* Correct delivery point
+
+NOT buyer saved towns.
+
+---
+
+# 8. BACKEND VALIDATION
+
+---
+
+Ensure backend APIs:
+
+* fetch correct order delivery points
+* do not fallback incorrectly
+* use order-level data
+
+Check:
+
+* order schema
+* assignment services
+* matching engine
+* notification generators
+
+---
+
+# 9. TEST CASES (MUST PASS)
+
+---
+
+---
+
+## CASE 1
+
+---
+
+Saved towns:
+
+* Ettumanoor
+* Pala
+
+Custom order towns:
+
+* Kochi
+* Kakkanad
+
+Expected:
+ONLY Kochi/Kakkanad transporters receive request.
+
+---
+
+## CASE 2
+
+---
+
+No custom towns added.
+
+Expected:
+Use saved buyer towns.
+
+---
+
+## CASE 3
+
+---
+
+Transporter request page must show:
+correct order delivery town only.
+
+---
+
+# 10. FINAL VALIDATION
+
+---
+
+Ensure:
+✅ Saved buyer towns untouched
+✅ Custom order towns override correctly
+✅ Transporters filtered correctly
+✅ Wrong transporters no longer receive requests
+✅ Correct pickup/drop stored
+✅ Transport notifications accurate
+✅ UI shows correct delivery town
+✅ Backend uses order-level delivery data
+
+---
+
+# FINAL RULE
+
+---
+
+Transporter assignment must ALWAYS use:
+order-specific delivery points first.
+
+Buyer saved profile towns are ONLY fallback values when NO custom order delivery point exists.

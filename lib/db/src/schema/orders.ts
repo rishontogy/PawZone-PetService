@@ -20,6 +20,7 @@ export const ordersTable = pgTable("orders", {
   transportFee: real("transport_fee").notNull().default(0),
   transporterShareAmount: real("transporter_share_amount").notNull().default(0),
   deliveryAddress: text("delivery_address").notNull(),
+  customDeliveryPoints: text("custom_delivery_points").array(),
   pickupPoint: text("pickup_point"),
   deliveryPoint: text("delivery_point"),
   petCode: text("pet_code"),

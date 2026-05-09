@@ -500,6 +500,8 @@ export const GetOrdersResponse = zod.array(GetOrdersResponseItem);
 export const PlaceOrderBody = zod.object({
   deliveryAddressId: zod.number().optional(),
   deliveryAddress: zod.string(),
+  customDeliveryPoints: zod.array(zod.string()).optional(),
+  notes: zod.string().optional(),
 });
 
 /**

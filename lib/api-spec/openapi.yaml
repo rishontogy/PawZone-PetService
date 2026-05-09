@@ -1673,6 +1673,12 @@ components:
           type: integer
         deliveryAddress:
           type: string
+        customDeliveryPoints:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
       required:
         - deliveryAddress
 
