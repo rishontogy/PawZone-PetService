@@ -1,0 +1,296 @@
+# PAWZONE – ORDER-SPECIFIC DELIVERY POINT OVERRIDE + PAYMENT SUMMARY FIX
+
+Update the PawZone Windows desktop application with the following IMPORTANT delivery-point override logic and payment summary correction.
+
+This is a CORE ORDER FLOW FIX.
+Implement exactly as described.
+
+---
+
+# 1. ORDER-SPECIFIC DELIVERY POINT OVERRIDE
+
+---
+
+Current system:
+Buyer has saved delivery towns in profile.
+
+Example:
+Saved towns:
+
+* Ettumanoor
+* Pala
+* Kottayam
+
+Now buyer places an order for cousin in Ernakulam.
+
+Buyer adds NEW delivery points in cart:
+
+* Kochi
+* Kakkanad
+* Kadavanthara
+
+---
+
+## REQUIRED BEHAVIOR
+
+---
+
+When NEW delivery points are added in cart for that order:
+
+❌ DO NOT use saved profile delivery towns
+❌ DO NOT include Ettumanoor/Pala/Kottayam
+❌ DO NOT merge old and new towns
+
+---
+
+## ONLY USE:
+
+---
+
+The newly added delivery points for THAT specific order.
+
+Example:
+
+Order delivery towns become ONLY:
+
+* Kochi
+* Kakkanad
+* Kadavanthara
+
+---
+
+# 2. TRANSPORTER FILTERING RULE
+
+---
+
+Transporter matching must now use:
+
+Seller pickup towns
++
+ONLY the newly added order delivery towns
+
+---
+
+## EXAMPLE
+
+---
+
+Buyer saved profile towns:
+
+* Ettumanoor
+* Pala
+* Kottayam
+
+New order delivery towns:
+
+* Kochi
+* Kakkanad
+* Kadavanthara
+
+Seller pickup towns:
+
+* Tripunithura
+* Panampally
+
+---
+
+## REQUIRED RESULT
+
+---
+
+Eligible transporters:
+ONLY transporters passing through:
+
+* seller towns
+  AND
+* Kochi/Kakkanad/Kadavanthara
+
+NOT:
+❌ Ettumanoor
+❌ Pala
+❌ Kottayam
+
+---
+
+# 3. OVERRIDE LOGIC IMPLEMENTATION
+
+---
+
+Implement logic like:
+
+```js id="override001"
+const activeDeliveryPoints =
+    order.customDeliveryPoints?.length > 0
+        ? order.customDeliveryPoints
+        : buyer.savedDeliveryPoints;
+```
+
+Use:
+activeDeliveryPoints
+
+for:
+
+* transporter filtering
+* route matching
+* pickup/drop selection
+* notifications
+* ETA calculations
+
+---
+
+# 4. ORDER STORAGE STRUCTURE
+
+---
+
+Store separately:
+
+---
+
+## Buyer Profile
+
+---
+
+```js id="profile001"
+buyer.savedDeliveryPoints
+```
+
+---
+
+## Order Specific
+
+---
+
+```js id="order001"
+order.customDeliveryPoints
+```
+
+NEVER overwrite buyer profile data.
+
+---
+
+# 5. UI REQUIREMENT
+
+---
+
+Inside cart page:
+
+If custom points added:
+Show clearly:
+
+---
+
+## Delivery Points For This Order
+
+---
+
+Kochi
+Kakkanad
+Kadavanthara
+
+And show note:
+
+“This order will use the above delivery points for transporter matching.”
+
+---
+
+# 6. BUYER ORDER PAGE – PAYMENT SUMMARY FIX
+
+---
+
+❌ Current Problem:
+Transporter fee missing in payment summary.
+
+---
+
+## REQUIRED FIX
+
+---
+
+Inside Buyer Order Details Page → Payment Summary:
+
+Show ALL:
+
+---
+
+## PAYMENT SUMMARY
+
+---
+
+* Item Total
+* Buyer Platform Fee
+* Transporter Fee
+* Final Payable Amount
+
+---
+
+## EXAMPLE
+
+---
+
+Dog Price:
+₹8000
+
+Buyer Platform Fee:
+₹20
+
+Transport Fee:
+₹400
+
+---
+
+## Show:
+
+---
+
+Item Total: ₹8000
+Platform Fee: ₹20
+Transport Fee: ₹400
+Final Total: ₹8420
+
+---
+
+# 7. FINAL TOTAL VALIDATION
+
+---
+
+Ensure:
+
+```js id="total001"
+finalTotal =
+    itemTotal +
+    buyerPlatformFee +
+    transportFee
+```
+
+NO:
+❌ missing transporter fee
+❌ incorrect totals
+❌ NaN values
+
+---
+
+# 8. VALIDATION TESTS (MUST PASS)
+
+---
+
+✅ Saved buyer towns remain unchanged
+✅ New order towns override saved towns
+✅ Transport filtering uses ONLY new towns
+✅ Correct transporter receives request
+✅ Order stores custom delivery points
+✅ Payment summary shows transport fee
+✅ Final total correct
+✅ No incorrect transporter matching
+✅ No mixed delivery points
+
+---
+
+# FINAL RULE
+
+---
+
+This must behave like a REAL logistics marketplace.
+
+Order-specific delivery locations must completely override saved locations for that order only.
+
+Transport assignment and payment calculations must be fully accurate.

@@ -438,30 +438,40 @@ export function OrderDetailPage() {
           <h2 className="font-bold text-gray-900 mb-3">Payment Summary</h2>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Subtotal</span>
+              <span className="text-gray-500">Item Total</span>
               <span>{formatPrice(subtotalAmount)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Platform fees</span>
+              <span className="text-gray-500">Buyer Platform Fee</span>
               <span>{formatPrice(platformFeeAmount)}</span>
             </div>
-            {Number(o.deliveryFee) > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Delivery fee</span>
-                <span>{formatPrice(Number(o.deliveryFee))}</span>
-              </div>
-            )}
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Transport Fee</span>
+              {transportFeeAmount > 0 ? (
+                <span className="font-medium">{formatPrice(transportFeeAmount)}</span>
+              ) : (
+                <span className="text-amber-600 text-xs italic">Added after transporter accepts</span>
+              )}
+            </div>
             <div className="border-t border-gray-100 pt-2 flex justify-between font-bold">
-              <span>Total Paid</span>
-              <span className="text-teal-600 text-lg">{formatPrice(totalAmount)}</span>
+              <span>Final Payable Amount</span>
+              <span className="text-teal-600 text-lg">
+                {formatPrice(subtotalAmount + platformFeeAmount + transportFeeAmount)}
+              </span>
             </div>
           </div>
           <div className="mt-3 flex items-center justify-between">
-            <span className="text-xs text-gray-400">Payment method</span>
+            <span className="text-xs text-gray-400">Payment status</span>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-              o.paymentStatus === "paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+              o.paymentStatus === "paid" ? "bg-green-100 text-green-700" :
+              o.paymentStatus === "pending_verification" ? "bg-blue-100 text-blue-700" :
+              o.paymentStatus === "retry_allowed" ? "bg-red-100 text-red-700" :
+              "bg-amber-100 text-amber-700"
             }`}>
-              {o.paymentStatus === "paid" ? "✓ Paid" : "Pending"}
+              {o.paymentStatus === "paid" ? "✓ Paid" :
+               o.paymentStatus === "pending_verification" ? "Verifying" :
+               o.paymentStatus === "retry_allowed" ? "Rejected – Retry" :
+               "Pending"}
             </span>
           </div>
         </div>

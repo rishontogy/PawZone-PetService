@@ -34,10 +34,12 @@ function AddDeliveryPointModal({
   onAdd,
   onClose,
   existing,
+  isOverrideMode,
 }: {
   onAdd: (district: string, towns: string[]) => void;
   onClose: () => void;
   existing: string[];
+  isOverrideMode: boolean;
 }) {
   const [district, setDistrict] = useState("");
   const [selectedTowns, setSelectedTowns] = useState<string[]>([]);
@@ -67,9 +69,15 @@ function AddDeliveryPointModal({
             <X className="w-4 h-4 text-gray-600" />
           </button>
         </div>
-        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-          These points apply only to <strong>this order</strong>. Your profile default delivery points are not changed.
-        </p>
+        {isOverrideMode ? (
+          <p className="text-xs text-orange-800 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+            Adding more points for <strong>this order</strong>. These <strong>replace</strong> your saved profile points — only the order points are used for transporter matching.
+          </p>
+        ) : (
+          <p className="text-xs text-orange-800 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+            These delivery points will <strong>override</strong> your saved profile points for this order only. Your profile is not changed.
+          </p>
+        )}
         <div className="space-y-3">
           <div>
             <label className="text-sm font-semibold text-gray-700 block mb-1">District</label>
@@ -140,13 +148,17 @@ export function CartPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Profile-saved delivery points (read-only here — not modified)
+  // Profile-saved delivery points — read-only, never modified here
   const savedPoints: string[] = (user as any)?.deliveryPoints ?? [];
 
-  // Order-specific extra delivery points (local state only — NOT saved to profile)
+  // Order-specific custom delivery points (local state only — NOT saved to profile)
+  // When these are set, they COMPLETELY OVERRIDE profile points for transporter matching.
   const [extraPoints, setExtraPoints] = useState<string[]>([]);
 
-  const allPoints = [...savedPoints, ...extraPoints];
+  // OVERRIDE RULE: if buyer added custom points, use ONLY those; otherwise fall back to profile points.
+  const isOverrideMode = extraPoints.length > 0;
+  const activeDeliveryPoints = isOverrideMode ? extraPoints : savedPoints;
+
   const [notes, setNotes] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [showAddPoint, setShowAddPoint] = useState(false);
@@ -189,7 +201,7 @@ export function CartPage() {
   const isNightTime = hour >= 21;
 
   const handleAddOrderPoints = (district: string, towns: string[]) => {
-    const newTowns = towns.filter(t => !allPoints.includes(t));
+    const newTowns = towns.filter(t => !extraPoints.includes(t));
     if (newTowns.length > 0) {
       setExtraPoints(prev => [...prev, ...newTowns]);
       toast({ title: `📍 ${newTowns.join(", ")} added for this order` });
@@ -200,7 +212,10 @@ export function CartPage() {
     setExtraPoints(prev => prev.filter(t => t !== town));
   };
 
-  const deliveryAddress = allPoints.length > 0 ? allPoints.join(", ") : (user?.address || user?.city || "");
+  // The delivery address sent to the server uses ONLY the active (override or profile) points.
+  const deliveryAddress = activeDeliveryPoints.length > 0
+    ? activeDeliveryPoints.join(", ")
+    : (user?.address || user?.city || "");
   const canPlaceOrder = deliveryAddress.trim().length > 0;
 
   if (!items.length) {
@@ -356,55 +371,75 @@ export function CartPage() {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
               <h2 className="font-bold text-gray-900">Delivery Points</h2>
 
-              {/* Section A: Profile defaults (read-only) */}
-              {savedPoints.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-teal-600" />
-                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Your Saved Points</p>
+              {/* OVERRIDE MODE: custom points completely replace profile points */}
+              {isOverrideMode ? (
+                <div className="space-y-3">
+                  {/* Active override points */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-orange-500" />
+                      <p className="text-xs font-bold text-orange-700 uppercase tracking-wide">Delivery Points for This Order</p>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {extraPoints.map((point) => (
+                        <span key={point} className="inline-flex items-center gap-1.5 text-xs bg-orange-50 border border-orange-300 text-orange-700 rounded-full px-3 py-1.5 font-semibold">
+                          <MapPin className="w-3 h-3" /> {point}
+                          <button
+                            type="button"
+                            onClick={() => removeExtraPoint(point)}
+                            className="hover:text-red-500 transition-colors ml-0.5"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 text-xs text-orange-800">
+                      This order will use the above delivery points for transporter matching.
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {savedPoints.map((point) => (
-                      <span key={point} className="inline-flex items-center gap-1.5 text-xs bg-teal-50 border border-teal-200 text-teal-700 rounded-full px-3 py-1.5 font-medium">
-                        <MapPin className="w-3 h-3" /> {point}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
 
-              {/* Section B: Order-specific extra points */}
-              {extraPoints.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-orange-500" />
-                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Added for This Order</p>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {extraPoints.map((point) => (
-                      <span key={point} className="inline-flex items-center gap-1.5 text-xs bg-orange-50 border border-orange-200 text-orange-700 rounded-full px-3 py-1.5 font-medium">
-                        <MapPin className="w-3 h-3" /> {point}
-                        <button
-                          type="button"
-                          onClick={() => removeExtraPoint(point)}
-                          className="hover:text-red-500 transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                  <p className="text-xs text-orange-600 italic">
-                    These points won't be saved to your profile.
-                  </p>
+                  {/* Saved profile points shown as overridden / inactive */}
+                  {savedPoints.length > 0 && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-gray-400" />
+                        <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">Profile Points (overridden)</p>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {savedPoints.map((point) => (
+                          <span key={point} className="inline-flex items-center gap-1.5 text-xs bg-gray-100 border border-gray-200 text-gray-400 line-through rounded-full px-3 py-1 font-medium">
+                            {point}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-
-              {/* No points at all */}
-              {savedPoints.length === 0 && extraPoints.length === 0 && (
-                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                  No delivery points set. Add at least one town where you can receive deliveries.
-                </p>
+              ) : (
+                /* DEFAULT MODE: using profile saved points */
+                <div className="space-y-2">
+                  {savedPoints.length > 0 ? (
+                    <>
+                      <div className="flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-teal-600" />
+                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Your Saved Delivery Points</p>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {savedPoints.map((point) => (
+                          <span key={point} className="inline-flex items-center gap-1.5 text-xs bg-teal-50 border border-teal-200 text-teal-700 rounded-full px-3 py-1.5 font-medium">
+                            <MapPin className="w-3 h-3" /> {point}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-400 italic">Add custom points below to override these for this order only.</p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                      No delivery points set. Add at least one town where you can receive deliveries.
+                    </p>
+                  )}
+                </div>
               )}
 
               {/* Add order-specific point button */}
@@ -414,7 +449,7 @@ export function CartPage() {
                 className="flex items-center gap-1.5 text-sm text-orange-600 font-medium hover:text-orange-700 transition-colors border border-orange-200 rounded-xl px-4 py-2.5 w-full justify-center"
               >
                 <Plus className="w-4 h-4" />
-                Add Delivery Point for This Order
+                {isOverrideMode ? "Add More Points for This Order" : "Add Custom Delivery Points for This Order"}
               </button>
 
               {/* Special Instructions */}
@@ -451,25 +486,22 @@ export function CartPage() {
                       <div className="flex-1">
                         <h3 className="font-bold text-gray-900 mb-1">Before you continue</h3>
                         <p className="text-sm text-gray-600">
-                          Transport charges will be added after a transporter accepts the order. You will complete payment after that.
+                          Transport charges will be added after a transporter accepts. You will complete payment after that.
                         </p>
-                        {allPoints.length > 0 && (
-                          <div className="mt-3 space-y-1.5">
-                            {savedPoints.length > 0 && (
-                              <div className="flex flex-wrap gap-1 items-center">
-                                <span className="text-xs text-gray-500">Profile points:</span>
-                                {savedPoints.map(p => (
-                                  <span key={p} className="text-xs bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full font-medium">{p}</span>
-                                ))}
-                              </div>
-                            )}
-                            {extraPoints.length > 0 && (
-                              <div className="flex flex-wrap gap-1 items-center">
-                                <span className="text-xs text-gray-500">This order only:</span>
-                                {extraPoints.map(p => (
-                                  <span key={p} className="text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full font-medium">{p}</span>
-                                ))}
-                              </div>
+                        {activeDeliveryPoints.length > 0 && (
+                          <div className="mt-3 space-y-1">
+                            <p className="text-xs font-semibold text-gray-600">
+                              {isOverrideMode ? "Delivery points for this order:" : "Using your saved delivery points:"}
+                            </p>
+                            <div className="flex flex-wrap gap-1">
+                              {activeDeliveryPoints.map(p => (
+                                <span key={p} className={`text-xs px-2 py-0.5 rounded-full font-medium ${isOverrideMode ? "bg-orange-50 text-orange-700" : "bg-teal-50 text-teal-700"}`}>{p}</span>
+                              ))}
+                            </div>
+                            {isOverrideMode && (
+                              <p className="text-xs text-orange-700 italic">
+                                Your saved profile points are not used for this order.
+                              </p>
                             )}
                           </div>
                         )}
@@ -497,7 +529,8 @@ export function CartPage() {
 
       {showAddPoint && (
         <AddDeliveryPointModal
-          existing={allPoints}
+          existing={extraPoints}
+          isOverrideMode={isOverrideMode}
           onAdd={handleAddOrderPoints}
           onClose={() => setShowAddPoint(false)}
         />
