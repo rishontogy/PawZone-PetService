@@ -726,6 +726,76 @@ router.post("/orders/:id/confirm-delivery", authMiddleware, async (req, res): Pr
   res.json(updated);
 });
 
+// Buyer cancel — allowed only before payment is confirmed
+router.post("/orders/:id/cancel", authMiddleware, async (req, res): Promise<void> => {
+  const user = (req as any).user;
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order) {
+    res.status(404).json({ error: "Order not found" });
+    return;
+  }
+  if (order.buyerId !== user.id) {
+    res.status(403).json({ error: "Only the buyer can cancel this order" });
+    return;
+  }
+  if (order.paymentStatus === "paid") {
+    res.status(400).json({ error: "Cannot cancel an order that has already been paid" });
+    return;
+  }
+  if (order.status === "cancelled" || order.status === "completed") {
+    res.status(400).json({ error: "Order is already in a final state" });
+    return;
+  }
+
+  const now = new Date();
+  await db.update(ordersTable)
+    .set({ status: "cancelled" })
+    .where(eq(ordersTable.id, id));
+
+  await db.insert(orderTimelineTable).values({
+    orderId: id,
+    status: "cancelled",
+    note: "Cancelled by buyer",
+    timestamp: now,
+  });
+
+  // Restore stock
+  const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, id));
+  for (const item of items) {
+    if (!item.listingId) continue;
+    const [listing] = await db.select().from(listingsTable).where(eq(listingsTable.id, item.listingId));
+    if (!listing) continue;
+    const restored = listing.availableQuantity + item.quantity;
+    await db.update(listingsTable).set({
+      availableQuantity: restored,
+      status: restored > 0 ? "approved" : listing.status,
+    }).where(eq(listingsTable.id, listing.id));
+  }
+
+  await db.insert(notificationsTable).values({
+    userId: order.sellerId,
+    type: "order_update",
+    title: "Order Cancelled by Buyer",
+    message: `Order ${order.orderNumber} was cancelled by the buyer.`,
+    orderId: id,
+  });
+
+  if (order.transporterId) {
+    await db.insert(notificationsTable).values({
+      userId: order.transporterId,
+      type: "order_update",
+      title: "Order Cancelled",
+      message: `Order ${order.orderNumber} was cancelled by the buyer and removed from your queue.`,
+      orderId: id,
+    });
+  }
+
+  res.json({ success: true, message: "Order cancelled" });
+});
+
 router.post("/orders/:id/issue", authMiddleware, async (req, res): Promise<void> => {
   const user = (req as any).user;
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;

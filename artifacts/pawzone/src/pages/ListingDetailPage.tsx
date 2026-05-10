@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useLocation } from "wouter";
-import { useGetListing } from "@workspace/api-client-react";
+import { useGetListing, getGetCartQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ export function ListingDetailPage() {
   const [gender, setGender] = useState<"male" | "female" | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
 
+  const queryClient = useQueryClient();
   const { data: listing, isLoading } = useGetListing(parseInt(id!));
 
   const handleAddToCart = async () => {
@@ -46,6 +48,8 @@ export function ListingDetailPage() {
         return;
       }
       toast({ title: "Added to cart!", description: `${listing.breed} added to your cart.` });
+      // Instantly refresh cart count in navbar without page reload
+      void queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
     } finally {
       setAddingToCart(false);
     }

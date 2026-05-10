@@ -382,9 +382,9 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
   const autoPickupPoint = dirMatch.pickup;
   const autoDeliveryPoint = dirMatch.delivery;
 
-  // Night rule: payment timer is 12 hours from nightRuleStart(now)
+  // Night rule: payment timer is 5 hours from nightRuleStart(now)
   const paymentTimerStart = nightRuleStart(new Date());
-  const paymentDeadline = new Date(paymentTimerStart.getTime() + 12 * 60 * 60 * 1000);
+  const paymentDeadline = new Date(paymentTimerStart.getTime() + 5 * 60 * 60 * 1000);
 
   const [updated] = await db.update(ordersTable).set({
     transporterId: user.id,
@@ -418,7 +418,7 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
     userId: order.buyerId,
     type: "transporter_assigned",
     title: "Transporter Assigned — Pay Now",
-    message: `${user.name} will deliver your order. Final total ₹${newTotal} (incl. transport ₹${transportFee}). You have 12 hours to complete payment.`,
+    message: `${user.name} will deliver your order. Final total ₹${newTotal} (incl. transport ₹${transportFee}). You have 5 hours to complete payment.`,
     orderId: id,
   });
 

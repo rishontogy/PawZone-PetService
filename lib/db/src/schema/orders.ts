@@ -10,7 +10,7 @@ export const ordersTable = pgTable("orders", {
   sellerId: integer("seller_id").notNull().references(() => usersTable.id),
   transporterId: integer("transporter_id").references(() => usersTable.id),
   status: text("status").notNull().default("pending")
-    .$type<"pending" | "confirmed" | "ready" | "picked_up" | "in_transit" | "delivered" | "completed" | "cancelled" | "refunded">(),
+    .$type<"pending" | "seller_confirmation_pending" | "confirmed" | "ready" | "picked_up" | "in_transit" | "delivered" | "completed" | "cancelled" | "refunded" | "payment_pending_admin_review">(),
   paymentStatus: text("payment_status").notNull().default("pending")
     .$type<"pending" | "paid" | "failed" | "refunded" | "pending_verification" | "retry_allowed">(),
   subtotal: real("subtotal").notNull(),
@@ -40,6 +40,7 @@ export const ordersTable = pgTable("orders", {
   sellerDeadline: timestamp("seller_deadline", { withTimezone: true }),
   transportDeadline: timestamp("transport_deadline", { withTimezone: true }),
   paymentReminderSent: boolean("payment_reminder_sent").notNull().default(false),
+  adminCancelReason: text("admin_cancel_reason"),
   inventoryLockedUntil: timestamp("inventory_locked_until", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),

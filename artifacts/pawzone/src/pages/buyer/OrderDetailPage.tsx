@@ -3,11 +3,11 @@ import { useGetOrder, useReportIssue } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { formatPrice, getStatusColor, statusLabel } from "@/lib/api";
+import { formatPrice, getStatusColor, statusLabel, getApiBase } from "@/lib/api";
 import {
   ChevronLeft, Shield, AlertCircle, Package, CheckCircle,
   Truck, Clock, MapPin, Phone, User, ShoppingBag, CreditCard,
-  PackageCheck, PackageOpen, Video
+  PackageCheck, PackageOpen, Video, XCircle
 } from "lucide-react";
 import { useState } from "react";
 
@@ -94,10 +94,12 @@ function getEffectiveStatus(status: string, paymentStatus: string): string {
 export function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const { toast } = useToast();
   const [issueDesc, setIssueDesc] = useState("");
   const [showIssue, setShowIssue] = useState(false);
+  const [cancellingOrder, setCancellingOrder] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const { data: order, refetch } = useGetOrder(parseInt(id!), { query: { enabled: !!user } } as any);
 
@@ -110,6 +112,25 @@ export function OrderDetailPage() {
       },
     },
   });
+
+  const handleBuyerCancel = async () => {
+    setCancellingOrder(true);
+    try {
+      const res = await fetch(`${getApiBase()}/orders/${id}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to cancel order");
+      toast({ title: "Order Cancelled", description: "Your order has been cancelled and stock restored." });
+      setShowCancelConfirm(false);
+      refetch();
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Error", description: err?.message ?? "Could not cancel order" });
+    } finally {
+      setCancellingOrder(false);
+    }
+  };
 
   if (!order) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -158,9 +179,11 @@ export function OrderDetailPage() {
 
   // NEW FLOW: buyer can pay only AFTER seller confirmed AND a transporter has accepted with a fee.
   const isPendingPayment = rawStatus === "confirmed" && transporterAssigned && paymentStatusVal !== "paid";
-  const isAwaitingSeller = rawStatus === "pending";
+  const isAwaitingSeller = rawStatus === "pending" || rawStatus === "seller_confirmation_pending";
   const isAwaitingTransporter = rawStatus === "confirmed" && !transporterAssigned && paymentStatusVal !== "paid";
   const canReportIssue = ["paid", "ready", "picked_up", "in_transit", "delivered", "confirmed"].includes(rawStatus);
+  // Buyer can cancel only before payment is confirmed
+  const canBuyerCancel = paymentStatusVal !== "paid" && rawStatus !== "cancelled" && rawStatus !== "completed";
 
   // 8-stage progress tracker
   const stageStates = STAGES.map((s) => ({ ...s, done: s.isDone(o), at: s.doneAt(o) }));
@@ -504,6 +527,75 @@ export function OrderDetailPage() {
         )}
 
         {/* Report Issue */}
+        {/* Seller confirmation pending — admin has been notified */}
+        {rawStatus === "seller_confirmation_pending" && (
+          <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-orange-900">Seller Response Overdue</p>
+              <p className="text-sm text-orange-700 mt-0.5">
+                The seller has not yet confirmed your order. Our admin team has been notified and will step in shortly. You can also cancel this order below.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Payment pending admin review */}
+        {rawStatus === "payment_pending_admin_review" && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-red-900">Payment Window Expired — Admin Review</p>
+              <p className="text-sm text-red-700 mt-0.5">
+                Your payment window has expired. Admin has been notified. You may still complete payment below — the order will only be cancelled if admin decides so.
+              </p>
+              <Button
+                className="mt-3 rounded-xl bg-red-600 hover:bg-red-700 text-white"
+                size="sm"
+                onClick={() => setLocation(`/buyer/orders/${id}/pay`)}
+              >
+                Pay {formatPrice(subtotalAmount + platformFeeAmount + transportFeeAmount)} via UPI
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Buyer Cancel Order */}
+        {canBuyerCancel && (
+          <div>
+            {!showCancelConfirm ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl text-orange-600 border-orange-200 hover:bg-orange-50"
+                onClick={() => setShowCancelConfirm(true)}
+              >
+                <XCircle className="w-4 h-4 mr-1.5" /> Cancel Order
+              </Button>
+            ) : (
+              <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5 space-y-3">
+                <h3 className="font-semibold text-orange-900 flex items-center gap-2">
+                  <XCircle className="w-4 h-4 text-orange-600" /> Confirm Cancellation
+                </h3>
+                <p className="text-sm text-orange-700">
+                  Are you sure you want to cancel this order? Stock will be restored and the order cannot be undone.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="rounded-xl bg-orange-600 hover:bg-orange-700 text-white"
+                    onClick={handleBuyerCancel}
+                    disabled={cancellingOrder}
+                  >
+                    {cancellingOrder ? "Cancelling…" : "Yes, Cancel Order"}
+                  </Button>
+                  <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setShowCancelConfirm(false)}>Keep Order</Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {canReportIssue && (
           <div>
             {!showIssue ? (

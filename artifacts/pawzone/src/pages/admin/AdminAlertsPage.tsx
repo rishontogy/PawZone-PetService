@@ -31,10 +31,11 @@ const FILTER_TYPES = [
   { key: "ALL",            label: "All" },
   { key: "HIGH",           label: "Critical" },
   { key: "PAYMENT_DELAY",  label: "Payment" },
+  { key: "SELLER_DELAY",   label: "Seller" },
+  { key: "TRANSPORT_DELAY",label: "Transport" },
   { key: "DELIVERY_DELAY", label: "Delivery" },
   { key: "FRAUD",          label: "Fraud" },
   { key: "REPORT",         label: "Reports" },
-  { key: "CANCELLATION",   label: "Cancelled" },
 ];
 
 export function AdminAlertsPage() {

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useAdminGetOrders } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatPrice } from "@/lib/api";
+import { formatPrice, getApiBase } from "@/lib/api";
 import {
   ShoppingBag, ChevronDown, ChevronUp, Phone, MapPin, Clock,
-  Truck, Users, DollarSign, ArrowLeft
+  Truck, Users, DollarSign, ArrowLeft, XCircle, UserCheck
 } from "lucide-react";
 import { Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 const STATUS_COLORS: Record<string, string> = {
   pending_payment: "bg-amber-100 text-amber-700",
@@ -24,10 +25,60 @@ function statusColor(s: string) {
 
 export function AdminOrdersPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [cancelOrderId, setCancelOrderId] = useState<number | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+  const [extendingId, setExtendingId] = useState<number | null>(null);
 
-  const { data } = useAdminGetOrders({ query: { enabled: !!user } });
+  const { data, refetch } = useAdminGetOrders({ query: { enabled: !!user } });
   const orders = (data as any)?.orders ?? [];
+
+  const handleAdminCancel = async (orderId: number) => {
+    if (!cancelReason.trim()) {
+      toast({ variant: "destructive", title: "Reason required", description: "Please provide a cancellation reason." });
+      return;
+    }
+    setCancelling(true);
+    try {
+      const token = localStorage.getItem("pawzone_token");
+      const res = await fetch(`${getApiBase()}/admin/orders/${orderId}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+        body: JSON.stringify({ reason: cancelReason }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to cancel order");
+      toast({ title: "Order cancelled", description: `Order cancelled with reason recorded.` });
+      setCancelOrderId(null);
+      setCancelReason("");
+      refetch();
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Error", description: err?.message ?? "Could not cancel" });
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const handleExtend = async (orderId: number, type: "seller" | "payment") => {
+    setExtendingId(orderId);
+    try {
+      const token = localStorage.getItem("pawzone_token");
+      const res = await fetch(`${getApiBase()}/admin/orders/${orderId}/extend-${type}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token ?? ""}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to extend");
+      toast({ title: "Deadline extended", description: type === "seller" ? "Seller gets 3 more hours." : "Buyer gets 5 more hours." });
+      refetch();
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Error", description: err?.message ?? "Could not extend" });
+    } finally {
+      setExtendingId(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -146,6 +197,65 @@ export function AdminOrdersPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Admin Actions */}
+                    {order.status !== "cancelled" && order.status !== "completed" && (
+                      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Admin Actions</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(order.status === "seller_confirmation_pending") && (
+                            <button
+                              onClick={() => handleExtend(order.id, "seller")}
+                              disabled={extendingId === order.id}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-60 transition-colors"
+                            >
+                              <UserCheck className="w-3.5 h-3.5" /> Extend Seller (+3h)
+                            </button>
+                          )}
+                          {(order.status === "payment_pending_admin_review") && (
+                            <button
+                              onClick={() => handleExtend(order.id, "payment")}
+                              disabled={extendingId === order.id}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 disabled:opacity-60 transition-colors"
+                            >
+                              <Clock className="w-3.5 h-3.5" /> Extend Payment (+5h)
+                            </button>
+                          )}
+                          {cancelOrderId === order.id ? (
+                            <div className="w-full space-y-2 mt-1">
+                              <textarea
+                                className="w-full text-xs border border-red-200 rounded-lg p-2 resize-none h-16 focus:outline-none focus:ring-2 focus:ring-red-400/30 bg-white"
+                                placeholder="Required: reason for cancellation..."
+                                value={cancelReason}
+                                onChange={(e) => setCancelReason(e.target.value)}
+                              />
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => handleAdminCancel(order.id)}
+                                  disabled={cancelling || !cancelReason.trim()}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-60 transition-colors"
+                                >
+                                  <XCircle className="w-3.5 h-3.5" /> {cancelling ? "Cancelling…" : "Confirm Cancel"}
+                                </button>
+                                <button
+                                  onClick={() => { setCancelOrderId(null); setCancelReason(""); }}
+                                  className="px-3 py-1.5 text-xs font-medium bg-white text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                  Dismiss
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setCancelOrderId(order.id)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-red-50 text-red-700 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                            >
+                              <XCircle className="w-3.5 h-3.5" /> Cancel Order
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Financial Breakdown */}
                     <div className="space-y-3">

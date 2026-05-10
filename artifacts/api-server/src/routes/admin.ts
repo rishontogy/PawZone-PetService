@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { eq, and, desc, ne } from "drizzle-orm";
 import { db, usersTable, listingsTable, ordersTable, orderTimelineTable, disputesTable, waitlistTable, notificationsTable, alertsTable, paymentProofsTable } from "@workspace/db";
+import { restoreStock } from "../lib/timerSweeper";
 import { triggerAlert } from "../lib/alertEngine";
 import {
   AdminGetUsersQueryParams,
@@ -426,6 +427,208 @@ router.post("/admin/alerts/:id/resolve", async (req, res): Promise<void> => {
   }
 
   res.json(alert);
+});
+
+// Admin cancel order with required reason
+router.post("/admin/orders/:id/cancel", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  const reason = (req.body?.reason ?? "").trim();
+
+  if (!reason) {
+    res.status(400).json({ error: "A cancellation reason is required" });
+    return;
+  }
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order) {
+    res.status(404).json({ error: "Order not found" });
+    return;
+  }
+  if (order.status === "cancelled" || order.status === "completed") {
+    res.status(400).json({ error: "Order is already in a final state" });
+    return;
+  }
+
+  const now = new Date();
+  const [updated] = await db.update(ordersTable)
+    .set({ status: "cancelled", adminCancelReason: reason })
+    .where(eq(ordersTable.id, id))
+    .returning();
+
+  await db.insert(orderTimelineTable).values({
+    orderId: id,
+    status: "cancelled",
+    note: `Cancelled by admin: ${reason}`,
+    timestamp: now,
+  });
+
+  await restoreStock(id);
+
+  await db.insert(notificationsTable).values({
+    userId: order.buyerId,
+    type: "order_update",
+    title: "Order Cancelled by Admin",
+    message: `Your order ${order.orderNumber} was cancelled by admin. Reason: ${reason}`,
+    orderId: id,
+  });
+
+  await db.insert(notificationsTable).values({
+    userId: order.sellerId,
+    type: "order_update",
+    title: "Order Cancelled by Admin",
+    message: `Order ${order.orderNumber} was cancelled by admin. Reason: ${reason}`,
+    orderId: id,
+  });
+
+  if (order.transporterId) {
+    await db.insert(notificationsTable).values({
+      userId: order.transporterId,
+      type: "order_update",
+      title: "Order Cancelled by Admin",
+      message: `Order ${order.orderNumber} was cancelled by admin and removed from your queue.`,
+      orderId: id,
+    });
+  }
+
+  await triggerAlert(
+    "CANCELLATION",
+    `Admin cancelled order #${order.orderNumber}. Reason: ${reason}`,
+    order.id,
+    null,
+    "MEDIUM"
+  );
+
+  res.json(updated);
+});
+
+// Admin extend seller confirmation deadline (adds 3 more hours from now)
+router.post("/admin/orders/:id/extend-seller", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order) {
+    res.status(404).json({ error: "Order not found" });
+    return;
+  }
+
+  const newDeadline = new Date(Date.now() + 3 * 60 * 60 * 1000);
+  const [updated] = await db.update(ordersTable)
+    .set({ status: "pending", sellerDeadline: newDeadline })
+    .where(eq(ordersTable.id, id))
+    .returning();
+
+  await db.insert(orderTimelineTable).values({
+    orderId: id,
+    status: "pending",
+    note: `Admin extended seller deadline to ${newDeadline.toISOString()}`,
+    timestamp: new Date(),
+  });
+
+  await db.insert(notificationsTable).values({
+    userId: order.sellerId,
+    type: "order_update",
+    title: "Action Required: Confirm Order",
+    message: `Admin has extended your window to confirm order ${order.orderNumber}. Please confirm within 3 hours.`,
+    orderId: id,
+  });
+
+  res.json(updated);
+});
+
+// Admin extend payment deadline (adds 5 more hours from now)
+router.post("/admin/orders/:id/extend-payment", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order) {
+    res.status(404).json({ error: "Order not found" });
+    return;
+  }
+
+  const newDeadline = new Date(Date.now() + 5 * 60 * 60 * 1000);
+  const [updated] = await db.update(ordersTable)
+    .set({ status: "confirmed", paymentDeadline: newDeadline, paymentReminderSent: false })
+    .where(eq(ordersTable.id, id))
+    .returning();
+
+  await db.insert(orderTimelineTable).values({
+    orderId: id,
+    status: "confirmed",
+    note: `Admin extended payment deadline by 5 hours`,
+    timestamp: new Date(),
+  });
+
+  await db.insert(notificationsTable).values({
+    userId: order.buyerId,
+    type: "order_update",
+    title: "Payment Extension Granted",
+    message: `Admin has extended your payment window for order ${order.orderNumber}. You have 5 more hours to complete payment.`,
+    orderId: id,
+  });
+
+  res.json(updated);
+});
+
+// Admin assign transporter manually
+router.post("/admin/orders/:id/assign-transporter", async (req, res): Promise<void> => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  const { transporterId, transportFee } = req.body ?? {};
+
+  if (!transporterId || transportFee === undefined) {
+    res.status(400).json({ error: "transporterId and transportFee are required" });
+    return;
+  }
+
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order) {
+    res.status(404).json({ error: "Order not found" });
+    return;
+  }
+
+  const [transporter] = await db.select().from(usersTable).where(eq(usersTable.id, parseInt(transporterId, 10)));
+  if (!transporter || transporter.role !== "transporter") {
+    res.status(400).json({ error: "Invalid transporter" });
+    return;
+  }
+
+  const fee = Number(transportFee);
+  const platformShare = transporter.platformSharePercent ?? 20;
+  const transporterShare = fee * (1 - platformShare / 100);
+  const newTotal = Number(order.subtotal) + Number(order.platformFee) + fee;
+  const paymentDeadline = new Date(Date.now() + 5 * 60 * 60 * 1000);
+
+  const [updated] = await db.update(ordersTable)
+    .set({
+      transporterId: transporter.id,
+      transportFee: fee,
+      transporterShareAmount: transporterShare,
+      total: newTotal,
+      paymentDeadline,
+      paymentReminderSent: false,
+    })
+    .where(eq(ordersTable.id, id))
+    .returning();
+
+  await db.insert(orderTimelineTable).values({
+    orderId: id,
+    status: "transporter_assigned",
+    note: `Admin manually assigned transporter ${transporter.name} (fee ₹${fee})`,
+    timestamp: new Date(),
+  });
+
+  await db.insert(notificationsTable).values({
+    userId: order.buyerId,
+    type: "transporter_assigned",
+    title: "Transporter Assigned — Pay Now",
+    message: `${transporter.name} has been assigned to your order by admin. Final total ₹${newTotal}. You have 5 hours to complete payment.`,
+    orderId: id,
+  });
+
+  res.json(updated);
 });
 
 router.get("/admin/waitlist", async (req, res): Promise<void> => {
