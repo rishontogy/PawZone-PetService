@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, lt, isNull, ne } from "drizzle-orm";
+import { and, desc, eq, gt, lt, isNull, isNotNull, ne } from "drizzle-orm";
 import { db, alertsTable, ordersTable, usersTable } from "@workspace/db";
 import { logger } from "./logger";
 
@@ -10,7 +10,9 @@ type AlertType =
   | "CANCELLATION"
   | "FRAUD"
   | "REPORT"
-  | "REFUND";
+  | "REFUND"
+  | "PAYMENT_VERIFICATION"
+  | "AUTO_CANCEL";
 
 type Priority = "HIGH" | "MEDIUM" | "LOW";
 
@@ -46,12 +48,8 @@ async function hasActiveAlert(type: AlertType, orderId: number | null, userId: n
 async function runAlertSweep(): Promise<void> {
   const now = new Date();
 
-  // Threshold timestamps
-  const ago30min = new Date(now.getTime() - 30 * 60 * 1000);
-  const ago60min = new Date(now.getTime() - 60 * 60 * 1000);
-  const ago3hr   = new Date(now.getTime() - 3 * 60 * 60 * 1000);
-  const ago12hr  = new Date(now.getTime() - 12 * 60 * 60 * 1000);
   const ago3days = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+  const ago30min = new Date(now.getTime() - 30 * 60 * 1000);
 
   const activeOrders = await db
     .select()
@@ -66,29 +64,17 @@ async function runAlertSweep(): Promise<void> {
     );
 
   for (const order of activeOrders) {
-    const createdAt = new Date(order.createdAt);
-
-    // PAYMENT_DELAY — pending_payment for 60+ min
-    if (order.status === "pending" && order.paymentStatus === "pending" && createdAt <= ago60min) {
-      const dup = await hasActiveAlert("PAYMENT_DELAY", order.id, null);
-      if (!dup) {
-        await triggerAlert(
-          "PAYMENT_DELAY",
-          `Buyer has not completed payment for order #${order.orderNumber} in over 60 minutes`,
-          order.id,
-          order.buyerId,
-          "HIGH"
-        );
-      }
-    }
-
-    // SELLER_DELAY — confirmed but seller hasn't acted in 3hr
-    if (order.status === "confirmed" && order.confirmedAt && new Date(order.confirmedAt) <= ago3hr) {
+    // SELLER_DELAY — still "pending" (awaiting seller confirm) past sellerDeadline
+    if (
+      order.status === "pending" &&
+      order.sellerDeadline &&
+      new Date(order.sellerDeadline) <= now
+    ) {
       const dup = await hasActiveAlert("SELLER_DELAY", order.id, null);
       if (!dup) {
         await triggerAlert(
           "SELLER_DELAY",
-          `Seller has not prepared order #${order.orderNumber} within 3 hours of confirmation`,
+          `Seller has not confirmed order #${order.orderNumber} within the required time`,
           order.id,
           order.sellerId,
           "HIGH"
@@ -96,15 +82,39 @@ async function runAlertSweep(): Promise<void> {
       }
     }
 
-    // TRANSPORT_DELAY — confirmed/ready but no transporter after 12hr
-    if (["confirmed", "ready"].includes(order.status) && !order.transporterId && createdAt <= ago12hr) {
+    // TRANSPORT_DELAY — confirmed but no transporter past transportDeadline
+    if (
+      order.status === "confirmed" &&
+      !order.transporterId &&
+      order.transportDeadline &&
+      new Date(order.transportDeadline) <= now
+    ) {
       const dup = await hasActiveAlert("TRANSPORT_DELAY", order.id, null);
       if (!dup) {
         await triggerAlert(
           "TRANSPORT_DELAY",
-          `No transporter has been assigned to order #${order.orderNumber} after 12 hours`,
+          `No transporter has been assigned to order #${order.orderNumber} within 12 hours`,
           order.id,
           null,
+          "HIGH"
+        );
+      }
+    }
+
+    // PAYMENT_DELAY — payment not completed past paymentDeadline
+    if (
+      order.paymentDeadline &&
+      new Date(order.paymentDeadline) <= now &&
+      order.paymentStatus === "pending" &&
+      order.status !== "cancelled"
+    ) {
+      const dup = await hasActiveAlert("PAYMENT_DELAY", order.id, null);
+      if (!dup) {
+        await triggerAlert(
+          "PAYMENT_DELAY",
+          `Buyer has not completed payment for order #${order.orderNumber} — deadline has passed`,
+          order.id,
+          order.buyerId,
           "HIGH"
         );
       }
@@ -125,7 +135,7 @@ async function runAlertSweep(): Promise<void> {
     }
   }
 
-  // Cancelled orders alert
+  // Cancelled orders alert (recent only)
   const recentCancellations = await db
     .select()
     .from(ordersTable)

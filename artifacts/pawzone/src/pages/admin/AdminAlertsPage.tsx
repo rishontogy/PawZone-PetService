@@ -15,24 +15,26 @@ const PRIORITY_CONFIG: Record<string, { label: string; color: string; dot: strin
 };
 
 const TYPE_CONFIG: Record<string, { label: string; icon: React.ReactNode; bg: string }> = {
-  SELLER_DELAY:    { label: "Seller Delay",     icon: <Clock className="w-4 h-4" />,       bg: "bg-amber-50 text-amber-700" },
-  PAYMENT_DELAY:   { label: "Payment Delay",    icon: <CreditCard className="w-4 h-4" />,  bg: "bg-red-50 text-red-700" },
-  TRANSPORT_DELAY: { label: "Transport Delay",  icon: <Truck className="w-4 h-4" />,       bg: "bg-purple-50 text-purple-700" },
-  DELIVERY_DELAY:  { label: "Delivery Delay",   icon: <Package className="w-4 h-4" />,     bg: "bg-blue-50 text-blue-700" },
-  CANCELLATION:    { label: "Cancellation",     icon: <AlertTriangle className="w-4 h-4" />, bg: "bg-gray-50 text-gray-700" },
-  FRAUD:           { label: "Fraud Alert",      icon: <ShieldAlert className="w-4 h-4" />, bg: "bg-red-50 text-red-700" },
-  REPORT:          { label: "Report",           icon: <FileText className="w-4 h-4" />,    bg: "bg-indigo-50 text-indigo-700" },
-  REFUND:          { label: "Refund",           icon: <RefreshCcw className="w-4 h-4" />,  bg: "bg-teal-50 text-teal-700" },
+  SELLER_DELAY:         { label: "Seller Delay",          icon: <Clock className="w-4 h-4" />,        bg: "bg-amber-50 text-amber-700" },
+  PAYMENT_DELAY:        { label: "Payment Delay",         icon: <CreditCard className="w-4 h-4" />,   bg: "bg-red-50 text-red-700" },
+  TRANSPORT_DELAY:      { label: "Transport Delay",       icon: <Truck className="w-4 h-4" />,        bg: "bg-purple-50 text-purple-700" },
+  DELIVERY_DELAY:       { label: "Delivery Delay",        icon: <Package className="w-4 h-4" />,      bg: "bg-blue-50 text-blue-700" },
+  CANCELLATION:         { label: "Cancellation",          icon: <AlertTriangle className="w-4 h-4" />, bg: "bg-gray-50 text-gray-700" },
+  FRAUD:                { label: "Fraud Alert",           icon: <ShieldAlert className="w-4 h-4" />,  bg: "bg-red-50 text-red-700" },
+  REPORT:               { label: "Report",                icon: <FileText className="w-4 h-4" />,     bg: "bg-indigo-50 text-indigo-700" },
+  REFUND:               { label: "Refund",                icon: <RefreshCcw className="w-4 h-4" />,   bg: "bg-teal-50 text-teal-700" },
+  PAYMENT_VERIFICATION: { label: "Payment Verification",  icon: <CreditCard className="w-4 h-4" />,   bg: "bg-yellow-50 text-yellow-700" },
+  AUTO_CANCEL:          { label: "Auto-Cancelled",        icon: <AlertTriangle className="w-4 h-4" />, bg: "bg-rose-50 text-rose-700" },
 };
 
 const FILTER_TYPES = [
   { key: "ALL",            label: "All" },
-  { key: "HIGH",           label: "High Priority" },
+  { key: "HIGH",           label: "Critical" },
   { key: "PAYMENT_DELAY",  label: "Payment" },
-  { key: "TRANSPORT_DELAY",label: "Transport" },
+  { key: "DELIVERY_DELAY", label: "Delivery" },
   { key: "FRAUD",          label: "Fraud" },
   { key: "REPORT",         label: "Reports" },
-  { key: "RESOLVED",       label: "Resolved" },
+  { key: "CANCELLATION",   label: "Cancelled" },
 ];
 
 export function AdminAlertsPage() {

@@ -17,6 +17,8 @@ import {
   ConfirmDeliveryBody,
 } from "@workspace/api-zod";
 import { authMiddleware } from "../lib/auth";
+import { nightRuleStart } from "../lib/nightRule";
+import { triggerAlert } from "../lib/alertEngine";
 
 const router = Router();
 
@@ -380,6 +382,10 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
   const autoPickupPoint = dirMatch.pickup;
   const autoDeliveryPoint = dirMatch.delivery;
 
+  // Night rule: payment timer is 12 hours from nightRuleStart(now)
+  const paymentTimerStart = nightRuleStart(new Date());
+  const paymentDeadline = new Date(paymentTimerStart.getTime() + 12 * 60 * 60 * 1000);
+
   const [updated] = await db.update(ordersTable).set({
     transporterId: user.id,
     pickupTime: parsed.data.pickupTime,
@@ -389,6 +395,8 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
     total: newTotal,
     pickupPoint: autoPickupPoint ?? undefined,
     deliveryPoint: autoDeliveryPoint ?? undefined,
+    paymentDeadline,
+    paymentReminderSent: false,
   }).where(eq(ordersTable.id, id)).returning();
 
   await db.insert(orderTimelineTable).values({
@@ -410,9 +418,17 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
     userId: order.buyerId,
     type: "transporter_assigned",
     title: "Transporter Assigned — Pay Now",
-    message: `${user.name} will deliver your order. Final total ₹${newTotal} (incl. transport ₹${transportFee}). Please complete payment to confirm.`,
+    message: `${user.name} will deliver your order. Final total ₹${newTotal} (incl. transport ₹${transportFee}). You have 12 hours to complete payment.`,
     orderId: id,
   });
+
+  await triggerAlert(
+    "PAYMENT_DELAY",
+    `Payment window started for order #${order.orderNumber}. Buyer has 12 hours to pay.`,
+    order.id,
+    order.buyerId,
+    "LOW"
+  );
 
   const [buyer] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, updated.buyerId));
   const [seller] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, updated.sellerId));

@@ -12,6 +12,7 @@ import {
 } from "@workspace/api-zod";
 import { authMiddleware, generateOrderNumber, generatePetCode } from "../lib/auth";
 import { triggerAlert } from "../lib/alertEngine";
+import { nightRuleStart } from "../lib/nightRule";
 
 const router = Router();
 
@@ -165,6 +166,10 @@ router.post("/orders", authMiddleware, async (req, res): Promise<void> => {
   const petCode = generatePetCode();
   const inventoryLockedUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
 
+  // Night rule: seller confirmation timer is 3 hours, starting from nightRuleStart(now)
+  const sellerTimerStart = nightRuleStart(new Date());
+  const sellerDeadline = new Date(sellerTimerStart.getTime() + 3 * 60 * 60 * 1000);
+
   const customDeliveryPoints =
     Array.isArray(parsed.data.customDeliveryPoints) && parsed.data.customDeliveryPoints.length > 0
       ? parsed.data.customDeliveryPoints
@@ -184,6 +189,7 @@ router.post("/orders", authMiddleware, async (req, res): Promise<void> => {
     customDeliveryPoints: customDeliveryPoints ?? undefined,
     petCode,
     inventoryLockedUntil,
+    sellerDeadline,
   }).returning();
 
   for (const { cart, listing } of cartItems) {
@@ -316,26 +322,24 @@ router.patch("/orders/:id", authMiddleware, async (req, res): Promise<void> => {
 
   const updates: any = { status: parsed.data.status };
   if (parsed.data.status === "confirmed") {
-    updates.confirmedAt = new Date();
-    // Night-order logic: if the order was placed at or after 9 PM IST (21:00),
-    // the payment timer starts at 9 AM IST the next day; otherwise it starts now.
-    // Buyer has 3 hours from timerStart to complete payment.
-    // Server runs in UTC, so convert order.createdAt to IST (UTC+5:30) before checking hour.
-    const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000; // 5h 30m in ms
-    const orderPlacedAt = new Date(order.createdAt);
-    const orderInIST = new Date(orderPlacedAt.getTime() + IST_OFFSET_MS);
-    const istHour = orderInIST.getUTCHours(); // IST hour (0-23)
-    let timerStart: Date;
-    if (istHour >= 21) {
-      // Start timer at 9 AM IST next day → in UTC that is 3:30 AM next day
-      timerStart = new Date(orderInIST);
-      timerStart.setUTCDate(timerStart.getUTCDate() + 1);
-      timerStart.setUTCHours(3, 30, 0, 0); // 9:00 IST = 03:30 UTC
-    } else {
-      timerStart = new Date();
-    }
-    updates.paymentDeadline = new Date(timerStart.getTime() + 3 * 60 * 60 * 1000);
-    console.log(`[orders] Order ${order.orderNumber} placed at IST hour ${istHour}. Timer starts: ${timerStart.toISOString()}, deadline: ${updates.paymentDeadline.toISOString()}`);
+    const now = new Date();
+    updates.confirmedAt = now;
+    // Night rule: transport assignment timer is 12 hours, starting at nightRuleStart(now).
+    const transportTimerStart = nightRuleStart(now);
+    updates.transportDeadline = new Date(transportTimerStart.getTime() + 12 * 60 * 60 * 1000);
+    req.log?.info(
+      { orderId: order.id, transportTimerStart, transportDeadline: updates.transportDeadline },
+      "Seller confirmed — transport deadline set"
+    );
+
+    // Notify buyer that seller confirmed
+    await db.insert(notificationsTable).values({
+      userId: order.buyerId,
+      type: "order_update",
+      title: "Order Confirmed by Seller",
+      message: `Seller confirmed your order ${order.orderNumber}. Waiting for a transporter to accept.`,
+      orderId: order.id,
+    });
   }
   if (parsed.data.status === "ready") {
     if (!order.preparedVideoUrl) {

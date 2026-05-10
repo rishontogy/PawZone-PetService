@@ -117,7 +117,7 @@ router.post("/upload", (req: Request, res: Response, next: NextFunction) => {
 // Serve locally uploaded files
 router.get("/uploads/:filename", async (req: Request, res: Response) => {
   try {
-    const filename = path.basename(req.params.filename);
+    const filename = path.basename(Array.isArray(req.params.filename) ? req.params.filename[0] : req.params.filename);
     const filePath = path.join(getLocalUploadsDir(), filename);
     await fs.access(filePath);
     res.sendFile(filePath);

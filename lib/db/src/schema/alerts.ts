@@ -13,6 +13,8 @@ export const alertsTable = pgTable("alerts", {
     | "FRAUD"
     | "REPORT"
     | "REFUND"
+    | "PAYMENT_VERIFICATION"
+    | "AUTO_CANCEL"
   >(),
   message: text("message").notNull(),
   priority: text("priority").notNull().default("MEDIUM").$type<"HIGH" | "MEDIUM" | "LOW">(),

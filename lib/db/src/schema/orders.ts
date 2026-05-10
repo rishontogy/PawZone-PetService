@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, real, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -37,6 +37,9 @@ export const ordersTable = pgTable("orders", {
   deliveredAt: timestamp("delivered_at", { withTimezone: true }),
   receivedAt: timestamp("received_at", { withTimezone: true }),
   paymentDeadline: timestamp("payment_deadline", { withTimezone: true }),
+  sellerDeadline: timestamp("seller_deadline", { withTimezone: true }),
+  transportDeadline: timestamp("transport_deadline", { withTimezone: true }),
+  paymentReminderSent: boolean("payment_reminder_sent").notNull().default(false),
   inventoryLockedUntil: timestamp("inventory_locked_until", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),

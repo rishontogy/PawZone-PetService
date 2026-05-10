@@ -1,0 +1,389 @@
+Update and finalize the PawZone Windows desktop application with the following CRITICAL TIMER, ALERT, NIGHT RULE, and ADMIN ALERT CENTER fixes.
+
+This is a FULL SYSTEM TIMER + ALERT ENGINE + VALIDATION task.
+
+If ANY issue is found:
+→ FIX immediately
+→ Re-test automatically
+→ Ensure alerts/timers persist correctly across refresh and restart
+
+The entire alert system must behave like a REAL production application.
+
+---------------------------------------------------
+⏰ 1. GLOBAL NIGHT RULE (CRITICAL)
+---------------------------------------------------
+
+# ❌ CURRENT ISSUE
+
+Timers start immediately even after 9 PM.
+
+This breaks the PRD logic.
+
+---------------------------------------------------
+✅ REQUIRED GLOBAL RULE
+---------------------------------------------------
+
+If ANY timed workflow begins AFTER 9:00 PM:
+
+→ Timer MUST NOT start immediately
+→ Timer begins ONLY at next day 9:00 AM
+
+---------------------------------------------------
+⚠️ APPLY THIS RULE TO ALL:
+---------------------------------------------------
+
+✔ Seller confirmation timer
+✔ Transport assignment timer
+✔ Payment timer
+✔ Delivery timers
+✔ Admin escalation timers
+✔ Auto cancellation timers
+✔ Reminder alerts
+
+---------------------------------------------------
+🧠 EXAMPLES
+---------------------------------------------------
+
+Example 1:
+Order placed at:
+10:30 PM
+
+Seller response timer:
+❌ Should NOT start at 10:30 PM
+✅ Must start next day 9:00 AM
+
+---------------------------------------------------
+
+Example 2:
+Transporter assigned at:
+11:15 PM
+
+Payment timer:
+❌ Must NOT start immediately
+✅ Starts next day 9:00 AM
+
+---------------------------------------------------
+
+Example 3:
+Payment window triggered at:
+9:45 PM
+
+12-hour payment timer:
+❌ NOT from 9:45 PM
+✅ Starts next day 9:00 AM
+
+---------------------------------------------------
+🕒 2. UPDATED PAYMENT TIMER LOGIC
+---------------------------------------------------
+
+# ❌ OLD LOGIC
+5 hours payment time
+
+---------------------------------------------------
+✅ NEW LOGIC
+---------------------------------------------------
+
+After transporter accepts order:
+
+Buyer gets payment window.
+
+Payment timer duration:
+✅ 12 HOURS
+
+---------------------------------------------------
+⚠️ NIGHT RULE APPLIES
+---------------------------------------------------
+
+If payment window created after 9 PM:
+→ Start timer next day 9 AM
+
+---------------------------------------------------
+🔔 PAYMENT ALERT FLOW
+---------------------------------------------------
+
+Payment Window Started
+↓
+After 2 hours:
+→ Notify Admin
+→ Notify Buyer Reminder
+
+↓
+Remaining payment window continues
+
+↓
+At 12 hours total:
+If unpaid:
+✔ Cancel order automatically
+✔ Restore stock
+✔ Release transporter
+✔ Update all dashboards
+✔ Add cancellation alert
+
+---------------------------------------------------
+📦 3. SELLER CONFIRMATION TIMER
+---------------------------------------------------
+
+Duration:
+3 HOURS
+
+---------------------------------------------------
+RULE:
+---------------------------------------------------
+
+If order placed after 9 PM:
+→ Seller timer starts next day 9 AM
+
+---------------------------------------------------
+AFTER TIMER EXPIRES:
+---------------------------------------------------
+
+If seller no response:
+✔ Auto cancel order request
+✔ Restore stock
+✔ Notify buyer
+✔ Add admin alert
+
+---------------------------------------------------
+🚚 4. TRANSPORT ASSIGNMENT TIMER
+---------------------------------------------------
+
+Duration:
+12 HOURS
+
+---------------------------------------------------
+RULE:
+---------------------------------------------------
+
+If transport assignment begins after 9 PM:
+→ Start next day 9 AM
+
+---------------------------------------------------
+IF NO TRANSPORTER ACCEPTS:
+---------------------------------------------------
+
+✔ Notify admin
+✔ Create alert
+✔ Mark order:
+"Transport Pending"
+
+---------------------------------------------------
+🔔 5. ALERT SYSTEM – FULL ACTIVATION
+---------------------------------------------------
+
+# ❌ CURRENT ISSUE
+
+Alerts are:
+- Missing
+- Not synced
+- Not visible
+- Not updating correctly
+
+---------------------------------------------------
+✅ REQUIRED FIX
+---------------------------------------------------
+
+Activate ALL alerts globally.
+
+---------------------------------------------------
+📢 ALERT TYPES REQUIRED
+---------------------------------------------------
+
+BUYER ALERTS:
+✔ Seller confirmed
+✔ Seller rejected
+✔ Payment reminder
+✔ Transport assigned
+✔ Pickup update
+✔ Delivery update
+✔ Order cancelled
+✔ Admin response
+✔ Refund processed
+
+---------------------------------------------------
+
+SELLER ALERTS:
+✔ New order request
+✔ Payment completed
+✔ Transport assigned
+✔ Pickup completed
+✔ Delay warning
+✔ Admin message
+
+---------------------------------------------------
+
+TRANSPORTER ALERTS:
+✔ New matching delivery request
+✔ Route match found
+✔ Pickup pending
+✔ Delivery reminder
+✔ Delay escalation
+
+---------------------------------------------------
+
+ADMIN ALERTS:
+✔ Seller delay
+✔ Buyer payment delay
+✔ Transport delay
+✔ Fraud alerts
+✔ Reported issues
+✔ Refund requests
+✔ Order cancellations
+✔ Upload failures
+✔ System failures
+
+---------------------------------------------------
+🛠 6. ADMIN ALERT CENTER PAGE
+---------------------------------------------------
+
+Ensure:
+Admin → Alerts Page
+
+Works FULLY.
+
+---------------------------------------------------
+MUST INCLUDE:
+---------------------------------------------------
+
+✔ Real-time alerts
+✔ Alert type
+✔ Timestamp
+✔ Related order ID
+✔ User role
+✔ Status
+✔ Severity
+
+---------------------------------------------------
+FILTERS:
+---------------------------------------------------
+
+✔ All
+✔ Critical
+✔ Payment
+✔ Delivery
+✔ Fraud
+✔ Reports
+✔ Cancelled
+
+---------------------------------------------------
+ALERT CARD BEHAVIOR:
+---------------------------------------------------
+
+Click alert:
+→ Open related order/user/report
+
+---------------------------------------------------
+⚠️ IMPORTANT
+---------------------------------------------------
+
+Alerts MUST persist after refresh/restart.
+
+Use:
+- Database-backed alerts
+- NOT temporary frontend state
+
+---------------------------------------------------
+🔄 7. ALERT SYNCHRONIZATION
+---------------------------------------------------
+
+Ensure alerts sync instantly across:
+
+✔ Buyer pages
+✔ Seller pages
+✔ Transporter pages
+✔ Admin panel
+✔ Notification icons
+✔ Alerts page
+
+---------------------------------------------------
+🔔 8. NOTIFICATION COUNTS
+---------------------------------------------------
+
+Ensure:
+Notification icon counts update correctly.
+
+When notification viewed:
+✔ Count decreases properly
+
+---------------------------------------------------
+🧠 9. SYSTEM TIMER ENGINE (IMPORTANT)
+---------------------------------------------------
+
+Timers MUST:
+✔ Use server/system time
+✔ Persist after refresh
+✔ Persist after restart
+✔ Continue accurately
+✔ NOT rely on frontend countdown only
+
+---------------------------------------------------
+⚠️ REQUIRED
+---------------------------------------------------
+
+Store:
+- timer_start
+- timer_end
+- timer_status
+- alert_status
+
+inside database.
+
+---------------------------------------------------
+🧪 10. REQUIRED TEST CASES
+---------------------------------------------------
+
+CASE 1:
+Order at 10 PM
+→ Seller timer starts next day 9 AM
+
+CASE 2:
+Transport accepted at 11 PM
+→ Payment timer starts next day 9 AM
+
+CASE 3:
+Buyer unpaid after 12 hrs
+→ Order auto cancelled
+
+CASE 4:
+Seller no response
+→ Auto cancellation works
+
+CASE 5:
+Transport not assigned
+→ Admin alert created
+
+CASE 6:
+All alerts visible in admin alert page
+
+CASE 7:
+Notification counts update correctly
+
+CASE 8:
+Refresh app
+→ Timers continue correctly
+
+CASE 9:
+Restart app
+→ Alerts still exist
+
+CASE 10:
+Cancelled orders removed from active flows
+
+---------------------------------------------------
+🎯 FINAL REQUIREMENT
+---------------------------------------------------
+
+After implementation:
+
+✔ All timers work correctly
+✔ 9 PM rule works globally
+✔ Timers resume at 9 AM
+✔ Payment timer = 12 hours
+✔ Alerts fully active
+✔ Alerts visible in admin page
+✔ Notification syncing works
+✔ Auto cancellation works
+✔ Stock restoration works
+✔ No missing alerts
+✔ No broken timers
+✔ Production-ready timer engine
+✔ Fully reliable alert system

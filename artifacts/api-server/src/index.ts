@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 import { startCartSweeper } from "./lib/cartSweeper";
+import { startTimerSweeper } from "./lib/timerSweeper";
 import { seedAdmin } from "./lib/seed";
 import { startAlertEngine } from "./lib/alertEngine";
 
@@ -26,6 +27,7 @@ app.listen(port, (err) => {
 
   logger.info({ port }, "Server listening");
   startCartSweeper();
+  startTimerSweeper();
   seedAdmin().catch((e) => logger.error({ err: e }, "Failed to seed admin"));
   startAlertEngine();
 });
