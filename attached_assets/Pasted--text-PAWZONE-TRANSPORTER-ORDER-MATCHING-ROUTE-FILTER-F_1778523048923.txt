@@ -1,0 +1,279 @@
+````text
+PAWZONE – TRANSPORTER ORDER MATCHING & ROUTE FILTER FIX (CRITICAL)
+
+CRITICAL ISSUE:
+Orders are NOT appearing in the Transporter “Delivery Requests & Active Orders” page even when valid pickup/drop locations exist.
+
+This is a FULL route-matching + transporter assignment fix.
+
+Fix the ENTIRE transporter matching system immediately and validate all flows end-to-end.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 1. TRANSPORTER ORDER MATCHING FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ Current Problem:
+• Orders not showing to transporters
+• Pickup/drop filtering failing
+• Route matching inconsistent
+• Some valid routes not detected
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When a buyer places an order:
+
+✔ Seller pickup towns
+✔ Buyer delivery towns
+✔ Custom delivery towns added in cart
+must ALL be checked properly.
+
+Then:
+
+The order should appear ONLY for transporters whose saved route passes through:
+
+• Any seller pickup town
+AND
+• Any buyer delivery town
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧠 2. ROUTE MATCHING LOGIC (IMPORTANT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Make route matching:
+
+✔ Case insensitive
+✔ Trim spaces
+✔ Ignore capitalization differences
+
+Example:
+
+"Kottayam"
+"kottayam"
+"KOTTAYAM"
+
+→ ALL should match.
+
+Use normalized comparison:
+
+```js
+normalize = (text) =>
+  text?.trim().toLowerCase();
+````
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 3. PICKUP & DROP MATCHING RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Example:
+
+Seller towns:
+• Tripunithura
+• Kadavanthara
+
+Buyer towns:
+• Ettumanoor
+• Pala
+
+Transporter Route:
+• Ernakulam
+• Kadavanthara
+• Ettumanoor
+• Kottayam
+
+✅ VALID:
+Pickup = Kadavanthara
+Drop = Ettumanoor
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔁 4. MULTIPLE DELIVERY POINT SUPPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Buyer may have:
+
+✔ Saved delivery towns
+✔ Custom delivery towns added in cart
+
+IMPORTANT:
+
+If custom towns are added for THAT order:
+→ ONLY use those towns for transporter matching.
+
+Do NOT use saved profile towns in that case.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚫 5. FIX CURRENT BUG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Currently transporter page shows:
+❌ No requests
+❌ Empty delivery requests
+❌ Request failed
+❌ Invalid filtering
+
+Fix ALL transporter APIs and queries.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧾 6. ORDER VISIBILITY RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter should see ONLY:
+
+✔ Orders matching route
+✔ Orders not yet accepted
+✔ Orders waiting for transporter
+✔ Orders within next 2 days
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ 7. FIRST ACCEPT RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When transporter accepts:
+
+✔ Lock order immediately
+✔ Remove request from other transporters
+✔ Prevent duplicate acceptance
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 8. TRANSPORTER ACCEPT FLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When accepting order:
+
+Transporter must enter:
+
+✔ Pickup date
+✔ Pickup time
+✔ Delivery estimate
+✔ Transport amount
+
+Then:
+
+✔ Buyer notified
+✔ Seller notified
+✔ Payment unlocked
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚗 9. SELF PICKUP / NEED TRANSPORT OPTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add NEW option during checkout/order placement:
+
+○ Need Transport
+○ Self Pickup
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ SELF PICKUP RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If buyer selects:
+✔ Self Pickup
+
+Then:
+
+❌ Do NOT send order to transporters
+❌ Do NOT wait for transporter acceptance
+❌ No transport fee
+
+Instead:
+
+✔ Seller contact shared AFTER payment
+✔ Buyer receives seller phone number
+✔ Seller receives buyer phone number
+
+Order status:
+→ Ready for Self Pickup
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 NEED TRANSPORT RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If:
+✔ Need Transport selected
+
+Then:
+✔ Existing transporter workflow continues normally
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 10. TRANSPORTER PAGE UI FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Fix Delivery Requests & Active Orders page:
+
+✔ Sort newest requests first
+✔ Each request as card
+✔ View Details dropdown
+✔ Show:
+
+• Pet cards
+• Pet photo
+• Quantity
+• Pickup point
+• Drop point
+• Seller details
+• Buyer details
+• Earnings
+• Platform deduction
+• Pickup date/time
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 11. VALIDATION TESTS (MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CASE 1:
+Matching route shows order
+→ PASS
+
+CASE 2:
+Case insensitive route matching
+→ PASS
+
+CASE 3:
+Custom delivery point works
+→ PASS
+
+CASE 4:
+Transporter accepts successfully
+→ PASS
+
+CASE 5:
+Other transporters lose access after accept
+→ PASS
+
+CASE 6:
+Self pickup skips transporter flow
+→ PASS
+
+CASE 7:
+Need transport sends to matching transporters
+→ PASS
+
+CASE 8:
+Transport amount saves correctly
+→ PASS
+
+CASE 9:
+Notifications trigger properly
+→ PASS
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter system must become FULLY functional and production-ready.
+
+Ensure:
+✔ Orders appear correctly
+✔ Route filtering works reliably
+✔ Matching is case-insensitive
+✔ Self pickup works
+✔ Transport flow works
+✔ No request failures
+✔ No broken APIs
+✔ No empty request lists
+✔ No duplicate assignments
+✔ Full synchronization across Buyer/Seller/Admin/Transporter
+
+```
+```

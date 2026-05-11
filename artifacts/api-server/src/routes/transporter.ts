@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { eq, and, or, isNull, notInArray, inArray } from "drizzle-orm";
+import { eq, and, or, isNull, notInArray } from "drizzle-orm";
 import {
   db,
   ordersTable,
@@ -22,19 +22,6 @@ import { triggerAlert } from "../lib/alertEngine";
 
 const router = Router();
 
-const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-function nextNDays(n: number): string[] {
-  const today = new Date();
-  const out: string[] = [];
-  for (let i = 0; i < n; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    out.push(DAYS[d.getDay()]);
-  }
-  return out;
-}
-
 function extractCity(text: string | null | undefined, knownCities: string[]): string | null {
   if (!text) return null;
   const lower = text.toLowerCase();
@@ -44,22 +31,34 @@ function extractCity(text: string | null | undefined, knownCities: string[]): st
   return null;
 }
 
+// Normalize stop names for case-insensitive comparison
+function normalize(s: string): string {
+  return s?.trim().toLowerCase() ?? "";
+}
+
 // Directional route matching: seller point must appear BEFORE buyer point in the same route.
-// Returns the matched pickup and delivery towns, or null if no match found.
+// Case-insensitive: "Kochi" and "kochi" are treated as the same stop.
+// Returns the matched pickup and delivery towns (original casing), or null if no match found.
 function findDirectionalMatch(
   sellerPoints: string[],
   buyerPoints: string[],
   routes: { startCity: string; stops: string[] | null; endCity: string }[]
 ): { pickup: string | null; delivery: string | null; isMatch: boolean } {
+  const normSeller = sellerPoints.map(normalize);
+  const normBuyer = buyerPoints.map(normalize);
+
   for (const route of routes) {
-    const stops = [route.startCity, ...(route.stops ?? []), route.endCity].filter((s): s is string => !!s);
-    for (const sp of sellerPoints) {
-      const sellerIdx = stops.indexOf(sp);
+    const rawStops = [route.startCity, ...(route.stops ?? []), route.endCity].filter((s): s is string => !!s);
+    const normStops = rawStops.map(normalize);
+
+    for (let si = 0; si < normSeller.length; si++) {
+      const sellerIdx = normStops.indexOf(normSeller[si]);
       if (sellerIdx === -1) continue;
-      for (const bp of buyerPoints) {
-        const buyerIdx = stops.indexOf(bp);
+      for (let bi = 0; bi < normBuyer.length; bi++) {
+        const buyerIdx = normStops.indexOf(normBuyer[bi]);
         if (buyerIdx !== -1 && buyerIdx > sellerIdx) {
-          return { pickup: sp, delivery: bp, isMatch: true };
+          // Return original (non-normalized) values for display
+          return { pickup: sellerPoints[si], delivery: buyerPoints[bi], isMatch: true };
         }
       }
     }
@@ -198,22 +197,6 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
   const myRoutes = await db.select().from(transporterRoutesTable)
     .where(eq(transporterRoutesTable.transporterId, user.id));
 
-  // Build the full set of unique stop names (exact strings) across all routes
-  const transporterAllStops: string[] = [];
-  const routeDays = new Set<string>();
-  for (const r of myRoutes) {
-    const stops = [r.startCity, ...(r.stops ?? []), r.endCity].filter((s): s is string => !!s);
-    for (const s of stops) {
-      if (s.trim() && !transporterAllStops.includes(s.trim())) {
-        transporterAllStops.push(s.trim());
-      }
-    }
-    if (r.dayOfWeek) routeDays.add(r.dayOfWeek);
-  }
-
-  const upcomingDays = new Set(nextNDays(3));
-  const hasUpcomingRoute = Array.from(routeDays).some(d => upcomingDays.has(d));
-
   const candidates = await db.select().from(ordersTable)
     .where(
       or(
@@ -221,6 +204,7 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
         and(
           eq(ordersTable.status, "confirmed"),
           isNull(ordersTable.transporterId),
+          eq(ordersTable.needsTransporter, true),
           notInArray(ordersTable.paymentStatus, ["refunded"] as any)
         )
       )!
@@ -299,7 +283,6 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
   // Filter: assigned orders always show. For unassigned, directional match must be found.
   const filtered = result.filter((o) => {
     if (o.transporterId === user.id) return true;
-    if (!hasUpcomingRoute) return false;
     return o._isMatch;
   });
 

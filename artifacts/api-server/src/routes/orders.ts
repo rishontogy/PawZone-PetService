@@ -419,12 +419,14 @@ router.post("/orders/:id/payment", authMiddleware, async (req, res): Promise<voi
     return;
   }
 
-  // NEW FLOW gating: payment is only allowed AFTER seller confirmed AND a transporter has been assigned with a transport fee.
+  // Payment only allowed after seller confirms
   if (order.status !== "confirmed") {
     res.status(400).json({ error: "Seller has not confirmed your order yet" });
     return;
   }
-  if (!order.transporterId || !order.transportFee || Number(order.transportFee) <= 0) {
+  // For transport orders: a transporter must be assigned with a fee before buyer can pay.
+  // Self-pickup orders skip this check — buyer can pay directly after seller confirms.
+  if (order.needsTransporter && (!order.transporterId || !order.transportFee || Number(order.transportFee) <= 0)) {
     res.status(400).json({ error: "A transporter has not yet accepted with a transport fee. Please wait." });
     return;
   }

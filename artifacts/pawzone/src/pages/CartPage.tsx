@@ -381,14 +381,16 @@ export function CartPage() {
               </div>
             </div>
 
-            {/* Need Transporter? — shown when seller is in same district as buyer */}
-            {isSameDistrict && (
+            {/* Need Transporter? — always shown */}
+            {true && (
               <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
                 <h3 className="font-bold text-blue-900 mb-1 flex items-center gap-2 text-sm">
-                  <Truck className="w-4 h-4" /> Need a Transporter?
+                  <Truck className="w-4 h-4" /> Delivery Method
                 </h3>
                 <p className="text-xs text-blue-700 mb-3">
-                  The seller is in the same district as you. You can pick up the pet directly instead of waiting for a transporter.
+                  {isSameDistrict
+                    ? "The seller is in the same district as you. You can pick up the pet directly or use a transporter."
+                    : "Choose whether you want a transporter to deliver the pet, or if you'll arrange self-pickup from the seller."}
                 </p>
                 <div className="flex gap-2">
                   <button
