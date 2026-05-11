@@ -9,6 +9,7 @@ export const ordersTable = pgTable("orders", {
   buyerId: integer("buyer_id").notNull().references(() => usersTable.id),
   sellerId: integer("seller_id").notNull().references(() => usersTable.id),
   transporterId: integer("transporter_id").references(() => usersTable.id),
+  needsTransporter: boolean("needs_transporter").notNull().default(true),
   status: text("status").notNull().default("pending")
     .$type<"pending" | "seller_confirmation_pending" | "confirmed" | "ready" | "picked_up" | "in_transit" | "delivered" | "completed" | "cancelled" | "refunded" | "payment_pending_admin_review">(),
   paymentStatus: text("payment_status").notNull().default("pending")

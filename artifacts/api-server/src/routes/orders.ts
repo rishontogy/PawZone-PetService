@@ -96,18 +96,23 @@ router.get("/orders", authMiddleware, async (req, res): Promise<void> => {
         quantity: orderItemsTable.quantity,
         unitPrice: orderItemsTable.unitPrice,
         subtotal: orderItemsTable.subtotal,
+        gender: orderItemsTable.gender,
       })
       .from(orderItemsTable)
       .where(eq(orderItemsTable.orderId, order.id));
 
     const orderItems = await Promise.all(rawItems.map(async (item) => {
-      if (!item.listingId) return { ...item, breed: null };
+      if (!item.listingId) return { ...item, breed: null, photo: null, petCode: null };
       const [listing] = await db.select({
         breed: listingsTable.breed,
+        photos: listingsTable.photos,
+        petCode: listingsTable.petCode,
       }).from(listingsTable).where(eq(listingsTable.id, item.listingId)).limit(1);
       return {
         ...item,
         breed: listing?.breed ?? null,
+        photo: listing?.photos?.[0] ?? null,
+        petCode: listing?.petCode ?? null,
       };
     }));
     const formatted = formatOrder(order, buyerName, seller?.name ?? "", transporterName, transporterPhone, buyerPhone, orderItems, seller?.phone ?? null);
@@ -175,10 +180,13 @@ router.post("/orders", authMiddleware, async (req, res): Promise<void> => {
       ? parsed.data.customDeliveryPoints
       : null;
 
+  const needsTransporter = req.body.needsTransporter !== false;
+
   const [order] = await db.insert(ordersTable).values({
     orderNumber,
     buyerId: user.id,
     sellerId,
+    needsTransporter,
     status: "pending",
     paymentStatus: "pending",
     subtotal,
@@ -199,6 +207,7 @@ router.post("/orders", authMiddleware, async (req, res): Promise<void> => {
       quantity: cart.quantity,
       unitPrice: listing.price,
       subtotal: listing.price * cart.quantity,
+      gender: cart.gender ?? undefined,
     });
     const newAvailable = listing.availableQuantity - cart.quantity;
     const genderUpdates: any = {
@@ -259,7 +268,7 @@ router.get("/orders/:id", authMiddleware, async (req, res): Promise<void> => {
   }
 
   const [buyer] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, orderRow.buyerId));
-  const [seller] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, orderRow.sellerId));
+  const [seller] = await db.select({ name: usersTable.name, phone: usersTable.phone }).from(usersTable).where(eq(usersTable.id, orderRow.sellerId));
   let transporterName = null, transporterPhone = null;
   if (orderRow.transporterId) {
     const [t] = await db.select({ name: usersTable.name, phone: usersTable.phone }).from(usersTable).where(eq(usersTable.id, orderRow.transporterId));
@@ -283,16 +292,25 @@ router.get("/orders/:id", authMiddleware, async (req, res): Promise<void> => {
     unitPrice: item.unitPrice,
     subtotal: item.subtotal,
     photos: listing.photos,
+    photo: listing.photos?.[0] ?? null,
+    petCode: listing.petCode ?? null,
+    gender: item.gender ?? null,
   }));
 
   const timeline = await db.select().from(orderTimelineTable)
     .where(eq(orderTimelineTable.orderId, id))
     .orderBy(orderTimelineTable.timestamp);
 
+  const selfPickup = orderRow.needsTransporter === false;
+  const showSellerContact = selfPickup && orderRow.paymentStatus === "paid" && orderRow.buyerId === user.id;
+  const sellerPhone = showSellerContact ? (seller?.phone ?? null) : null;
   res.json({
-    ...formatOrder(orderRow, buyer?.name ?? "", seller?.name ?? "", transporterName, transporterPhone),
+    ...formatOrder(orderRow, buyer?.name ?? "", seller?.name ?? "", transporterName, transporterPhone, null, null, sellerPhone),
     items,
     timeline,
+    needsTransporter: orderRow.needsTransporter ?? true,
+    sellerContactPhone: sellerPhone,
+    sellerContactName: showSellerContact ? (seller?.name ?? null) : null,
   });
 });
 
@@ -324,22 +342,34 @@ router.patch("/orders/:id", authMiddleware, async (req, res): Promise<void> => {
   if (parsed.data.status === "confirmed") {
     const now = new Date();
     updates.confirmedAt = now;
-    // Night rule: transport assignment timer is 12 hours, starting at nightRuleStart(now).
-    const transportTimerStart = nightRuleStart(now);
-    updates.transportDeadline = new Date(transportTimerStart.getTime() + 12 * 60 * 60 * 1000);
-    req.log?.info(
-      { orderId: order.id, transportTimerStart, transportDeadline: updates.transportDeadline },
-      "Seller confirmed — transport deadline set"
-    );
-
-    // Notify buyer that seller confirmed
-    await db.insert(notificationsTable).values({
-      userId: order.buyerId,
-      type: "order_update",
-      title: "Order Confirmed by Seller",
-      message: `Seller confirmed your order ${order.orderNumber}. Waiting for a transporter to accept.`,
-      orderId: order.id,
-    });
+    if ((order as any).needsTransporter === false) {
+      // Self-pickup order: set payment deadline immediately (3 hours, night-rule adjusted)
+      const paymentTimerStart = nightRuleStart(now);
+      updates.paymentDeadline = new Date(paymentTimerStart.getTime() + 3 * 60 * 60 * 1000);
+      req.log?.info({ orderId: order.id, paymentDeadline: updates.paymentDeadline }, "Self-pickup order confirmed — payment deadline set");
+      await db.insert(notificationsTable).values({
+        userId: order.buyerId,
+        type: "order_update",
+        title: "Order Confirmed — Pay Now",
+        message: `Seller confirmed your order ${order.orderNumber}. Complete payment to arrange self-pickup.`,
+        orderId: order.id,
+      });
+    } else {
+      // Normal transport flow: set transport deadline
+      const transportTimerStart = nightRuleStart(now);
+      updates.transportDeadline = new Date(transportTimerStart.getTime() + 12 * 60 * 60 * 1000);
+      req.log?.info(
+        { orderId: order.id, transportTimerStart, transportDeadline: updates.transportDeadline },
+        "Seller confirmed — transport deadline set"
+      );
+      await db.insert(notificationsTable).values({
+        userId: order.buyerId,
+        type: "order_update",
+        title: "Order Confirmed by Seller",
+        message: `Seller confirmed your order ${order.orderNumber}. Waiting for a transporter to accept.`,
+        orderId: order.id,
+      });
+    }
   }
   if (parsed.data.status === "ready") {
     if (!order.preparedVideoUrl) {
@@ -490,6 +520,54 @@ router.post("/orders/:id/payment-proof", authMiddleware, async (req, res): Promi
   });
 
   res.status(201).json(proof);
+});
+
+router.post("/orders/:id/confirm-pickup", authMiddleware, async (req, res): Promise<void> => {
+  const user = (req as any).user;
+  if (user.role !== "buyer") {
+    res.status(403).json({ error: "Buyers only" });
+    return;
+  }
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, id));
+  if (!order || order.buyerId !== user.id) {
+    res.status(404).json({ error: "Order not found" });
+    return;
+  }
+  if ((order as any).needsTransporter !== false) {
+    res.status(400).json({ error: "This route is only for self-pickup orders" });
+    return;
+  }
+  if (order.status !== "ready") {
+    res.status(400).json({ error: "Order is not ready for pickup yet" });
+    return;
+  }
+  if (order.paymentStatus !== "paid") {
+    res.status(400).json({ error: "Payment must be completed first" });
+    return;
+  }
+  const [updated] = await db.update(ordersTable)
+    .set({ status: "completed", receivedAt: new Date() })
+    .where(eq(ordersTable.id, id))
+    .returning();
+
+  await db.insert(orderTimelineTable).values({
+    orderId: id,
+    status: "completed",
+    note: "Buyer confirmed self-pickup",
+    timestamp: new Date(),
+  });
+  await db.insert(notificationsTable).values({
+    userId: order.sellerId,
+    type: "order_update",
+    title: "Pickup Confirmed",
+    message: `Buyer confirmed self-pickup for order ${order.orderNumber}. Order completed!`,
+    orderId: id,
+  });
+  const [buyer] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, updated.buyerId));
+  const [seller] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, updated.sellerId));
+  res.json(formatOrder(updated, buyer?.name ?? "", seller?.name ?? ""));
 });
 
 router.post("/orders/:id/prepared-video", authMiddleware, async (req, res): Promise<void> => {

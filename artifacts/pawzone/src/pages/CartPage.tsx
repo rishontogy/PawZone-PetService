@@ -30,6 +30,13 @@ const KERALA_DISTRICTS: Record<string, string[]> = {
 
 const KERALA_CITIES = Object.keys(KERALA_DISTRICTS);
 
+function getCityDistrict(city: string): string | null {
+  for (const [district, towns] of Object.entries(KERALA_DISTRICTS)) {
+    if (towns.includes(city) || district === city) return district;
+  }
+  return null;
+}
+
 function AddDeliveryPointModal({
   onAdd,
   onClose,
@@ -162,6 +169,7 @@ export function CartPage() {
   const [notes, setNotes] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [showAddPoint, setShowAddPoint] = useState(false);
+  const [needsTransporter, setNeedsTransporter] = useState(true);
 
   const { data: cart, refetch } = useGetCart({ query: { enabled: !!user } } as any);
 
@@ -182,7 +190,9 @@ export function CartPage() {
       onSuccess: (order: any) => {
         toast({
           title: "🎉 Order placed!",
-          description: `Order #${order.orderNumber} sent to seller. Once a transporter accepts, you'll be notified to complete payment.`,
+          description: needsTransporter
+            ? `Order #${order.orderNumber} sent to seller. Once a transporter accepts, you'll be notified to complete payment.`
+            : `Order #${order.orderNumber} sent to seller. Complete payment after seller confirms to arrange self-pickup.`,
         });
         setLocation("/buyer/orders");
       },
@@ -196,6 +206,12 @@ export function CartPage() {
   const subtotal = Number((cart as any)?.subtotal ?? 0);
   const fees = Number((cart as any)?.platformFee ?? 0);
   const total = Number((cart as any)?.total ?? 0) || subtotal + fees;
+
+  const sellerCity = items[0]?.listing?.city ?? null;
+  const buyerCity = (user as any)?.city ?? null;
+  const sellerDistrict = sellerCity ? getCityDistrict(sellerCity) : null;
+  const buyerDistrict = buyerCity ? getCityDistrict(buyerCity) : null;
+  const isSameDistrict = !!(sellerDistrict && buyerDistrict && sellerDistrict === buyerDistrict);
 
   const hour = new Date().getHours();
   const isNightTime = hour >= 21;
@@ -213,10 +229,13 @@ export function CartPage() {
   };
 
   // The delivery address sent to the server uses ONLY the active (override or profile) points.
-  const deliveryAddress = activeDeliveryPoints.length > 0
-    ? activeDeliveryPoints.join(", ")
-    : (user?.address || user?.city || "");
-  const canPlaceOrder = deliveryAddress.trim().length > 0;
+  // For self-pickup orders, delivery address is "Self pickup" — no delivery points needed.
+  const deliveryAddress = !needsTransporter
+    ? "Self pickup"
+    : activeDeliveryPoints.length > 0
+      ? activeDeliveryPoints.join(", ")
+      : (user?.address || user?.city || "");
+  const canPlaceOrder = !needsTransporter || deliveryAddress.trim().length > 0;
 
   if (!items.length) {
     return (
@@ -343,16 +362,57 @@ export function CartPage() {
                   <span className="text-gray-500">Platform fees</span>
                   <span className="font-medium">{formatPrice(fees)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Transport charge</span>
-                  <span className="text-amber-600 font-medium text-xs italic">Added after transporter accepts</span>
-                </div>
+                {needsTransporter && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Transport charge</span>
+                    <span className="text-amber-600 font-medium text-xs italic">Added after transporter accepts</span>
+                  </div>
+                )}
+                {!needsTransporter && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Transport fee</span>
+                    <span className="text-green-600 font-medium text-xs">No charge (self-pickup)</span>
+                  </div>
+                )}
                 <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-base">
                   <span>Total Amount</span>
                   <span className="text-teal-600 text-lg">{formatPrice(total)}</span>
                 </div>
               </div>
             </div>
+
+            {/* Need Transporter? — shown when seller is in same district as buyer */}
+            {isSameDistrict && (
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+                <h3 className="font-bold text-blue-900 mb-1 flex items-center gap-2 text-sm">
+                  <Truck className="w-4 h-4" /> Need a Transporter?
+                </h3>
+                <p className="text-xs text-blue-700 mb-3">
+                  The seller is in the same district as you. You can pick up the pet directly instead of waiting for a transporter.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNeedsTransporter(true)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-colors ${needsTransporter ? "bg-teal-600 text-white border-teal-600" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"}`}
+                  >
+                    🚗 Yes, need transporter
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNeedsTransporter(false)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-colors ${!needsTransporter ? "bg-teal-600 text-white border-teal-600" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"}`}
+                  >
+                    🚶 Self pickup
+                  </button>
+                </div>
+                {!needsTransporter && (
+                  <p className="text-xs text-teal-700 mt-2 bg-teal-50 border border-teal-200 rounded-lg px-2 py-1.5">
+                    Seller contact info shared after payment for you to arrange pickup.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Trust badges */}
             <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-2">
@@ -486,7 +546,9 @@ export function CartPage() {
                       <div className="flex-1">
                         <h3 className="font-bold text-gray-900 mb-1">Before you continue</h3>
                         <p className="text-sm text-gray-600">
-                          Transport charges will be added after a transporter accepts. You will complete payment after that.
+                          {needsTransporter
+                            ? "Transport charges will be added after a transporter accepts. You will complete payment after that."
+                            : "No transporter needed. Complete payment after seller confirms, then collect your pet directly."}
                         </p>
                         {activeDeliveryPoints.length > 0 && (
                           <div className="mt-3 space-y-1">
@@ -513,7 +575,7 @@ export function CartPage() {
                         data-testid="button-confirm-place-order"
                         onClick={() => {
                           setConfirmOpen(false);
-                          placeOrder.mutate({ data: { deliveryAddress, customDeliveryPoints: isOverrideMode ? extraPoints : undefined, notes: notes || undefined } as any });
+                          placeOrder.mutate({ data: { deliveryAddress, customDeliveryPoints: needsTransporter && isOverrideMode ? extraPoints : undefined, notes: notes || undefined, needsTransporter } as any });
                         }}
                       >
                         OK, Continue

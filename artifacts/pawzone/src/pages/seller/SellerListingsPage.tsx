@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor } from "@/lib/api";
-import { PlusCircle, Edit, Trash2, PawPrint, Package, PackagePlus } from "lucide-react";
+import { PlusCircle, Edit, Trash2, PawPrint, Package, PackagePlus, Shield } from "lucide-react";
 
 export function SellerListingsPage() {
   const { user } = useAuth();
@@ -130,7 +130,13 @@ export function SellerListingsPage() {
                 </div>
                 <div className="p-4">
                   <h3 className="font-bold text-gray-900">{listing.breed}</h3>
-                  <p className="text-xs text-gray-400 capitalize mb-2">{listing.category}</p>
+                  <p className="text-xs text-gray-400 capitalize mb-1">{listing.category}</p>
+                  {listing.petCode && (
+                    <div className="flex items-center gap-1 mb-2">
+                      <Shield className="w-3 h-3 text-teal-600" />
+                      <code className="text-xs text-teal-600 font-mono">{listing.petCode}</code>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between mb-3">
                     <p className="font-bold text-teal-600 text-lg">{formatPrice(Number(listing.price ?? 0))}</p>
                     <p className="text-xs text-gray-400">

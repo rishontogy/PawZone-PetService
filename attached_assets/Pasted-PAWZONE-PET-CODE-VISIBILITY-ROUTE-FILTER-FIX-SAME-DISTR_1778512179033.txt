@@ -1,0 +1,374 @@
+PAWZONE – PET CODE VISIBILITY + ROUTE FILTER FIX + SAME DISTRICT DELIVERY LOGIC + QR UI FIX
+
+Update and finalize the PawZone application with the following production-level fixes and improvements.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏷 1. PET CODE VISIBILITY SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every pet/listing already has a unique Pet Code.
+
+Example:
+PZ-PET-0001
+
+Currently this code is not visible everywhere it is required.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Show Pet Code clearly in ALL relevant sections:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 BUYER SIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Show Pet Code in:
+
+• Browse pets card
+• Product details page
+• Cart items
+• Order items
+• Buyer order detail page
+• Payment summary
+• Notifications
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠 ADMIN SIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Show Pet Code in:
+
+• Review listings cards
+• Review listing details
+• All orders page
+• Order details dropdown
+• Accounting & ledger
+• Disputes
+• Alerts page
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 TRANSPORTER SIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Show Pet Code in:
+
+• Delivery request cards
+• Active orders
+• View details dropdown
+• Animal cards inside transporter details
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏪 SELLER SIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Show Pet Code in:
+
+• My listings
+• Orders page
+• Recent orders
+• Listing details
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 DISPLAY FORMAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Show as:
+
+Pet Code: PZ-PET-0001
+
+Style:
+✔ Small highlighted badge
+✔ Easy to identify
+✔ Copy-friendly
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🖼 2. BUYER ORDER PAGE – PET PHOTO INSIDE ORDER ITEMS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current problem:
+Order items section does not properly show pet images.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In:
+• Buyer Orders Page
+• Buyer Order Detail Page
+
+For EACH order item:
+
+Show:
+✔ Pet thumbnail
+✔ Pet name
+✔ Pet code
+✔ Quantity
+✔ Price
+✔ Seller
+✔ Gender selected
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 IMAGE RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pet images must:
+✔ Load correctly
+✔ Maintain aspect ratio
+✔ Be responsive
+✔ Open fullscreen on tap
+✔ Not crop badly
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 3. TRANSPORTER ROUTE FILTER FIX (CRITICAL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current problem:
+Transport route filtering is incorrect.
+
+Some transporters:
+❌ Receive unrelated orders
+❌ Miss matching orders
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FILTER LOGIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter should receive order ONLY IF:
+
+ANY seller pickup point matches transporter route
+AND
+ANY buyer delivery point matches transporter route
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 MATCHING RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use smart matching priority:
+
+1. Town match
+2. Nearby town match
+3. District fallback
+
+Example:
+
+Buyer:
+• Ettumanoor
+• Pala
+
+Seller:
+• Kakkanad
+• Kadavanthara
+
+Transporter route:
+• Kadavanthara
+• Ettumanoor
+
+→ VALID MATCH
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ INVALID CASE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller:
+• Kochi
+
+Buyer:
+• Kottayam
+
+Transporter route:
+• Kozhikode only
+
+→ MUST NOT RECEIVE ORDER
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ ROUTE FILTER REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Real-time matching
+✔ No duplicate requests
+✔ First accepted gets assignment
+✔ Correct pickup/drop selection
+✔ Works across all UI
+✔ Works after refresh/restart
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏠 4. SAME DISTRICT DELIVERY OPTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If Buyer District == Seller District:
+
+Show option:
+
+“Need Transporter?”
+
+Options:
+• Yes
+• No
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ IF YES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Normal flow:
+• Transporter assignment
+• Delivery charge
+• Transport timeline
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ IF NO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+THEN:
+
+• No transporter assignment
+• No transport fee
+• Buyer pays:
+  Product amount + buyer platform fee only
+
+After payment:
+✔ Seller phone number visible to buyer
+✔ Seller pickup address visible
+✔ Seller notified
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📞 CONTACT SHARING RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ONLY AFTER PAYMENT:
+
+Buyer sees:
+✔ Seller name
+✔ Seller phone
+✔ Pickup point
+
+Seller sees:
+✔ Buyer name
+✔ Buyer phone
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 PAYMENT LOGIC FOR NO TRANSPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Example:
+
+Pet = ₹8000
+
+Buyer platform fee = ₹20
+Seller platform fee = ₹20
+
+Buyer pays:
+₹8020
+
+Seller receives:
+₹7980
+
+Platform revenue:
+₹40
+
+NO transport fee involved.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧾 ORDER STATUS FLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For no-transporter orders:
+
+Requested
+→ Seller Confirmed
+→ Payment Completed
+→ Ready for Pickup
+→ Buyer Confirmed Pickup
+→ Completed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📲 5. QR CODE PAYMENT UI FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current issue:
+QR code not fully visible in all UI sizes.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure QR code displays properly in:
+
+✔ Desktop
+✔ Tablet
+✔ Mobile
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📏 QR DISPLAY RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Entire QR visible
+✔ No cropping
+✔ Proper scaling
+✔ Center aligned
+✔ Responsive container
+✔ Maintain aspect ratio
+
+Use:
+object-fit: contain
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💳 PAYMENT PAGE MUST SHOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Full QR code
+✔ UPI ID
+✔ Amount
+✔ Order ID
+✔ Upload screenshot option
+✔ Reference number input
+✔ Payment instructions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 TEST CASES (MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CASE 1:
+Pet code visible everywhere
+→ PASS
+
+CASE 2:
+Buyer order items show pet photo
+→ PASS
+
+CASE 3:
+Transporter gets only matching routes
+→ PASS
+
+CASE 4:
+Same district → “Need transporter?” appears
+→ PASS
+
+CASE 5:
+“No transporter” removes transport fee
+→ PASS
+
+CASE 6:
+Seller contact visible only after payment
+→ PASS
+
+CASE 7:
+QR fully visible on mobile
+→ PASS
+
+CASE 8:
+Transport assignment still works correctly
+→ PASS
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Pet code visibility must be universal
+• Transport filtering must be accurate
+• Same-district pickup flow must work perfectly
+• QR code must display correctly in all UI
+• Buyer order items must show proper pet photos
+• No incorrect transporter assignments
+• No broken responsive layouts
+• Production-ready quality required

@@ -11,6 +11,7 @@ export const orderItemsTable = pgTable("order_items", {
   quantity: integer("quantity").notNull(),
   unitPrice: real("unit_price").notNull(),
   subtotal: real("subtotal").notNull(),
+  gender: text("gender").$type<"male" | "female">(),
 });
 
 export const insertOrderItemSchema = createInsertSchema(orderItemsTable).omit({ id: true });

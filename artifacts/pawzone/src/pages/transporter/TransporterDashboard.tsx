@@ -471,6 +471,9 @@ export function TransporterDashboard() {
                                         </div>
                                         <div className="p-1.5">
                                           <p className="text-xs font-semibold text-gray-800 truncate leading-tight">{item.name}</p>
+                                          {(item as any).petCode && (
+                                            <p className="text-[10px] text-teal-600 font-mono truncate">{(item as any).petCode}</p>
+                                          )}
                                           <p className="text-[11px] text-teal-700 font-bold mt-0.5">{formatPrice(item.price)}</p>
                                           <p className="text-[10px] text-amber-600 font-medium">qty: {item.quantity}</p>
                                         </div>

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { PawPrint, MapPin, Search, Filter, ChevronLeft } from "lucide-react";
+import { PawPrint, MapPin, Search, Filter, ChevronLeft, Shield } from "lucide-react";
 import { formatPrice } from "@/lib/api";
 
 const CATEGORIES = ["dogs", "cats", "birds", "fish", "rabbits", "others"];
@@ -136,6 +136,12 @@ export function ListingsPage() {
                           <Badge variant="destructive" className="text-xs">Sold Out</Badge>
                         )}
                       </div>
+                      {(listing as any).petCode && (
+                        <div className="flex items-center gap-1 mt-1.5">
+                          <Shield className="w-3 h-3 text-teal-600" />
+                          <code className="text-xs text-teal-600 font-mono">{(listing as any).petCode}</code>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </Link>

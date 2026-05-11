@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useGetOrder, useReportIssue } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -5,16 +6,15 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor, statusLabel, getApiBase } from "@/lib/api";
 import {
-  ChevronLeft, Shield, AlertCircle, Package, CheckCircle,
+  Shield, AlertCircle, Package, CheckCircle,
   Truck, Clock, MapPin, Phone, User, ShoppingBag, CreditCard,
   PackageCheck, PackageOpen, Video, XCircle
 } from "lucide-react";
-import { useState } from "react";
 
 type Stage = {
   key: string;
   label: string;
-  icon: JSX.Element;
+  icon: React.ReactNode;
   isDone: (o: any) => boolean;
   doneAt: (o: any) => string | null;
 };
@@ -75,6 +75,44 @@ const STAGES: Stage[] = [
     icon: <PackageOpen className="w-4 h-4" />,
     isDone: (o) => !!o.receivedAt || o.status === "completed",
     doneAt: (o) => o.receivedAt ?? findTimelineAt(o, ["completed", "received"]) ?? null,
+  },
+];
+
+const SELF_PICKUP_STAGES: Stage[] = [
+  {
+    key: "requested",
+    label: "Order Requested",
+    icon: <ShoppingBag className="w-4 h-4" />,
+    isDone: (o) => !!o.createdAt,
+    doneAt: (o) => o.createdAt ?? null,
+  },
+  {
+    key: "seller_confirmed",
+    label: "Seller Confirmed",
+    icon: <CheckCircle className="w-4 h-4" />,
+    isDone: (o) => ["confirmed", "ready", "completed"].includes(o.status),
+    doneAt: (o) => findTimelineAt(o, ["confirmed"]),
+  },
+  {
+    key: "payment_completed",
+    label: "Payment Completed",
+    icon: <CreditCard className="w-4 h-4" />,
+    isDone: (o) => o.paymentStatus === "paid",
+    doneAt: (o) => findTimelineAt(o, ["paid", "payment"]) ?? o.paidAt ?? null,
+  },
+  {
+    key: "ready",
+    label: "Ready for Pickup",
+    icon: <Package className="w-4 h-4" />,
+    isDone: (o) => ["ready", "completed"].includes(o.status),
+    doneAt: (o) => findTimelineAt(o, ["ready"]) ?? null,
+  },
+  {
+    key: "received",
+    label: "Pickup Confirmed",
+    icon: <PackageOpen className="w-4 h-4" />,
+    isDone: (o) => o.status === "completed",
+    doneAt: (o) => o.receivedAt ?? findTimelineAt(o, ["completed"]) ?? null,
   },
 ];
 
@@ -142,17 +180,13 @@ export function OrderDetailPage() {
   const transportFeeAmount = Number(o.transportFee ?? 0);
   const subtotalAmount = Number(o.subtotal ?? 0);
   const platformFeeAmount = Number(o.platformFee ?? 0);
-  // Final total = subtotal + platformFee + transportFee. Server already updates `total` once a transporter is assigned.
   const totalAmount = Number(o.totalAmount ?? subtotalAmount + platformFeeAmount + transportFeeAmount);
   const rawStatus = o.status ?? "pending";
   const paymentStatusVal = o.paymentStatus ?? "pending";
   const currentStatus = getEffectiveStatus(rawStatus, paymentStatusVal);
   const transporterAssigned = !!o.transporterId && transportFeeAmount > 0;
+  const selfPickup = o.needsTransporter === false;
 
-  // Payment deadline — prefer server-stored paymentDeadline (already applies night logic).
-  // Fall back to computing locally with IST-aware night-order logic:
-  // If order placed at or after 9 PM IST, timer starts next day 9 AM IST;
-  // otherwise it starts from order creation. Buyer gets 3 hours from timerStart.
   let payDeadline: Date;
   if (o.paymentDeadline) {
     payDeadline = new Date(o.paymentDeadline);
@@ -163,7 +197,6 @@ export function OrderDetailPage() {
     const istHour = orderInIST.getUTCHours();
     let timerStart: Date;
     if (istHour >= 21) {
-      // 9 AM IST next day = 3:30 AM UTC next day
       timerStart = new Date(orderInIST);
       timerStart.setUTCDate(timerStart.getUTCDate() + 1);
       timerStart.setUTCHours(3, 30, 0, 0);
@@ -177,21 +210,22 @@ export function OrderDetailPage() {
   const hoursLeft = Math.floor(timeLeft / 3600000);
   const minsLeft = Math.floor((timeLeft % 3600000) / 60000);
 
-  // NEW FLOW: buyer can pay only AFTER seller confirmed AND a transporter has accepted with a fee.
-  const isPendingPayment = rawStatus === "confirmed" && transporterAssigned && paymentStatusVal !== "paid";
+  const isPendingPayment = rawStatus === "confirmed" && (selfPickup || transporterAssigned) && paymentStatusVal !== "paid";
   const isAwaitingSeller = rawStatus === "pending" || rawStatus === "seller_confirmation_pending";
-  const isAwaitingTransporter = rawStatus === "confirmed" && !transporterAssigned && paymentStatusVal !== "paid";
+  const isAwaitingTransporter = rawStatus === "confirmed" && !transporterAssigned && paymentStatusVal !== "paid" && !selfPickup;
   const canReportIssue = ["paid", "ready", "picked_up", "in_transit", "delivered", "confirmed"].includes(rawStatus);
-  // Buyer can cancel only before payment is confirmed
   const canBuyerCancel = paymentStatusVal !== "paid" && rawStatus !== "cancelled" && rawStatus !== "completed";
 
-  // 8-stage progress tracker
-  const stageStates = STAGES.map((s) => ({ ...s, done: s.isDone(o), at: s.doneAt(o) }));
+  const activeStages = selfPickup ? SELF_PICKUP_STAGES : STAGES;
+  const stageStates = activeStages.map((s) => ({ ...s, done: s.isDone(o), at: s.doneAt(o) }));
   const lastDoneIdx = stageStates.reduce((acc, s, i) => (s.done ? i : acc), -1);
   const currentStageKey = lastDoneIdx >= 0 ? stageStates[lastDoneIdx].key : "requested";
   const isCancelled = rawStatus === "cancelled";
   const isDelivered = !!o.deliveredAt || ["delivered", "completed"].includes(rawStatus);
   const isReceived = !!o.receivedAt || rawStatus === "completed";
+  const isSelfPickupReady = selfPickup && rawStatus === "ready" && paymentStatusVal === "paid" && !isReceived;
+
+  const payTotal = selfPickup ? subtotalAmount + platformFeeAmount : totalAmount;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -211,6 +245,14 @@ export function OrderDetailPage() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-4">
+        {/* Self-pickup badge */}
+        {selfPickup && (
+          <div className="bg-teal-50 border border-teal-200 rounded-2xl p-3 flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-teal-600 flex-shrink-0" />
+            <p className="text-sm font-medium text-teal-800">Self-pickup order — no transporter needed</p>
+          </div>
+        )}
+
         {/* Awaiting Seller Banner */}
         {isAwaitingSeller && (
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
@@ -224,7 +266,7 @@ export function OrderDetailPage() {
           </div>
         )}
 
-        {/* Awaiting Transporter Banner — seller confirmed, no transporter yet */}
+        {/* Awaiting Transporter Banner — only for non-self-pickup */}
         {isAwaitingTransporter && (
           <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 flex items-start gap-3">
             <Clock className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
@@ -237,7 +279,7 @@ export function OrderDetailPage() {
           </div>
         )}
 
-        {/* Payment Banner — only after transporter accepted */}
+        {/* Payment Banner */}
         {isPendingPayment && !payExpired && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
             <div className="flex items-start gap-3">
@@ -250,15 +292,17 @@ export function OrderDetailPage() {
                 <div className="mt-2 text-xs text-amber-800 bg-amber-100/60 rounded-lg p-2 space-y-0.5">
                   <div className="flex justify-between"><span>Items subtotal</span><span>{formatPrice(subtotalAmount)}</span></div>
                   <div className="flex justify-between"><span>Platform fee</span><span>{formatPrice(platformFeeAmount)}</span></div>
-                  <div className="flex justify-between"><span>Transport charge</span><span>{formatPrice(transportFeeAmount)}</span></div>
-                  <div className="flex justify-between font-bold border-t border-amber-300 pt-1 mt-1"><span>Final total</span><span>{formatPrice(totalAmount)}</span></div>
+                  {!selfPickup && (
+                    <div className="flex justify-between"><span>Transport charge</span><span>{formatPrice(transportFeeAmount)}</span></div>
+                  )}
+                  <div className="flex justify-between font-bold border-t border-amber-300 pt-1 mt-1"><span>Final total</span><span>{formatPrice(payTotal)}</span></div>
                 </div>
                 <Button
                   className="mt-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white"
                   size="sm"
                   onClick={() => setLocation(`/buyer/orders/${id}/pay`)}
                 >
-                  Pay {formatPrice(totalAmount)} via UPI
+                  Pay {formatPrice(payTotal)} via UPI
                 </Button>
               </div>
             </div>
@@ -307,7 +351,7 @@ export function OrderDetailPage() {
           </div>
         )}
 
-        {/* 8-Stage Order Progress */}
+        {/* Order Progress */}
         {!isCancelled && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h2 className="font-bold text-gray-900 mb-4">Order Progress</h2>
@@ -375,12 +419,17 @@ export function OrderDetailPage() {
           </div>
         )}
 
-        {/* Buyer Confirm Delivery (replaces received video upload) */}
-        {isDelivered && !isReceived && (
+        {/* Self-pickup: Confirm Pickup button when ready */}
+        {isSelfPickupReady && (
+          <ConfirmPickupCard orderId={parseInt(id!)} onDone={() => refetch()} />
+        )}
+
+        {/* Buyer Confirm Delivery (transporter flow) */}
+        {isDelivered && !isReceived && !selfPickup && (
           <ConfirmDeliveryCard orderId={parseInt(id!)} onDone={() => refetch()} />
         )}
 
-        {/* Show videos uploaded throughout the journey */}
+        {/* Journey Videos */}
         {(o.preparedVideoUrl || o.pickupVideoUrl || o.deliveryVideoUrl || o.receivedVideoUrl) && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
@@ -395,8 +444,8 @@ export function OrderDetailPage() {
           </div>
         )}
 
-        {/* Transporter Info */}
-        {o.transporterName && (
+        {/* Transporter Info (only for non-self-pickup) */}
+        {!selfPickup && o.transporterName && (
           <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
             <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
               <Truck className="w-4 h-4" /> Your Transporter
@@ -417,6 +466,24 @@ export function OrderDetailPage() {
           </div>
         )}
 
+        {/* Self-pickup: Seller Contact (visible after payment) */}
+        {selfPickup && paymentStatusVal === "paid" && o.sellerContactPhone && (
+          <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4">
+            <h3 className="font-semibold text-teal-900 mb-2 flex items-center gap-2">
+              <Phone className="w-4 h-4" /> Seller Contact for Pickup
+            </h3>
+            <div className="space-y-1">
+              <p className="text-sm text-teal-800 flex items-center gap-2">
+                <User className="w-4 h-4" /> {o.sellerContactName || o.sellerName}
+              </p>
+              <a href={`tel:${o.sellerContactPhone}`} className="text-sm text-teal-700 flex items-center gap-2 hover:underline font-medium">
+                <Phone className="w-3.5 h-3.5" /> {o.sellerContactPhone}
+              </a>
+              <p className="text-xs text-teal-600 mt-1">Contact the seller to arrange collection of your pet.</p>
+            </div>
+          </div>
+        )}
+
         {/* Order Items */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-50">
@@ -428,8 +495,8 @@ export function OrderDetailPage() {
             {o.items?.map((item: any) => (
               <div key={item.id} className="p-4 flex items-center gap-4">
                 <div className="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                  {item.photo ? (
-                    <img src={item.photo} alt={item.breed} className="w-full h-full object-cover" />
+                  {(item.photos?.[0] ?? item.photo) ? (
+                    <img src={item.photos?.[0] ?? item.photo} alt={item.breed} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-2xl">🐾</div>
                   )}
@@ -439,6 +506,11 @@ export function OrderDetailPage() {
                   <p className="text-sm text-gray-400">
                     {formatPrice(Number(item.unitPrice ?? item.price ?? 0))} × {item.quantity ?? 1}
                   </p>
+                  {item.gender && (
+                    <span className={`text-xs font-medium ${item.gender === "male" ? "text-blue-600" : "text-pink-600"}`}>
+                      {item.gender === "male" ? "♂ Male" : "♀ Female"}
+                    </span>
+                  )}
                   {item.petCode && (
                     <div className="flex items-center gap-1 mt-1">
                       <Shield className="w-3 h-3 text-teal-600" />
@@ -468,18 +540,25 @@ export function OrderDetailPage() {
               <span className="text-gray-500">Buyer Platform Fee</span>
               <span>{formatPrice(platformFeeAmount)}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Transport Fee</span>
-              {transportFeeAmount > 0 ? (
-                <span className="font-medium">{formatPrice(transportFeeAmount)}</span>
-              ) : (
-                <span className="text-amber-600 text-xs italic">Added after transporter accepts</span>
-              )}
-            </div>
+            {selfPickup ? (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Transport Fee</span>
+                <span className="text-green-600 text-xs italic font-medium">No charge (self-pickup)</span>
+              </div>
+            ) : (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Transport Fee</span>
+                {transportFeeAmount > 0 ? (
+                  <span className="font-medium">{formatPrice(transportFeeAmount)}</span>
+                ) : (
+                  <span className="text-amber-600 text-xs italic">Added after transporter accepts</span>
+                )}
+              </div>
+            )}
             <div className="border-t border-gray-100 pt-2 flex justify-between font-bold">
               <span>Final Payable Amount</span>
               <span className="text-teal-600 text-lg">
-                {formatPrice(subtotalAmount + platformFeeAmount + transportFeeAmount)}
+                {formatPrice(payTotal)}
               </span>
             </div>
           </div>
@@ -500,7 +579,7 @@ export function OrderDetailPage() {
         </div>
 
         {/* Delivery Route Info */}
-        {(o.pickupPoint || o.deliveryPoint || o.deliveryAddress) && (
+        {(o.pickupPoint || o.deliveryPoint || o.deliveryAddress) && !selfPickup && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
               <MapPin className="w-4 h-4 text-teal-600" /> Delivery Route
@@ -526,8 +605,7 @@ export function OrderDetailPage() {
           </div>
         )}
 
-        {/* Report Issue */}
-        {/* Seller confirmation pending — admin has been notified */}
+        {/* Seller confirmation pending */}
         {rawStatus === "seller_confirmation_pending" && (
           <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
@@ -554,7 +632,7 @@ export function OrderDetailPage() {
                 size="sm"
                 onClick={() => setLocation(`/buyer/orders/${id}/pay`)}
               >
-                Pay {formatPrice(subtotalAmount + platformFeeAmount + transportFeeAmount)} via UPI
+                Pay {formatPrice(payTotal)} via UPI
               </Button>
             </div>
           </div>
@@ -690,6 +768,56 @@ function ConfirmDeliveryCard({ orderId, onDone }: { orderId: number; onDone: () 
           >
             <CheckCircle className="w-4 h-4 mr-1.5" />
             {busy ? "Confirming…" : "Confirm Delivery"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmPickupCard({ orderId, onDone }: { orderId: number; onDone: () => void }) {
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(false);
+
+  const confirm = async () => {
+    setBusy(true);
+    try {
+      const token = localStorage.getItem("pawzone_token");
+      const res = await fetch(`/api/orders/${orderId}/confirm-pickup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to confirm pickup");
+      toast({ title: "Pickup Confirmed!", description: "Order completed. Thank you!" });
+      onDone();
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Failed", description: err?.message ?? "" });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="bg-teal-50 border border-teal-200 rounded-2xl p-5">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center flex-shrink-0">
+          <PackageOpen className="w-5 h-5" />
+        </div>
+        <div className="flex-1">
+          <p className="font-bold text-teal-900">Collect your pet from the seller!</p>
+          <p className="text-sm text-teal-800 mt-0.5">
+            Contact the seller using the details above and collect your pet. Confirm once you have collected it.
+          </p>
+          <Button
+            size="sm"
+            className="mt-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white"
+            onClick={confirm}
+            disabled={busy}
+            data-testid="button-confirm-pickup"
+          >
+            <CheckCircle className="w-4 h-4 mr-1.5" />
+            {busy ? "Confirming…" : "Confirm Self-Pickup"}
           </Button>
         </div>
       </div>

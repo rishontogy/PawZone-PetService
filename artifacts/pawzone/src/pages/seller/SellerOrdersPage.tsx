@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor, statusLabel } from "@/lib/api";
 import {
   Package, Clock, User, CheckCircle, ChevronDown, ChevronUp,
-  AlertCircle, X, Check, Video, Upload, Phone, Truck, IndianRupee
+  AlertCircle, X, Check, Video, Upload, Phone, Truck, IndianRupee, Shield
 } from "lucide-react";
 
 export function SellerOrdersPage() {
@@ -182,11 +182,23 @@ export function SellerOrdersPage() {
                               {orderItems.map((item: any, idx: number) => (
                                 <div key={item.id ?? idx} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-3 py-2.5">
                                   <div className="flex items-center gap-3 min-w-0">
+                                    {item.photo && (
+                                      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-200">
+                                        <img src={item.photo} alt={item.breed ?? item.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                                      </div>
+                                    )}
                                     <div className="min-w-0">
                                       <p className="text-sm font-semibold text-gray-900 truncate">{item.breed ?? item.name ?? "Pet"}</p>
                                       <p className="text-xs text-gray-500">
                                         {formatPrice(Number(item.unitPrice ?? 0))} × {item.quantity}
+                                        {item.gender && <span className={`ml-1 ${item.gender === "male" ? "text-blue-600" : "text-pink-600"}`}>{item.gender === "male" ? "♂" : "♀"}</span>}
                                       </p>
+                                      {item.petCode && (
+                                        <div className="flex items-center gap-1 mt-0.5">
+                                          <Shield className="w-3 h-3 text-teal-600" />
+                                          <code className="text-xs text-teal-600 font-mono">{item.petCode}</code>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                   <p className="font-semibold text-gray-900 text-sm flex-shrink-0">{formatPrice(Number(item.subtotal ?? 0))}</p>

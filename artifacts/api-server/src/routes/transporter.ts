@@ -250,6 +250,7 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
       breed: listingsTable.breed,
       category: listingsTable.category,
       photos: listingsTable.photos,
+      petCode: listingsTable.petCode,
       price: listingsTable.price,
       quantity: orderItemsTable.quantity,
     })
@@ -287,6 +288,7 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
         name: it.breed,
         category: it.category,
         photo: it.photos?.[0] ?? null,
+        petCode: it.petCode ?? null,
         price: it.price,
         quantity: it.quantity,
       })),
