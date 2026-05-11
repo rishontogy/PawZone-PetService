@@ -1,0 +1,189 @@
+PAWZONE – GLOBAL PET CODE VISIBILITY & IDENTIFICATION SYSTEM UPDATE
+
+Update the entire PawZone application to properly display and use the unique PET CODE across all required modules for easy identification and tracking.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏷 1. PET CODE DISPLAY (GLOBAL REQUIREMENT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every pet listing must have a unique Pet Code.
+
+Example format:
+• PZ-PET-0001
+• PZ-PET-0002
+
+OR existing format if already generated correctly.
+
+This Pet Code must be visible consistently across the entire application.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ 2. SHOW PET CODE IN BUYER PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure Pet Code is clearly visible in:
+
+• Browse Pets cards
+• Product Detail page
+• Cart page
+• Order Summary
+• Buyer Orders page
+• Order Details page
+
+Placement:
+• Near pet title/name
+• Easy to identify
+• Clearly styled badge/tag
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠 3. SHOW PET CODE IN ADMIN PANEL (CRITICAL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Currently admin cannot properly identify pets easily.
+
+Fix this by showing Pet Code in ALL admin sections.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ ADMIN PAGES REQUIRING PET CODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Show Pet Code in:
+
+• Dashboard recent orders
+• Review Listings page
+• All Orders page
+• Accounting & Ledger
+• Disputes page
+• Alerts page
+• Pet approval details
+• Seller listings review
+• Order detail dropdowns
+• Refund/dispute references
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏪 4. SHOW PET CODE IN SELLER ACCOUNT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller must see Pet Code in:
+
+• My Listings
+• Orders page
+• Recent Orders
+• Edit Listing
+• Restock page
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 5. SHOW PET CODE IN TRANSPORTER ACCOUNT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporters must see Pet Code in:
+
+• Delivery Requests
+• Active Orders
+• View Details dropdown
+• Pickup details
+• Delivery confirmation page
+
+This helps identify:
+• Which pet to pickup
+• Which pet to deliver
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 6. ORDER SYSTEM INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Each order item must store:
+
+• pet_code
+• pet_name
+• seller_id
+• quantity
+
+Ensure Pet Code persists correctly:
+• Cart
+• Order database
+• Payments
+• Transport assignment
+• Delivery tracking
+• Admin records
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 7. SEARCH & FILTER SUPPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Allow admin to:
+
+• Search by Pet Code
+• Filter orders by Pet Code
+• Find disputes by Pet Code
+
+Optional:
+Quick copy button beside code.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 8. UI REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pet Code should appear as:
+
+• Small badge/tag
+• High contrast
+• Easy to read
+
+Example:
+
+[PZ-PET-0042]
+
+Use consistent styling across:
+• Desktop
+• Tablet
+• Mobile
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 9. TEST CASES (MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CASE 1:
+Buyer sees Pet Code on product card
+→ Must work
+
+CASE 2:
+Admin sees same Pet Code in order
+→ Must match exactly
+
+CASE 3:
+Seller sees correct Pet Code
+→ Must work
+
+CASE 4:
+Transporter sees correct Pet Code
+→ Must work
+
+CASE 5:
+Search by Pet Code in admin
+→ Returns correct pet/order
+
+CASE 6:
+Pet Code persists after refresh/restart
+→ Must work
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pet Code must become the PRIMARY visual identifier for pets across the entire platform.
+
+No missing codes.
+No inconsistent codes.
+No duplicate codes.
+No hidden codes.
+
+Everything must sync properly across:
+✔ Buyer
+✔ Seller
+✔ Transporter
+✔ Admin
+✔ Orders
+✔ Payments
+✔ Logistics
+✔ Disputes
+✔ Ledger
