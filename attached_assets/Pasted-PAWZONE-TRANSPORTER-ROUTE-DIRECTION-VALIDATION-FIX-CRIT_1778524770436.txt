@@ -1,0 +1,210 @@
+PAWZONE – TRANSPORTER ROUTE DIRECTION VALIDATION FIX (CRITICAL)
+
+IMPORTANT LOGIC UPDATE:
+
+Transporter route matching must NOT only check whether both pickup and drop points exist.
+
+It must ALSO validate the travel ORDER/DIRECTION of the route.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 CURRENT PROBLEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Currently:
+
+If transporter route contains:
+✔ Pickup point
+✔ Drop point
+
+the system marks it valid.
+
+This is WRONG.
+
+Because:
+
+Transporter may travel in opposite direction.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX – ROUTE ORDER VALIDATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The pickup point MUST appear BEFORE the drop point
+inside transporter saved route order.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 VALIDATION RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Example:
+
+Buyer delivery towns:
+• Ettumanoor
+• Pala
+
+Seller pickup towns:
+• Kadavanthara
+• Tripunithara
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ VALID ROUTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter route:
+
+Kadavanthara
+→ Panampally
+→ Ettumanoor
+→ Pala
+
+VALID because:
+
+Pickup comes FIRST
+Drop comes AFTER pickup
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ INVALID ROUTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter route:
+
+Pala
+→ Ettumanoor
+→ Kadavanthara
+
+INVALID because:
+
+Drop appears BEFORE pickup.
+
+Transporter must NOT receive this order.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧠 IMPLEMENTATION RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After normalized matching:
+
+Find indexes:
+
+```js
+pickupIndex = route.findIndex(stop =>
+  normalize(stop) === normalize(pickupPoint)
+)
+
+dropIndex = route.findIndex(stop =>
+  normalize(stop) === normalize(dropPoint)
+)
+
+VALID ONLY IF:
+
+pickupIndex !== -1 &&
+dropIndex !== -1 &&
+pickupIndex < dropIndex
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 MULTIPLE POINT LOGIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller may have multiple pickup points.
+Buyer may have multiple drop points.
+
+System should:
+
+✔ Find ANY valid pickup/drop pair
+✔ Where pickup index < drop index
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ EXAMPLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller:
+• Kadavanthara
+• Tripunithara
+
+Buyer:
+• Ettumanoor
+• Pala
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ROUTE 1:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tripunithara
+→ Panampally
+→ Ettumanoor
+
+VALID
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ROUTE 2:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pala
+→ Ettumanoor
+→ Kadavanthara
+
+INVALID
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ROUTE 3:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tripunithara
+→ Kottayam
+→ Pala
+
+VALID
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 ACCEPT FLOW UPDATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When transporter accepts:
+
+Store selected:
+
+✔ Pickup point
+✔ Drop point
+
+Then show these exact points in:
+
+✔ Buyer page
+✔ Seller page
+✔ Transporter page
+✔ Admin page
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 REQUIRED TEST CASES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CASE 1:
+Pickup before drop
+→ VALID
+
+CASE 2:
+Drop before pickup
+→ INVALID
+
+CASE 3:
+Case-insensitive route order
+→ VALID
+
+CASE 4:
+Multiple pickup/drop points
+→ VALID if one proper pair exists
+
+CASE 5:
+Wrong direction transporter hidden
+→ PASS
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter assignment must behave like REAL travel direction logic.
+
+Do NOT match routes merely by existence.
+
+A transporter should receive order ONLY IF:
+✔ Pickup point exists
+✔ Drop point exists
+✔ Pickup comes BEFORE drop in route order
