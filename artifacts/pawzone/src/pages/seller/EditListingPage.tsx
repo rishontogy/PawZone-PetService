@@ -198,12 +198,18 @@ export function EditListingPage() {
 
   const removePhoto = (idx: number) => setPhotos((prev) => prev.filter((_, i) => i !== idx));
 
+  const parentPhotoRequired = ["dogs", "cats"].includes(form.category);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const male = parseInt(form.maleQuantity) || 0;
     const female = parseInt(form.femaleQuantity) || 0;
     if (male + female <= 0) {
       toast({ variant: "destructive", title: "Invalid quantity", description: "Add at least 1 male or female." });
+      return;
+    }
+    if (parentPhotoRequired && !fatherPhoto && !motherPhoto) {
+      toast({ variant: "destructive", title: "Parent photo required", description: "Upload at least one parent photo for dogs and cats." });
       return;
     }
     setSubmitting(true);
@@ -449,8 +455,21 @@ export function EditListingPage() {
               {/* Parent Photos */}
               <div className="space-y-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
                 <div>
-                  <Label className="font-semibold text-gray-700 block">Parent Photos</Label>
-                  <p className="text-xs text-gray-500 mt-0.5">Upload father and/or mother photos. Buyers trust listings with visible parentage.</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Label className="font-semibold text-gray-700">
+                      Parent Photos {parentPhotoRequired ? <span className="text-red-500">*</span> : ""}
+                    </Label>
+                    {!parentPhotoRequired && form.category && (
+                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">
+                        Optional for this pet type
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {parentPhotoRequired
+                      ? "Upload at least one parent photo (father or mother). Required for dogs and cats."
+                      : "Parent photos are optional for this pet type. Upload if available for buyer trust."}
+                  </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {/* Father Photo */}
@@ -518,6 +537,16 @@ export function EditListingPage() {
                     )}
                   </div>
                 </div>
+                {parentPhotoRequired && !fatherPhoto && !motherPhoto && (
+                  <p className="text-xs text-amber-700 flex items-center gap-1">
+                    ⚠️ Upload at least one parent photo for dogs and cats.
+                  </p>
+                )}
+                {!parentPhotoRequired && !fatherPhoto && !motherPhoto && form.category && (
+                  <p className="text-xs text-gray-400 flex items-center gap-1">
+                    ℹ️ No parent photos uploaded — that's okay for this pet type.
+                  </p>
+                )}
                 {(fatherPhoto || motherPhoto) && (
                   <p className="text-xs text-green-700 flex items-center gap-1">
                     <CheckCircle className="w-3.5 h-3.5" /> {fatherPhoto && motherPhoto ? "Both parent photos uploaded" : fatherPhoto ? "Father photo uploaded" : "Mother photo uploaded"}
