@@ -37,8 +37,10 @@ function normalize(s: string): string {
 }
 
 // Route matching: checks if BOTH a seller pickup point AND a buyer delivery point
-// exist anywhere in the transporter's route stops (non-directional, case-insensitive).
-// Returns the first matched pickup and delivery towns (original casing).
+// exist in the transporter's route stops AND the pickup appears BEFORE the delivery
+// in route order (directional, case-insensitive).
+// Tries all valid pickup/drop combinations and returns the first pair where
+// pickupIndex < dropIndex.
 function findRouteMatch(
   sellerPoints: string[],
   buyerPoints: string[],
@@ -51,24 +53,24 @@ function findRouteMatch(
     const rawStops = [route.startCity, ...(route.stops ?? []), route.endCity].filter((s): s is string => !!s);
     const normStops = rawStops.map(normalize);
 
-    let matchedPickup: string | null = null;
-    let matchedDelivery: string | null = null;
-
+    // Try every combination of seller pickup point × buyer delivery point
     for (let si = 0; si < normSeller.length; si++) {
-      if (normStops.includes(normSeller[si])) {
-        matchedPickup = sellerPoints[si];
-        break;
-      }
-    }
-    for (let bi = 0; bi < normBuyer.length; bi++) {
-      if (normStops.includes(normBuyer[bi])) {
-        matchedDelivery = buyerPoints[bi];
-        break;
-      }
-    }
+      const pickupIndex = normStops.indexOf(normSeller[si]);
+      if (pickupIndex === -1) continue;
 
-    if (matchedPickup && matchedDelivery) {
-      return { pickup: matchedPickup, delivery: matchedDelivery, isMatch: true };
+      for (let bi = 0; bi < normBuyer.length; bi++) {
+        const dropIndex = normStops.indexOf(normBuyer[bi]);
+        if (dropIndex === -1) continue;
+
+        // Direction check: pickup MUST come before drop in the route order
+        if (pickupIndex < dropIndex) {
+          return {
+            pickup: sellerPoints[si],
+            delivery: buyerPoints[bi],
+            isMatch: true,
+          };
+        }
+      }
     }
   }
   return { pickup: null, delivery: null, isMatch: false };
