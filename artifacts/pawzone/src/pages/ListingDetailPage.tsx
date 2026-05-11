@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useParams, useLocation } from "wouter";
 import { useGetListing, getGetCartQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -8,9 +8,198 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, platformFee, getApiBase } from "@/lib/api";
-import { PawPrint, MapPin, ShoppingCart, Shield, ChevronLeft, Star, Play } from "lucide-react";
+import { PawPrint, MapPin, ShoppingCart, Shield, Star, Play, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
+import { MediaViewer, ClickableImage } from "@/components/MediaViewer";
+import type { MediaItem } from "@/components/MediaViewer";
 
-type MediaItem = { kind: "image" | "video"; url: string };
+function MediaCarousel({ media }: { media: MediaItem[] }) {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerIdx, setViewerIdx] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const safeIdx = Math.min(activeIdx, Math.max(0, media.length - 1));
+  const active = media[safeIdx];
+
+  const prev = useCallback(() => setActiveIdx(i => Math.max(0, i - 1)), []);
+  const next = useCallback(() => setActiveIdx(i => Math.min(media.length - 1, i + 1)), [media.length]);
+
+  const openViewer = (idx: number) => {
+    setViewerIdx(idx);
+    setViewerOpen(true);
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = Math.abs(e.changedTouches[0].clientY - (touchStartY.current ?? 0));
+    if (Math.abs(dx) > 40 && Math.abs(dx) > dy) {
+      if (dx < 0) next(); else prev();
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
+  if (media.length === 0) {
+    return (
+      <div className="aspect-[4/3] bg-gray-100 rounded-2xl flex items-center justify-center">
+        <PawPrint className="w-16 h-16 text-gray-300" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Main display */}
+      <div
+        className="relative aspect-[4/3] bg-gray-100 rounded-2xl overflow-hidden group cursor-pointer"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        onClick={() => openViewer(safeIdx)}
+      >
+        {active.kind === "image" ? (
+          <ClickableImage
+            src={active.url}
+            alt="Pet photo"
+            className="w-full h-full object-contain"
+            lazy={false}
+          />
+        ) : (
+          <div className="relative w-full h-full bg-black">
+            <video
+              key={active.url}
+              src={active.url}
+              className="w-full h-full object-contain"
+              preload="metadata"
+              playsInline
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
+              <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                <Play className="w-6 h-6 text-gray-900 fill-gray-900 ml-1" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Zoom hint overlay for images */}
+        {active.kind === "image" && (
+          <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <ZoomIn className="w-4 h-4 text-white" />
+          </div>
+        )}
+
+        {/* Left/Right arrows (desktop) */}
+        {safeIdx > 0 && (
+          <button
+            onClick={(e) => { e.stopPropagation(); prev(); }}
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+          >
+            <ChevronLeft className="w-4 h-4 text-white" />
+          </button>
+        )}
+        {safeIdx < media.length - 1 && (
+          <button
+            onClick={(e) => { e.stopPropagation(); next(); }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+          >
+            <ChevronRight className="w-4 h-4 text-white" />
+          </button>
+        )}
+
+        {/* Dot indicators */}
+        {media.length > 1 && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {media.map((_, i) => (
+              <button
+                key={i}
+                onClick={(e) => { e.stopPropagation(); setActiveIdx(i); }}
+                className={`rounded-full transition-all ${i === safeIdx ? "w-4 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/60"}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Thumbnails */}
+      {media.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none" data-testid="gallery-thumbnails">
+          {media.map((m, i) => (
+            <button
+              key={`${m.kind}-${i}`}
+              onClick={() => setActiveIdx(i)}
+              className={`relative flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${
+                i === safeIdx ? "border-teal-500 scale-105 shadow-md" : "border-transparent opacity-70 hover:opacity-100"
+              } bg-gray-100`}
+              data-testid={`thumb-${m.kind}-${i}`}
+            >
+              {m.kind === "image" ? (
+                <img src={m.url} alt="" className="w-full h-full object-contain" loading="lazy" />
+              ) : (
+                <>
+                  <video src={m.url} className="w-full h-full object-cover bg-black" muted preload="metadata" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <Play className="w-4 h-4 text-white fill-white" />
+                  </div>
+                </>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Fullscreen viewer */}
+      {viewerOpen && (
+        <MediaViewer items={media} initialIndex={viewerIdx} onClose={() => setViewerOpen(false)} />
+      )}
+    </div>
+  );
+}
+
+function ParentPhoto({ src, label, borderColor, badgeClass, badgeText, onOpen }: {
+  src: string; label: string; borderColor: string; badgeClass: string; badgeText: string;
+  onOpen: () => void;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  return (
+    <div className="space-y-1.5">
+      <button
+        className={`w-full aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 ${borderColor} relative group cursor-zoom-in`}
+        onClick={onOpen}
+      >
+        {!loaded && !error && <div className="absolute inset-0 bg-gray-200 animate-pulse" />}
+        {error ? (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-gray-400">
+            <PawPrint className="w-8 h-8" />
+            <span className="text-xs">No photo</span>
+          </div>
+        ) : (
+          <img
+            src={src}
+            alt={label}
+            loading="lazy"
+            className={`w-full h-full object-contain transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+            onLoad={() => setLoaded(true)}
+            onError={() => { setError(true); setLoaded(true); }}
+          />
+        )}
+        {loaded && !error && (
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+            <ZoomIn className="w-5 h-5 text-white drop-shadow-lg" />
+          </div>
+        )}
+      </button>
+      <div className="flex items-center justify-center">
+        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full ${badgeClass}`}>{badgeText}</span>
+      </div>
+    </div>
+  );
+}
 
 export function ListingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -18,9 +207,10 @@ export function ListingDetailPage() {
   const { user, token } = useAuth();
   const { toast } = useToast();
   const [qty, setQty] = useState(1);
-  const [photoIdx, setPhotoIdx] = useState(0);
   const [gender, setGender] = useState<"male" | "female" | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [parentViewerOpen, setParentViewerOpen] = useState(false);
+  const [parentViewerIdx, setParentViewerIdx] = useState(0);
 
   const queryClient = useQueryClient();
   const { data: listing, isLoading } = useGetListing(parseInt(id!));
@@ -48,7 +238,6 @@ export function ListingDetailPage() {
         return;
       }
       toast({ title: "Added to cart!", description: `${listing.breed} added to your cart.` });
-      // Instantly refresh cart count in navbar without page reload
       void queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
     } finally {
       setAddingToCart(false);
@@ -57,8 +246,17 @@ export function ListingDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="aspect-[4/3] bg-gray-200 rounded-2xl animate-pulse" />
+            <div className="space-y-4">
+              {[80, 40, 60, 100, 80].map((w, i) => (
+                <div key={i} className="h-5 bg-gray-200 rounded-lg animate-pulse" style={{ width: `${w}%` }} />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -77,91 +275,80 @@ export function ListingDetailPage() {
   const fee = platformFee(listing.price);
   const total = (listing.price + fee) * qty;
 
+  const media: MediaItem[] = [
+    ...(listing.photos ?? []).map((url, i) => ({ kind: "image" as const, url, label: `Photo ${i + 1}` })),
+    ...(listing.videoUrl ? [{ kind: "video" as const, url: listing.videoUrl, label: "Video" }] : []),
+  ];
+
+  const parentPhotos: MediaItem[] = [
+    ...(listing.fatherPhoto ? [{ kind: "image" as const, url: listing.fatherPhoto, label: "♂ Father" }] : []),
+    ...(listing.motherPhoto ? [{ kind: "image" as const, url: listing.motherPhoto, label: "♀ Mother" }] : []),
+  ];
+
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
+    <div className="min-h-screen bg-gray-50 py-6 sm:py-8 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Media gallery (photos + optional video) */}
-          {(() => {
-            const media: MediaItem[] = [
-              ...(listing.photos ?? []).map((url) => ({ kind: "image" as const, url })),
-              ...(listing.videoUrl ? [{ kind: "video" as const, url: listing.videoUrl }] : []),
-            ];
-            const safeIdx = Math.min(photoIdx, Math.max(0, media.length - 1));
-            const active = media[safeIdx];
-            return (
-              <div className="space-y-3">
-                <div className="aspect-square bg-muted rounded-xl overflow-hidden flex items-center justify-center">
-                  {active ? (
-                    active.kind === "image" ? (
-                      <img
-                        src={active.url}
-                        alt={listing.breed}
-                        className="w-full h-full object-cover"
-                        data-testid="img-listing-main"
-                        onError={(e) => { (e.target as HTMLImageElement).src = "https://via.placeholder.com/600x600?text=Pet"; }}
-                      />
-                    ) : (
-                      <video
-                        key={active.url}
-                        src={active.url}
-                        controls
-                        playsInline
-                        className="w-full h-full object-cover bg-black"
-                        data-testid="video-listing-main"
-                      />
-                    )
-                  ) : (
-                    <PawPrint className="w-16 h-16 text-muted-foreground" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          {/* Media gallery */}
+          <div>
+            <MediaCarousel media={media} />
+
+            {/* Parent Photos */}
+            {parentPhotos.length > 0 && (
+              <div className="mt-5 space-y-2">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  Parent Photos
+                  <span className="text-xs text-gray-400 font-normal">tap to enlarge</span>
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {listing.fatherPhoto && (
+                    <ParentPhoto
+                      src={listing.fatherPhoto}
+                      label="Father"
+                      borderColor="border-blue-200"
+                      badgeClass="bg-blue-100 text-blue-700"
+                      badgeText="♂ Father"
+                      onOpen={() => { setParentViewerIdx(0); setParentViewerOpen(true); }}
+                    />
+                  )}
+                  {listing.motherPhoto && (
+                    <ParentPhoto
+                      src={listing.motherPhoto}
+                      label="Mother"
+                      borderColor="border-pink-200"
+                      badgeClass="bg-pink-100 text-pink-700"
+                      badgeText="♀ Mother"
+                      onOpen={() => { setParentViewerIdx(listing.fatherPhoto ? 1 : 0); setParentViewerOpen(true); }}
+                    />
                   )}
                 </div>
-                {media.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto" data-testid="gallery-thumbnails">
-                    {media.map((m, i) => (
-                      <button
-                        key={`${m.kind}-${i}`}
-                        onClick={() => setPhotoIdx(i)}
-                        className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${i === safeIdx ? "border-primary" : "border-transparent"}`}
-                        data-testid={`thumb-${m.kind}-${i}`}
-                      >
-                        {m.kind === "image" ? (
-                          <img src={m.url} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <>
-                            <video src={m.url} className="w-full h-full object-cover bg-black" muted preload="metadata" />
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                              <Play className="w-5 h-5 text-white" fill="currentColor" />
-                            </div>
-                          </>
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                {parentViewerOpen && (
+                  <MediaViewer items={parentPhotos} initialIndex={parentViewerIdx} onClose={() => setParentViewerOpen(false)} />
                 )}
               </div>
-            );
-          })()}
+            )}
+          </div>
 
           {/* Details */}
           <div className="space-y-4">
             <div>
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                 <Badge variant="secondary" className="capitalize">{listing.category}</Badge>
                 {listing.vaccinated && (
                   <Badge className="bg-green-100 text-green-800 border-0">✓ Vaccinated</Badge>
                 )}
               </div>
-              <h1 className="text-3xl font-bold">{listing.breed}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{listing.breed}</h1>
               <div className="flex items-center gap-1 text-muted-foreground mt-1">
                 <MapPin className="w-4 h-4" />
                 <span>{listing.city}, Kerala</span>
               </div>
             </div>
 
-            <div className="bg-primary/5 rounded-xl p-4">
-              <p className="text-sm text-muted-foreground">Price per pet</p>
-              <p className="text-3xl font-bold text-primary">{formatPrice(listing.price)}</p>
-              <p className="text-xs text-muted-foreground mt-1">+ ₹{fee} platform fee</p>
+            <div className="bg-teal-50 border border-teal-100 rounded-xl p-4">
+              <p className="text-sm text-teal-700">Price per pet</p>
+              <p className="text-3xl font-bold text-teal-700">{formatPrice(listing.price)}</p>
+              <p className="text-xs text-teal-600/70 mt-1">+ ₹{fee} platform fee</p>
             </div>
 
             {listing.petCode && (
@@ -174,54 +361,15 @@ export function ListingDetailPage() {
 
             {listing.description && (
               <div>
-                <h3 className="font-semibold mb-1">About this pet</h3>
+                <h3 className="font-semibold mb-1 text-gray-900">About this pet</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">{listing.description}</p>
               </div>
             )}
 
             {listing.vaccinationDetails && (
               <div>
-                <h3 className="font-semibold mb-1">Vaccination Details</h3>
+                <h3 className="font-semibold mb-1 text-gray-900">Vaccination Details</h3>
                 <p className="text-muted-foreground text-sm">{listing.vaccinationDetails}</p>
-              </div>
-            )}
-
-            {/* Parent Photos */}
-            {(listing.fatherPhoto || listing.motherPhoto) && (
-              <div className="space-y-2">
-                <h3 className="font-semibold">Parent Photos</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {listing.fatherPhoto && (
-                    <div className="space-y-1.5">
-                      <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 border-blue-100 shadow-sm">
-                        <img
-                          src={listing.fatherPhoto}
-                          alt="Father"
-                          className="w-full h-full object-cover"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-center gap-1">
-                        <span className="inline-flex items-center gap-1 text-xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">♂ Father</span>
-                      </div>
-                    </div>
-                  )}
-                  {listing.motherPhoto && (
-                    <div className="space-y-1.5">
-                      <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 border-pink-100 shadow-sm">
-                        <img
-                          src={listing.motherPhoto}
-                          alt="Mother"
-                          className="w-full h-full object-cover"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-center gap-1">
-                        <span className="inline-flex items-center gap-1 text-xs bg-pink-100 text-pink-700 font-semibold px-2 py-0.5 rounded-full">♀ Mother</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             )}
 

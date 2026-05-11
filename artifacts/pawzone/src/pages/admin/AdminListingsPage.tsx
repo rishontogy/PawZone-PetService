@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/api";
-import { Package, CheckCircle, XCircle, PawPrint, ChevronDown, ChevronUp, ArrowLeft, MapPin, Syringe } from "lucide-react";
+import { Package, CheckCircle, XCircle, PawPrint, ChevronDown, ChevronUp, ArrowLeft, MapPin, Syringe, ZoomIn, Play } from "lucide-react";
 import { Link } from "wouter";
+import { MediaViewer } from "@/components/MediaViewer";
+import type { MediaItem } from "@/components/MediaViewer";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-amber-100 text-amber-700",
@@ -21,6 +23,9 @@ export function AdminListingsPage() {
   const [status, setStatus] = useState("pending");
   const [rejectReason, setRejectReason] = useState<Record<number, string>>({});
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [viewerItems, setViewerItems] = useState<MediaItem[]>([]);
+  const [viewerIdx, setViewerIdx] = useState(0);
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   const { data, refetch } = useAdminGetListings(
     { page, limit: 20, status: status || undefined },
@@ -43,6 +48,12 @@ export function AdminListingsPage() {
   const listings = data?.listings ?? [];
   const pendingCount = listings.filter((l: any) => l.status === "pending").length;
 
+  const openViewer = (items: MediaItem[], idx: number) => {
+    setViewerItems(items);
+    setViewerIdx(idx);
+    setViewerOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
@@ -53,7 +64,7 @@ export function AdminListingsPage() {
             </button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
               <Package className="w-6 h-6" /> Listing Management
             </h1>
             <p className="text-gray-400 text-sm mt-0.5">
@@ -89,10 +100,18 @@ export function AdminListingsPage() {
             {listings.map((listing: any) => {
               const isOpen = expandedId === listing.id;
               const photos: string[] = Array.isArray(listing.photos) ? listing.photos : [];
+              const allMedia: MediaItem[] = [
+                ...photos.map((url, i) => ({ kind: "image" as const, url, label: `Photo ${i + 1}` })),
+                ...(listing.videoUrl ? [{ kind: "video" as const, url: listing.videoUrl, label: "Video" }] : []),
+              ];
+              const parentMedia: MediaItem[] = [
+                ...(listing.fatherPhoto ? [{ kind: "image" as const, url: listing.fatherPhoto, label: "♂ Father" }] : []),
+                ...(listing.motherPhoto ? [{ kind: "image" as const, url: listing.motherPhoto, label: "♀ Mother" }] : []),
+              ];
 
               return (
                 <div key={listing.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${listing.status === "pending" ? "border-amber-200" : "border-gray-100"}`}>
-                  {/* Card Header — always visible */}
+                  {/* Card Header */}
                   <button
                     className="w-full p-4 flex gap-4 items-center hover:bg-gray-50 transition-colors text-left"
                     onClick={() => setExpandedId(isOpen ? null : listing.id)}
@@ -102,7 +121,8 @@ export function AdminListingsPage() {
                         <img
                           src={photos[0]}
                           alt={listing.breed}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
+                          loading="lazy"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                         />
                       ) : (
@@ -133,18 +153,42 @@ export function AdminListingsPage() {
                   {/* Expanded details */}
                   {isOpen && (
                     <div className="border-t border-gray-100 px-4 pb-4 pt-4 space-y-4">
-                      {/* Photo strip */}
-                      {photos.length > 0 && (
-                        <div className="flex gap-2 overflow-x-auto pb-1">
-                          {photos.map((p, i) => (
-                            <img
-                              key={i}
-                              src={p}
-                              alt={`Photo ${i + 1}`}
-                              className="w-24 h-24 rounded-xl object-cover flex-shrink-0 border border-gray-100"
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                            />
-                          ))}
+                      {/* Clickable photo strip */}
+                      {allMedia.length > 0 && (
+                        <div>
+                          <p className="text-xs text-gray-400 uppercase tracking-wide mb-2 font-semibold">
+                            Photos & Video
+                            <span className="normal-case font-normal ml-1 text-gray-300">— tap to view</span>
+                          </p>
+                          <div className="flex gap-2 overflow-x-auto pb-1">
+                            {allMedia.map((item, i) => (
+                              <button
+                                key={i}
+                                onClick={() => openViewer(allMedia, i)}
+                                className="relative flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-gray-100 bg-gray-50 group hover:border-teal-300 transition-colors cursor-zoom-in"
+                              >
+                                {item.kind === "image" ? (
+                                  <img
+                                    src={item.url}
+                                    alt={`Photo ${i + 1}`}
+                                    className="w-full h-full object-contain"
+                                    loading="lazy"
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                  />
+                                ) : (
+                                  <>
+                                    <video src={item.url} className="w-full h-full object-cover bg-black" muted preload="metadata" />
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                      <Play className="w-5 h-5 text-white fill-white" />
+                                    </div>
+                                  </>
+                                )}
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                                  <ZoomIn className="w-4 h-4 text-white drop-shadow" />
+                                </div>
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       )}
 
@@ -189,20 +233,30 @@ export function AdminListingsPage() {
                         </div>
                       )}
 
-                      {/* Parent Photos — always shown */}
+                      {/* Parent Photos — clickable */}
                       <div className="bg-amber-50 border border-amber-100 rounded-xl p-3">
-                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-semibold">Parent Verification Photos</p>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-semibold">
+                          Parent Verification Photos
+                          <span className="normal-case font-normal ml-1 text-gray-400">— tap to enlarge</span>
+                        </p>
                         <div className="flex gap-3">
                           <div className="space-y-1">
                             {listing.fatherPhoto ? (
-                              <div className="w-28 h-28 rounded-xl overflow-hidden bg-gray-100 border-2 border-blue-200">
+                              <button
+                                onClick={() => openViewer(parentMedia, 0)}
+                                className="w-28 h-28 rounded-xl overflow-hidden bg-gray-100 border-2 border-blue-200 group relative cursor-zoom-in"
+                              >
                                 <img
                                   src={listing.fatherPhoto}
                                   alt="Father"
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-contain"
+                                  loading="lazy"
                                   onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                                 />
-                              </div>
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                                  <ZoomIn className="w-4 h-4 text-white drop-shadow" />
+                                </div>
+                              </button>
                             ) : (
                               <div className="w-28 h-28 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
                                 <span className="text-xs text-gray-400 text-center px-1">Not Uploaded</span>
@@ -212,14 +266,21 @@ export function AdminListingsPage() {
                           </div>
                           <div className="space-y-1">
                             {listing.motherPhoto ? (
-                              <div className="w-28 h-28 rounded-xl overflow-hidden bg-gray-100 border-2 border-pink-200">
+                              <button
+                                onClick={() => openViewer(parentMedia, listing.fatherPhoto ? 1 : 0)}
+                                className="w-28 h-28 rounded-xl overflow-hidden bg-gray-100 border-2 border-pink-200 group relative cursor-zoom-in"
+                              >
                                 <img
                                   src={listing.motherPhoto}
                                   alt="Mother"
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-contain"
+                                  loading="lazy"
                                   onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                                 />
-                              </div>
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                                  <ZoomIn className="w-4 h-4 text-white drop-shadow" />
+                                </div>
+                              </button>
                             ) : (
                               <div className="w-28 h-28 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
                                 <span className="text-xs text-gray-400 text-center px-1">Not Uploaded</span>
@@ -230,17 +291,9 @@ export function AdminListingsPage() {
                         </div>
                       </div>
 
-                      {/* Video */}
-                      {listing.videoUrl && (
-                        <div className="bg-gray-50 rounded-xl p-3">
-                          <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Video</p>
-                          <video src={listing.videoUrl} controls className="w-full max-h-48 rounded-lg" />
-                        </div>
-                      )}
-
                       {/* Actions */}
                       {listing.status === "pending" && (
-                        <div className="flex gap-2 pt-1">
+                        <div className="flex gap-2 pt-1 flex-wrap">
                           <Button
                             size="sm"
                             className="gap-1 bg-green-600 hover:bg-green-700 text-white rounded-xl"
@@ -252,18 +305,18 @@ export function AdminListingsPage() {
                           >
                             <CheckCircle className="w-3.5 h-3.5" /> Approve
                           </Button>
-                          <div className="flex gap-1 flex-1">
+                          <div className="flex gap-1 flex-1 min-w-0">
                             <input
                               type="text"
                               placeholder="Rejection reason (optional)..."
-                              className="flex-1 text-xs border border-gray-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-red-300"
+                              className="flex-1 min-w-0 text-xs border border-gray-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-1 focus:ring-red-300"
                               value={rejectReason[listing.id] ?? ""}
                               onChange={(e) => setRejectReason(prev => ({ ...prev, [listing.id]: e.target.value }))}
                             />
                             <Button
                               size="sm"
                               variant="outline"
-                              className="gap-1 text-red-600 border-red-200 hover:bg-red-50 rounded-xl"
+                              className="gap-1 text-red-600 border-red-200 hover:bg-red-50 rounded-xl flex-shrink-0"
                               onClick={() => {
                                 const reason = rejectReason[listing.id] || "Does not meet standards";
                                 if (window.confirm(`Reject "${listing.breed}" listing?\nReason: ${reason}`)) {
@@ -292,6 +345,11 @@ export function AdminListingsPage() {
           </div>
         )}
       </div>
+
+      {/* Global lightbox */}
+      {viewerOpen && viewerItems.length > 0 && (
+        <MediaViewer items={viewerItems} initialIndex={viewerIdx} onClose={() => setViewerOpen(false)} />
+      )}
     </div>
   );
 }

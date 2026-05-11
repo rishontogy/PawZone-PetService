@@ -1,0 +1,235 @@
+PAWZONE – FULL IMAGE & VIDEO VIEWER OPTIMIZATION FOR MOBILE/TABLET/DESKTOP
+
+Update the PawZone application media viewing system completely.
+
+This update is for:
+• Pet Photos
+• Father Photos
+• Mother Photos
+• Pet Videos
+
+The current image display is not mobile friendly and images are getting cropped/not fully visible.
+
+Implement the following PROFESSIONAL responsive media viewer system.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🖼 1. FULL SCREEN IMAGE VIEWER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When user taps/clicks ANY image:
+
+• Pet image
+• Father image
+• Mother image
+
+Open FULL SCREEN IMAGE VIEWER modal.
+
+Must work in:
+• Buyer account
+• Seller account
+• Admin approval page
+• Transporter details page
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Inside fullscreen viewer:
+
+✔ Zoom image properly
+✔ Show full image without cropping
+✔ Swipe/scroll between multiple images
+✔ Left/right navigation arrows
+✔ Mobile swipe support
+✔ Close button
+✔ Smooth animations
+✔ Dark background overlay
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 2. MOBILE IMAGE FIX (CRITICAL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current problem:
+❌ Images are cropped
+❌ Not fully visible
+❌ Wrong aspect ratio
+❌ Mobile view broken
+
+Fix image rendering completely.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ IMAGE DISPLAY RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use responsive image containers:
+
+• Maintain aspect ratio
+• No forced crop
+• Use:
+  object-fit: contain
+
+NOT:
+❌ object-fit: cover
+
+Images must:
+✔ Fully visible
+✔ Auto shrink to fit container
+✔ Scale properly
+✔ No stretching
+✔ No overflow
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📏 3. RESPONSIVE IMAGE CARD SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pet cards should:
+
+Desktop:
+• Proper grid layout
+
+Tablet:
+• 2-column responsive layout
+
+Mobile:
+• Single-column optimized layout
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🖼 4. IMAGE CAROUSEL FOR MULTIPLE PHOTOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If multiple pet photos exist:
+
+Show:
+✔ Swipe carousel
+✔ Dot indicators
+✔ Next/Previous buttons
+✔ Touch swipe support
+
+Must work smoothly in:
+• Mobile
+• Tablet
+• Desktop
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎥 5. VIDEO VIEWER IMPROVEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pet videos and uploaded videos must:
+
+✔ Play correctly
+✔ Open in fullscreen modal
+✔ Support mobile fullscreen
+✔ Show controls
+✔ Proper loading state
+
+Fix all issues where videos:
+❌ Fail to display
+❌ Overflow containers
+❌ Break mobile layout
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👨‍👩‍👧 6. PARENT PHOTO SECTION UI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In Buyer Product Details and Admin Approval:
+
+Show separate cards:
+
+• Father Photo
+• Mother Photo
+
+Each card:
+✔ Responsive
+✔ Click to enlarge
+✔ Smooth preview
+✔ Fullscreen support
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 7. PET DETAILS PAGE OPTIMIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In mobile view:
+
+Fix:
+❌ Images overflowing
+❌ Cropped thumbnails
+❌ Bad spacing
+❌ Misaligned media
+
+Make:
+✔ Clean responsive spacing
+✔ Proper padding
+✔ Proper media scaling
+✔ Smooth scrolling
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 8. IMAGE LOADING OPTIMIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add:
+
+✔ Lazy loading
+✔ Skeleton loading placeholders
+✔ Error fallback image
+✔ Retry loading support
+
+If image fails:
+Show:
+“Image unavailable”
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 9. TEST CASES (MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CASE 1:
+Tap pet image
+→ Fullscreen viewer opens
+
+CASE 2:
+Swipe multiple images
+→ Works smoothly
+
+CASE 3:
+Mobile image view
+→ Full image visible
+
+CASE 4:
+Tablet view
+→ Proper scaling
+
+CASE 5:
+Parent photos
+→ Enlarge properly
+
+CASE 6:
+Videos
+→ Fullscreen playback works
+
+CASE 7:
+Landscape images
+→ Fully visible
+
+CASE 8:
+Portrait images
+→ Fully visible
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The media system must feel like a modern production app.
+
+No:
+❌ Cropped images
+❌ Broken mobile layouts
+❌ Hidden image areas
+❌ Stretched photos
+❌ Non-clickable media
+
+Everything must:
+✔ Scale properly
+✔ Look professional
+✔ Work smoothly on mobile/tablet/desktop
+✔ Support fullscreen viewing
+✔ Support scrolling/swiping
+✔ Be visually polished
