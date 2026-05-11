@@ -7,7 +7,7 @@ import { formatPrice, platformFee } from "@/lib/api";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Trash2, ShoppingCart, AlertCircle, Plus, Minus,
-  Tag, MapPin, CheckCircle, Clock, Shield, X, User
+  Tag, MapPin, CheckCircle, Clock, Shield, X, User, Truck
 } from "lucide-react";
 import { useState } from "react";
 
