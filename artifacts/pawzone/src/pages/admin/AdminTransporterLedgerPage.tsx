@@ -45,7 +45,7 @@ export function AdminTransporterLedgerPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-purple-700 to-purple-500 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center gap-4 mb-2">

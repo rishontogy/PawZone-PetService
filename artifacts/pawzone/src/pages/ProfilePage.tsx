@@ -39,7 +39,7 @@ export function ProfilePage() {
   const profileUser = me ?? user;
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
+    <div className="min-h-screen bg-background py-6 sm:py-8 px-4 pb-24 md:pb-8">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
           <User className="w-6 h-6" /> My Profile

@@ -69,7 +69,7 @@ export function AdminAlertsPage() {
   const activeCount = (data as any)?.activeCount ?? 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       {/* Header */}
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto flex items-center gap-4">

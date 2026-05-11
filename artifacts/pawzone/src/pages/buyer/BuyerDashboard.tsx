@@ -2,11 +2,10 @@ import { Link, useLocation } from "wouter";
 import { useGetBuyerDashboard, useGetListings } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetCart } from "@workspace/api-client-react";
-import { formatPrice, getStatusColor } from "@/lib/api";
+import { formatPrice } from "@/lib/api";
 import { ShoppingCart, Package, Search, PawPrint, MapPin, Heart, ChevronRight, Bell, User, LogOut, Settings } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { useAuth as useAuthHook } from "@/contexts/AuthContext";
 
 const CATEGORIES = [
   { label: "Dogs", value: "dogs", emoji: "🐕", bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700" },
@@ -37,7 +36,7 @@ export function BuyerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
+      {/* Sidebar — desktop only */}
       <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-100 min-h-screen sticky top-0 h-screen">
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-center gap-3">
@@ -84,8 +83,8 @@ export function BuyerDashboard() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 min-w-0">
-        {/* Top bar */}
+      <div className="flex-1 min-w-0 pb-20 lg:pb-6">
+        {/* Top search bar */}
         <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-20 flex items-center gap-3">
           <form onSubmit={handleSearch} className="flex-1 max-w-xl flex items-center bg-gray-100 rounded-xl overflow-hidden px-3 gap-2">
             <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -94,11 +93,11 @@ export function BuyerDashboard() {
               placeholder="Search breeds, species..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 bg-transparent py-2 text-sm outline-none text-gray-700"
+              className="flex-1 bg-transparent py-2.5 text-sm outline-none text-gray-700"
             />
           </form>
           <Link href="/buyer/cart">
-            <button className="relative w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-teal-50 transition-colors">
+            <button className="relative w-11 h-11 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-teal-50 transition-colors active:scale-95">
               <ShoppingCart className="w-5 h-5 text-gray-600" />
               {cartCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-teal-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
@@ -109,13 +108,13 @@ export function BuyerDashboard() {
           </Link>
         </div>
 
-        <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
+        <div className="p-4 sm:p-6 space-y-5 sm:space-y-8">
           {/* Welcome banner */}
           <div className="bg-gradient-to-r from-teal-600 to-emerald-500 rounded-2xl p-4 sm:p-6 text-white flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold mb-1">Welcome back, {user?.name?.split(" ")[0]}! 👋</h1>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl font-bold mb-1">Welcome back, {user?.name?.split(" ")[0]}! 👋</h1>
               <p className="text-white/80 text-sm">Find your perfect pet companion today</p>
-              <div className="flex gap-4 mt-4 text-sm">
+              <div className="flex gap-4 sm:gap-6 mt-3 sm:mt-4 text-sm">
                 <div>
                   <p className="font-bold text-xl">{dashData?.stats?.totalOrders ?? 0}</p>
                   <p className="text-white/70 text-xs">Orders</p>
@@ -130,39 +129,39 @@ export function BuyerDashboard() {
                 </div>
               </div>
             </div>
-            <div className="text-6xl hidden sm:block">🐾</div>
+            <div className="text-5xl sm:text-6xl hidden sm:block flex-shrink-0 ml-4">🐾</div>
           </div>
 
           {/* Quick actions */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
             {[
-              { label: "Browse Pets", icon: "🐕", href: "/listings", bg: "bg-teal-50 border-teal-200", text: "text-teal-700" },
+              { label: "Browse", icon: "🐕", href: "/listings", bg: "bg-teal-50 border-teal-200", text: "text-teal-700" },
               { label: "My Cart", icon: "🛒", href: "/buyer/cart", bg: "bg-amber-50 border-amber-200", text: "text-amber-700", count: cartCount },
-              { label: "My Orders", icon: "📦", href: "/buyer/orders", bg: "bg-blue-50 border-blue-200", text: "text-blue-700" },
+              { label: "Orders", icon: "📦", href: "/buyer/orders", bg: "bg-blue-50 border-blue-200", text: "text-blue-700" },
             ].map((action) => (
               <Link key={action.href} href={action.href}>
-                <div className={`${action.bg} border rounded-2xl p-4 text-center hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer`}>
-                  <div className="text-3xl mb-2">{action.icon}</div>
-                  <p className={`text-sm font-semibold ${action.text}`}>{action.label}</p>
+                <div className={`${action.bg} border rounded-2xl p-3 sm:p-4 text-center hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all cursor-pointer`}>
+                  <div className="text-2xl sm:text-3xl mb-1.5 sm:mb-2">{action.icon}</div>
+                  <p className={`text-xs sm:text-sm font-semibold ${action.text}`}>{action.label}</p>
                   {action.count !== undefined && action.count > 0 && (
-                    <Badge className="mt-1 bg-teal-600">{action.count} items</Badge>
+                    <Badge className="mt-1 bg-teal-600 text-xs">{action.count}</Badge>
                   )}
                 </div>
               </Link>
             ))}
           </div>
 
-          {/* Categories */}
+          {/* Category filter chips — horizontal scroll on mobile */}
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">Browse by Category</h2>
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">Browse by Category</h2>
             </div>
-            <div className="flex gap-3 flex-wrap">
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 sm:flex-wrap scrollbar-none">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat.value}
                   onClick={() => setActiveCategory(cat.value)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full border-2 text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 active:scale-95 ${
                     activeCategory === cat.value
                       ? `${cat.bg} ${cat.border} ${cat.text} shadow-sm`
                       : "bg-white border-gray-200 text-gray-500 hover:border-gray-300"
@@ -177,8 +176,8 @@ export function BuyerDashboard() {
 
           {/* Listings grid */}
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">
                 {activeCategory ? `${CATEGORIES.find(c => c.value === activeCategory)?.label ?? ""} for Sale` : "All Pets"}
               </h2>
               <Link href="/listings" className="text-teal-600 text-sm font-medium flex items-center gap-1 hover:text-teal-700">
@@ -186,28 +185,29 @@ export function BuyerDashboard() {
               </Link>
             </div>
             {listings.length === 0 ? (
-              <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
+              <div className="bg-white rounded-2xl p-10 sm:p-12 text-center border border-gray-100">
                 <div className="text-5xl mb-4">🐾</div>
                 <h3 className="font-semibold text-gray-700 mb-2">No pets found</h3>
                 <p className="text-gray-400 text-sm">Try a different category</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
                 {listings.map((listing: any) => (
                   <Link key={listing.id} href={`/listings/${listing.id}`}>
-                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group border border-gray-100">
+                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] cursor-pointer group border border-gray-100">
                       <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
                         {listing.photos?.[0] ? (
                           <img
                             src={listing.photos[0]}
                             alt={listing.breed}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
                             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-4xl bg-gray-50">🐾</div>
                         )}
-                        <button className="absolute top-2 right-2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow hover:bg-white transition-colors">
+                        <button className="absolute top-2 right-2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow hover:bg-white active:scale-90 transition-all">
                           <Heart className="w-4 h-4 text-gray-400" />
                         </button>
                         {listing.vaccinated && (
@@ -218,7 +218,7 @@ export function BuyerDashboard() {
                       </div>
                       <div className="p-3">
                         <div className="flex items-start justify-between gap-1 mb-1">
-                          <h3 className="font-bold text-gray-900 text-sm leading-tight">{listing.breed}</h3>
+                          <h3 className="font-bold text-gray-900 text-sm leading-tight truncate">{listing.breed}</h3>
                           <Badge variant="secondary" className="text-xs capitalize flex-shrink-0">{listing.category}</Badge>
                         </div>
                         <div className="flex items-center gap-1 text-xs text-gray-400 mb-2">
@@ -236,7 +236,6 @@ export function BuyerDashboard() {
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>

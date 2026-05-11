@@ -121,7 +121,7 @@ export function TransporterDashboard() {
     order.status === "confirmed" && !order.transporterId;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto flex items-start justify-between gap-4">
@@ -141,18 +141,18 @@ export function TransporterDashboard() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 -mt-4 pb-12">
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-3 sm:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-6">
           {[
-            { icon: <CheckCircle className="w-6 h-6 text-green-600" />, label: "Deliveries Done", value: (dash as any)?.stats?.completedDeliveries ?? 0, bg: "bg-green-50", border: "border-green-200" },
-            { icon: <Package className="w-6 h-6 text-amber-600" />, label: "Active", value: (dash as any)?.stats?.activeDeliveries ?? 0, bg: "bg-amber-50", border: "border-amber-200" },
-            { icon: <IndianRupee className="w-6 h-6 text-teal-700" />, label: "Total Earnings", value: formatPrice((dash as any)?.stats?.totalEarnings ?? 0), bg: "bg-teal-50", border: "border-teal-200" },
+            { icon: <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />, label: "Done", value: (dash as any)?.stats?.completedDeliveries ?? 0, bg: "bg-green-50", border: "border-green-200" },
+            { icon: <Package className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />, label: "Active", value: (dash as any)?.stats?.activeDeliveries ?? 0, bg: "bg-amber-50", border: "border-amber-200" },
+            { icon: <IndianRupee className="w-5 h-5 sm:w-6 sm:h-6 text-teal-700" />, label: "Earnings", value: formatPrice((dash as any)?.stats?.totalEarnings ?? 0), bg: "bg-teal-50", border: "border-teal-200" },
           ].map((stat) => (
-            <div key={stat.label} className={`${stat.bg} border ${stat.border} rounded-2xl p-5 flex items-center gap-4 shadow-sm`}>
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+            <div key={stat.label} className={`${stat.bg} border ${stat.border} rounded-2xl p-3 sm:p-5 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 shadow-sm text-center sm:text-left`}>
+              <div className="w-9 h-9 sm:w-12 sm:h-12 bg-white rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
                 {stat.icon}
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{stat.value}</p>
                 <p className="text-xs text-gray-500">{stat.label}</p>
               </div>
             </div>

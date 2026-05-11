@@ -38,14 +38,14 @@ export function SellerDashboard() {
   const listings = (data as any)?.listings ?? [];
 
   const statCards = [
-    { icon: <TrendingUp className="w-6 h-6 text-teal-600" />, label: "Net Revenue (after fee)", value: formatPrice(Number(stats.totalRevenue ?? 0)), bg: "bg-teal-50", border: "border-teal-200", text: "text-teal-700" },
-    { icon: <Package className="w-6 h-6 text-blue-600" />, label: "Active Listings", value: stats.activeListings ?? 0, bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-700" },
-    { icon: <ShoppingBag className="w-6 h-6 text-amber-600" />, label: "Pending Orders", value: stats.pendingOrders ?? 0, bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700" },
-    { icon: <Star className="w-6 h-6 text-yellow-500" />, label: "Seller Rating", value: `${(user?.sellerScore ?? 5).toFixed(1)} ⭐`, bg: "bg-yellow-50", border: "border-yellow-200", text: "text-yellow-700" },
+    { icon: <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-teal-600" />, label: "Net Revenue", value: formatPrice(Number(stats.totalRevenue ?? 0)), bg: "bg-teal-50", border: "border-teal-200", text: "text-teal-700" },
+    { icon: <Package className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />, label: "Active Listings", value: stats.activeListings ?? 0, bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-700" },
+    { icon: <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />, label: "Pending Orders", value: stats.pendingOrders ?? 0, bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700" },
+    { icon: <Star className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500" />, label: "Seller Rating", value: `${(user?.sellerScore ?? 5).toFixed(1)} ⭐`, bg: "bg-yellow-50", border: "border-yellow-200", text: "text-yellow-700" },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       {/* Gradient Header */}
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
@@ -71,14 +71,14 @@ export function SellerDashboard() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 -mt-4 pb-12">
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-6">
           {statCards.map(card => (
-            <div key={card.label} className={`bg-white border ${card.border} rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow`}>
-              <div className="w-11 h-11 bg-gray-50 rounded-xl flex items-center justify-center mb-3">
+            <div key={card.label} className={`bg-white border ${card.border} rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow`}>
+              <div className="w-9 h-9 sm:w-11 sm:h-11 bg-gray-50 rounded-xl flex items-center justify-center mb-2 sm:mb-3">
                 {card.icon}
               </div>
-              <p className={`text-2xl font-bold ${card.text}`}>{card.value}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{card.label}</p>
+              <p className={`text-xl sm:text-2xl font-bold ${card.text}`}>{card.value}</p>
+              <p className="text-xs text-gray-500 mt-0.5 leading-tight">{card.label}</p>
             </div>
           ))}
         </div>

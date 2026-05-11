@@ -81,7 +81,7 @@ export function AdminOrdersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
         <div className="max-w-6xl mx-auto flex items-center gap-4">
           <Link href="/admin">

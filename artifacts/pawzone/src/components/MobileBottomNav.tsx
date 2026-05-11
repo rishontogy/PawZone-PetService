@@ -62,31 +62,35 @@ export function MobileBottomNav() {
   const tabs = tabsByRole[user.role] ?? [];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-100 shadow-2xl">
+    <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-100 shadow-2xl"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
       <div className="flex items-stretch">
         {tabs.map((tab) => {
           const active = isActive(tab.href);
           return (
             <Link key={tab.href + tab.label} href={tab.href} className="flex-1">
               <div
-                className={`flex flex-col items-center justify-center py-2 px-1 relative transition-all min-h-[56px] ${
-                  active ? "text-teal-600" : "text-gray-400 hover:text-gray-600"
+                className={`flex flex-col items-center justify-center pt-2 pb-2.5 px-1 relative transition-all min-h-[60px] ${
+                  active ? "text-teal-600" : "text-gray-400 active:text-gray-600"
                 }`}
               >
                 {active && (
                   <div className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-teal-600 rounded-full" />
                 )}
+                {active && (
+                  <div className="absolute inset-x-1 inset-y-0 bg-teal-50 rounded-xl -z-10" />
+                )}
                 <div className="relative">
                   {tab.icon}
                   {tab.badge != null && tab.badge > 0 && (
-                    <span className="absolute -top-1 -right-1.5 bg-teal-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold leading-none">
+                    <span className="absolute -top-1.5 -right-2 bg-teal-600 text-white text-[9px] min-w-[16px] h-4 rounded-full flex items-center justify-center font-bold leading-none px-0.5">
                       {tab.badge > 9 ? "9+" : tab.badge}
                     </span>
                   )}
                 </div>
                 <span
-                  className={`text-[10px] mt-0.5 font-medium leading-tight text-center ${
-                    active ? "text-teal-600" : "text-gray-400"
+                  className={`text-[10px] mt-1 font-medium leading-tight text-center ${
+                    active ? "text-teal-600 font-semibold" : "text-gray-400"
                   }`}
                 >
                   {tab.label}

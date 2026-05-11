@@ -1,6 +1,5 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useGetListings } from "@workspace/api-client-react";
 import { formatPrice } from "@/lib/api";
@@ -29,50 +28,50 @@ export function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-teal-600 via-teal-500 to-emerald-500 text-white py-20 px-4 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 text-8xl">🐕</div>
-          <div className="absolute top-20 right-20 text-6xl">🐈</div>
-          <div className="absolute bottom-10 left-1/4 text-7xl">🦜</div>
-          <div className="absolute bottom-20 right-1/3 text-5xl">🐟</div>
+      <section className="relative bg-gradient-to-br from-teal-600 via-teal-500 to-emerald-500 text-white py-14 sm:py-20 px-4 overflow-hidden">
+        <div className="absolute inset-0 opacity-10 pointer-events-none select-none">
+          <div className="absolute top-8 left-6 text-6xl sm:text-8xl">🐕</div>
+          <div className="absolute top-16 right-10 text-5xl sm:text-6xl">🐈</div>
+          <div className="absolute bottom-8 left-1/4 text-5xl sm:text-7xl hidden sm:block">🦜</div>
+          <div className="absolute bottom-16 right-1/3 text-4xl sm:text-5xl hidden sm:block">🐟</div>
         </div>
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm font-medium mb-6">
-            <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse"></span>
+          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 text-xs sm:text-sm font-medium mb-5 sm:mb-6">
+            <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse flex-shrink-0"></span>
             India's Fastest Growing Pet Marketplace
           </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
             Find Your Perfect<br />
             <span className="text-yellow-300">Pet Companion</span>
           </h1>
-          <p className="text-lg text-white/85 mb-8 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-white/85 mb-7 max-w-xl mx-auto leading-relaxed px-2">
             Connect with verified breeders. Safe, transparent transactions with our unique PetCode system and certified transporters.
           </p>
-          <form onSubmit={handleSearch} className="flex max-w-xl mx-auto mb-6 gap-2">
+          <form onSubmit={handleSearch} className="flex max-w-xl mx-auto mb-5 gap-2 px-0 sm:px-2">
             <div className="flex-1 flex items-center bg-white rounded-xl shadow-lg overflow-hidden">
-              <Search className="w-5 h-5 text-gray-400 ml-4 flex-shrink-0" />
+              <Search className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 ml-3 sm:ml-4 flex-shrink-0" />
               <input
                 type="text"
-                placeholder="Search breed, type (e.g. Golden Retriever)"
+                placeholder="Search breed, type..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 py-3 px-3 text-gray-800 outline-none text-sm"
+                className="flex-1 py-3 px-2 sm:px-3 text-gray-800 outline-none text-sm"
               />
             </div>
-            <Button type="submit" size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl px-6 border-0 shadow-lg">
+            <Button type="submit" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl px-4 sm:px-6 border-0 shadow-lg text-sm sm:text-base whitespace-nowrap min-h-[48px]">
               Search
             </Button>
           </form>
           <div className="flex flex-wrap justify-center gap-3">
             <Link href="/listings">
-              <Button size="lg" className="bg-white text-teal-700 hover:bg-gray-100 font-bold rounded-xl shadow-md gap-2 border-0">
+              <Button className="bg-white text-teal-700 hover:bg-gray-100 font-bold rounded-xl shadow-md gap-2 border-0 min-h-[48px] px-5 sm:px-6">
                 Browse Pets <ChevronRight className="w-4 h-4" />
               </Button>
             </Link>
             <Link href="/signup">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/20 rounded-xl gap-2">
+              <Button variant="outline" className="border-white text-white hover:bg-white/20 rounded-xl gap-2 min-h-[48px] px-5 sm:px-6">
                 Start Selling
               </Button>
             </Link>
@@ -82,39 +81,39 @@ export function HomePage() {
 
       {/* Stats bar */}
       <section className="bg-white border-b shadow-sm py-4 px-4">
-        <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-8 text-center">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
           {[
             { value: "5,000+", label: "Happy Buyers" },
             { value: "500+", label: "Verified Sellers" },
-            { value: "50+", label: "Certified Transporters" },
+            { value: "50+", label: "Transporters" },
             { value: "100%", label: "Secure Payments" },
           ].map((stat) => (
-            <div key={stat.label}>
-              <p className="text-2xl font-bold text-teal-600">{stat.value}</p>
-              <p className="text-xs text-gray-500">{stat.label}</p>
+            <div key={stat.label} className="py-1">
+              <p className="text-xl sm:text-2xl font-bold text-teal-600">{stat.value}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Categories */}
-      <section className="py-12 px-4 bg-white">
+      <section className="py-10 sm:py-12 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6 sm:mb-8">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Browse by Category</h2>
-              <p className="text-gray-500 text-sm mt-1">Find your favourite pet type</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Browse by Category</h2>
+              <p className="text-gray-500 text-xs sm:text-sm mt-1">Find your favourite pet type</p>
             </div>
             <Link href="/listings" className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center gap-1">
               View all <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 sm:gap-4">
             {CATEGORIES.map((cat) => (
               <Link key={cat.value} href={`/listings?category=${cat.value}`}>
-                <div className={`bg-gradient-to-b ${cat.color} border ${cat.border} rounded-2xl p-4 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-200 cursor-pointer`}>
-                  <div className="text-4xl mb-2">{cat.emoji}</div>
-                  <p className="text-sm font-semibold text-gray-700">{cat.label}</p>
+                <div className={`bg-gradient-to-b ${cat.color} border ${cat.border} rounded-2xl p-3 sm:p-4 text-center hover:shadow-md hover:-translate-y-1 transition-all duration-200 cursor-pointer active:scale-95`}>
+                  <div className="text-3xl sm:text-4xl mb-1.5 sm:mb-2">{cat.emoji}</div>
+                  <p className="text-xs sm:text-sm font-semibold text-gray-700">{cat.label}</p>
                 </div>
               </Link>
             ))}
@@ -124,33 +123,34 @@ export function HomePage() {
 
       {/* Featured Listings */}
       {listings?.listings?.length > 0 && (
-        <section className="py-12 px-4 bg-gray-50">
+        <section className="py-10 sm:py-12 px-4 bg-gray-50">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6 sm:mb-8">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Featured Pets</h2>
-                <p className="text-gray-500 text-sm mt-1">Handpicked by our team</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Featured Pets</h2>
+                <p className="text-gray-500 text-xs sm:text-sm mt-1">Handpicked by our team</p>
               </div>
               <Link href="/listings" className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center gap-1">
                 See all <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
               {listings.listings.slice(0, 8).map((listing: any) => (
                 <Link key={listing.id} href={`/listings/${listing.id}`}>
-                  <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group border border-gray-100">
+                  <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] cursor-pointer group border border-gray-100">
                     <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
                       {listing.photos?.[0] ? (
                         <img
                           src={listing.photos[0]}
                           alt={listing.breed}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
                           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-5xl">🐾</div>
                       )}
-                      <button className="absolute top-2 right-2 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow hover:bg-white transition-colors">
+                      <button className="absolute top-2 right-2 w-9 h-9 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow hover:bg-white transition-colors active:scale-90">
                         <Heart className="w-4 h-4 text-gray-400 hover:text-red-500" />
                       </button>
                       {listing.vaccinated && (
@@ -159,7 +159,7 @@ export function HomePage() {
                         </div>
                       )}
                     </div>
-                    <div className="p-4">
+                    <div className="p-3 sm:p-4">
                       <div className="flex justify-between items-start mb-1">
                         <h3 className="font-bold text-gray-900 text-sm leading-tight">{listing.breed}</h3>
                         <Badge variant="secondary" className="text-xs capitalize ml-1 flex-shrink-0">{listing.category}</Badge>
@@ -169,7 +169,7 @@ export function HomePage() {
                         {listing.city}
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-extrabold text-teal-600">{formatPrice(listing.price)}</span>
+                        <span className="text-base sm:text-lg font-extrabold text-teal-600">{formatPrice(listing.price)}</span>
                         <span className="text-xs text-gray-400">{listing.availableQuantity ?? listing.quantity} left</span>
                       </div>
                     </div>
@@ -182,23 +182,23 @@ export function HomePage() {
       )}
 
       {/* Why PawZone */}
-      <section className="py-14 px-4 bg-white">
+      <section className="py-12 sm:py-14 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Why Choose PawZone?</h2>
-            <p className="text-gray-500">We make pet adoption safe, simple and joyful</p>
+          <div className="text-center mb-8 sm:mb-10">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Why Choose PawZone?</h2>
+            <p className="text-gray-500 text-sm">We make pet adoption safe, simple and joyful</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-8">
             {[
-              { icon: <Shield className="w-8 h-8 text-teal-600" />, title: "Verified Sellers", desc: "All sellers are reviewed and approved by our expert team before listing pets.", bg: "bg-teal-50" },
-              { icon: <Truck className="w-8 h-8 text-blue-600" />, title: "Safe Transport", desc: "Certified transporters ensure humane and safe delivery across the country.", bg: "bg-blue-50" },
-              { icon: <Star className="w-8 h-8 text-amber-600" />, title: "PetCode System", desc: "Every pet gets a unique PetCode for full traceability, health records and authenticity.", bg: "bg-amber-50" },
+              { icon: <Shield className="w-7 h-7 sm:w-8 sm:h-8 text-teal-600" />, title: "Verified Sellers", desc: "All sellers are reviewed and approved by our expert team before listing pets.", bg: "bg-teal-50" },
+              { icon: <Truck className="w-7 h-7 sm:w-8 sm:h-8 text-blue-600" />, title: "Safe Transport", desc: "Certified transporters ensure humane and safe delivery across the state.", bg: "bg-blue-50" },
+              { icon: <Star className="w-7 h-7 sm:w-8 sm:h-8 text-amber-600" />, title: "PetCode System", desc: "Every pet gets a unique PetCode for full traceability, health records and authenticity.", bg: "bg-amber-50" },
             ].map((f) => (
-              <div key={f.title} className={`${f.bg} rounded-2xl p-7 text-center hover:shadow-md transition-shadow`}>
-                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <div key={f.title} className={`${f.bg} rounded-2xl p-6 sm:p-7 text-center hover:shadow-md transition-shadow`}>
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
                   {f.icon}
                 </div>
-                <h3 className="font-bold text-lg text-gray-900 mb-2">{f.title}</h3>
+                <h3 className="font-bold text-base sm:text-lg text-gray-900 mb-2">{f.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
@@ -207,12 +207,12 @@ export function HomePage() {
       </section>
 
       {/* CTA Banner */}
-      <section className="py-14 px-4 bg-gradient-to-r from-teal-600 to-emerald-500 text-white">
+      <section className="py-12 sm:py-14 px-4 bg-gradient-to-r from-teal-600 to-emerald-500 text-white">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-3">Have a Pet to Sell?</h2>
-          <p className="text-white/85 mb-6">Join hundreds of verified sellers on PawZone and reach thousands of pet lovers.</p>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3">Have a Pet to Sell?</h2>
+          <p className="text-white/85 mb-6 text-sm sm:text-base">Join hundreds of verified sellers on PawZone and reach thousands of pet lovers.</p>
           <Link href="/signup">
-            <Button size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl shadow-md border-0 px-8">
+            <Button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl shadow-md border-0 px-7 sm:px-8 min-h-[48px]">
               Start Selling Today
             </Button>
           </Link>
@@ -233,7 +233,7 @@ export function HomePage() {
               <Link href="/login" className="hover:text-white transition-colors">Login</Link>
             </div>
           </div>
-          <div className="border-t border-gray-700 pt-6 text-center text-sm">
+          <div className="border-t border-gray-700 pt-6 text-center text-xs sm:text-sm">
             <p>© 2025 PawZone — India's Trusted Pet Marketplace. All rights reserved.</p>
           </div>
         </div>

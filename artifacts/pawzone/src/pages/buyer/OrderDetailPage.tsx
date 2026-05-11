@@ -228,7 +228,7 @@ export function OrderDetailPage() {
   const payTotal = selfPickup ? subtotalAmount + platformFeeAmount : totalAmount;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       {/* Header */}
       <div className="bg-white border-b border-gray-100 shadow-sm px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-4">
