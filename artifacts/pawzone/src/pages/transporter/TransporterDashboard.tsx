@@ -123,25 +123,25 @@ export function TransporterDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-6 py-8">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
+      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
+        <div className="max-w-5xl mx-auto flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Truck className="w-6 h-6" /> Transporter Dashboard
+            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+              <Truck className="w-5 h-5 sm:w-6 sm:h-6" /> Transporter Dashboard
             </h1>
             <p className="text-teal-100 text-sm mt-1">Welcome back, {user?.name}</p>
           </div>
           <Link href="/transporter/routes/new">
-            <Button className="gap-2 rounded-xl bg-white text-teal-700 hover:bg-teal-50 font-semibold">
+            <Button className="gap-2 rounded-xl bg-white text-teal-700 hover:bg-teal-50 font-semibold text-sm whitespace-nowrap">
               <PlusCircle className="w-4 h-4" /> Add Route
             </Button>
           </Link>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 -mt-4 pb-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 -mt-4 pb-12">
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           {[
             { icon: <CheckCircle className="w-6 h-6 text-green-600" />, label: "Deliveries Done", value: (dash as any)?.stats?.completedDeliveries ?? 0, bg: "bg-green-50", border: "border-green-200" },
             { icon: <Package className="w-6 h-6 text-amber-600" />, label: "Active", value: (dash as any)?.stats?.activeDeliveries ?? 0, bg: "bg-amber-50", border: "border-amber-200" },

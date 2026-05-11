@@ -44,8 +44,8 @@ export function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-8">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 bg-teal-500/20 rounded-lg flex items-center justify-center">
@@ -63,7 +63,7 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 -mt-4 pb-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 -mt-4 pb-12">
         {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {statCards.map(card => (

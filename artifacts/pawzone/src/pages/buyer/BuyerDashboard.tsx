@@ -86,7 +86,7 @@ export function BuyerDashboard() {
       {/* Main content */}
       <div className="flex-1 min-w-0">
         {/* Top bar */}
-        <div className="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-20 flex items-center gap-4">
+        <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-20 flex items-center gap-3">
           <form onSubmit={handleSearch} className="flex-1 max-w-xl flex items-center bg-gray-100 rounded-xl overflow-hidden px-3 gap-2">
             <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <input
@@ -109,9 +109,9 @@ export function BuyerDashboard() {
           </Link>
         </div>
 
-        <div className="p-6 space-y-8">
+        <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
           {/* Welcome banner */}
-          <div className="bg-gradient-to-r from-teal-600 to-emerald-500 rounded-2xl p-6 text-white flex items-center justify-between">
+          <div className="bg-gradient-to-r from-teal-600 to-emerald-500 rounded-2xl p-4 sm:p-6 text-white flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold mb-1">Welcome back, {user?.name?.split(" ")[0]}! 👋</h1>
               <p className="text-white/80 text-sm">Find your perfect pet companion today</p>

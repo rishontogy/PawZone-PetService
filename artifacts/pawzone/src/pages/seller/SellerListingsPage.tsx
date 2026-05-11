@@ -67,7 +67,7 @@ export function SellerListingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-6 py-8">
+      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -83,7 +83,7 @@ export function SellerListingsPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 -mt-4 pb-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 -mt-4 pb-12">
         {!myListings.length ? (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center">
             <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">

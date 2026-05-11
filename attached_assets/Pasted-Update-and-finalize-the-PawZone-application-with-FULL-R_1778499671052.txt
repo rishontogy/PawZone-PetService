@@ -1,0 +1,500 @@
+Update and finalize the PawZone application with FULL RESPONSIVE MULTI-DEVICE UI SUPPORT while keeping the SAME backend, SAME database, SAME authentication system, SAME business logic, and SAME workflows.
+
+This is a RESPONSIVE UI + CROSS-DEVICE EXPERIENCE + LAYOUT OPTIMIZATION task.
+
+⚠️ IMPORTANT:
+DO NOT change existing desktop business logic.
+DO NOT break desktop functionality.
+DO NOT create separate backend/auth systems.
+
+The application must use:
+✔ Same backend
+✔ Same database
+✔ Same API
+✔ Same auth/session
+✔ Same timers
+✔ Same alerts
+✔ Same workflows
+
+ONLY the UI/UX should adapt based on:
+- Mobile phones
+- Tablets
+- Desktop
+
+---------------------------------------------------
+📱 1. RESPONSIVE UI ARCHITECTURE
+---------------------------------------------------
+
+Create proper responsive layouts for:
+
+✔ Mobile phones
+✔ Tablets
+✔ Desktop
+
+---------------------------------------------------
+📐 BREAKPOINTS
+---------------------------------------------------
+
+Mobile:
+0px → 767px
+
+Tablet:
+768px → 1023px
+
+Desktop:
+1024px+
+
+---------------------------------------------------
+⚠️ IMPORTANT
+---------------------------------------------------
+
+Desktop UI must remain unchanged and fully functional.
+
+Only optimize layouts for:
+✔ Mobile
+✔ Tablet
+
+---------------------------------------------------
+🎨 2. GLOBAL RESPONSIVE RULES
+---------------------------------------------------
+
+Implement:
+
+✔ Responsive grids
+✔ Flexible cards
+✔ Adaptive spacing
+✔ Responsive typography
+✔ Responsive navigation
+✔ Touch-friendly buttons
+✔ Smooth scrolling
+✔ Mobile bottom navigation
+✔ Tablet sidebar collapse
+
+---------------------------------------------------
+📱 MOBILE UI RULES
+---------------------------------------------------
+
+Use:
+✔ Bottom navigation
+✔ Hamburger menu
+✔ Stack cards vertically
+✔ Full-width buttons
+✔ Optimized touch spacing
+
+---------------------------------------------------
+📲 TABLET UI RULES
+---------------------------------------------------
+
+Use:
+✔ Compact sidebar
+✔ 2-column adaptive layouts
+✔ Medium card widths
+✔ Floating action buttons where useful
+
+---------------------------------------------------
+⚠️ IMPORTANT
+---------------------------------------------------
+
+NO overlapping UI.
+NO broken layouts.
+NO hidden buttons.
+NO horizontal scrolling.
+
+---------------------------------------------------
+🛒 3. BUYER ACCOUNT – RESPONSIVE UI
+---------------------------------------------------
+
+Ensure ALL buyer pages work properly on:
+✔ Mobile
+✔ Tablet
+✔ Desktop
+
+---------------------------------------------------
+REQUIRED BUYER PAGES
+---------------------------------------------------
+
+✔ Dashboard
+✔ Browse Pets Page
+✔ Pet Details Page
+✔ Cart Page
+✔ My Orders Page
+✔ Order Details Page
+✔ Notifications Page
+✔ Profile Page
+✔ Settings Page
+
+AND:
+✔ All other desktop buyer pages
+
+---------------------------------------------------
+🧠 BUYER RESPONSIVE REQUIREMENTS
+---------------------------------------------------
+
+---------------------------------------------------
+📊 DASHBOARD
+---------------------------------------------------
+
+Mobile:
+✔ Cards stacked vertically
+✔ Responsive stats
+✔ Quick actions
+✔ Bottom navigation
+
+Tablet:
+✔ 2-column dashboard cards
+
+---------------------------------------------------
+🐾 BROWSE PETS PAGE
+---------------------------------------------------
+
+Mobile:
+✔ Single-column pet cards
+✔ Sticky filters
+✔ Compact search
+
+Tablet:
+✔ 2-column pet grid
+
+Desktop:
+✔ Existing layout unchanged
+
+---------------------------------------------------
+🐶 PET DETAILS PAGE
+---------------------------------------------------
+
+Mobile:
+✔ Swipeable image gallery
+✔ Parent photos responsive
+✔ Sticky add-to-cart button
+
+Tablet:
+✔ Split image/details layout
+
+---------------------------------------------------
+🛒 CART PAGE
+---------------------------------------------------
+
+Mobile:
+✔ Vertical cart cards
+✔ Sticky checkout section
+✔ Responsive quantity controls
+
+Tablet:
+✔ Compact order summary sidebar
+
+---------------------------------------------------
+📦 MY ORDERS PAGE
+---------------------------------------------------
+
+Mobile:
+✔ Expandable order cards
+✔ Timeline optimized vertically
+
+Tablet:
+✔ Responsive timeline cards
+
+---------------------------------------------------
+🔔 NOTIFICATIONS PAGE
+---------------------------------------------------
+
+Mobile:
+✔ Card-style notifications
+✔ Swipe-friendly layout
+
+---------------------------------------------------
+⚙️ SETTINGS PAGE
+---------------------------------------------------
+
+Mobile:
+✔ Large touch-friendly menu items
+✔ Proper spacing
+
+---------------------------------------------------
+🏪 4. SELLER ACCOUNT – RESPONSIVE UI
+---------------------------------------------------
+
+Ensure ALL seller pages work properly on:
+✔ Mobile
+✔ Tablet
+✔ Desktop
+
+---------------------------------------------------
+REQUIRED SELLER PAGES
+---------------------------------------------------
+
+✔ Dashboard
+✔ Add Listing Page
+✔ My Listings Page
+✔ Orders Page
+✔ Edit Listing Page
+✔ Profile Page
+✔ Notifications Page
+
+---------------------------------------------------
+🧠 SELLER RESPONSIVE REQUIREMENTS
+---------------------------------------------------
+
+---------------------------------------------------
+📊 DASHBOARD
+---------------------------------------------------
+
+Mobile:
+✔ Revenue cards stacked
+✔ Recent orders optimized
+
+Tablet:
+✔ 2-column stats
+
+---------------------------------------------------
+➕ ADD LISTING PAGE
+---------------------------------------------------
+
+Mobile:
+✔ Responsive upload sections
+✔ Responsive parent photo upload
+✔ Toggle switches fixed
+✔ Touch-friendly forms
+
+Tablet:
+✔ Split sections where needed
+
+---------------------------------------------------
+📋 MY LISTINGS PAGE
+---------------------------------------------------
+
+Mobile:
+✔ Listing cards stacked
+✔ Expand/collapse details
+✔ Responsive action buttons
+
+---------------------------------------------------
+📦 ORDERS PAGE
+---------------------------------------------------
+
+Mobile:
+✔ Expandable order cards
+✔ Accept/reject buttons responsive
+✔ Upload prepared video optimized
+
+Tablet:
+✔ Side summary panel
+
+---------------------------------------------------
+🚚 5. TRANSPORTER ACCOUNT – RESPONSIVE UI
+---------------------------------------------------
+
+Ensure ALL transporter pages work properly on:
+✔ Mobile
+✔ Tablet
+✔ Desktop
+
+---------------------------------------------------
+REQUIRED TRANSPORTER PAGES
+---------------------------------------------------
+
+✔ Dashboard
+✔ Add Route Page
+✔ Delivery Requests
+✔ Active Orders
+✔ Notifications
+✔ Profile
+
+---------------------------------------------------
+🧠 TRANSPORTER RESPONSIVE REQUIREMENTS
+---------------------------------------------------
+
+---------------------------------------------------
+📊 DASHBOARD
+---------------------------------------------------
+
+Mobile:
+✔ Deliveries/earnings cards stacked
+✔ Responsive stats
+
+Tablet:
+✔ Compact grid layout
+
+---------------------------------------------------
+🛣 ADD ROUTE PAGE
+---------------------------------------------------
+
+Mobile:
+✔ Large route input fields
+✔ Touch-friendly town selection
+✔ Responsive route cards
+
+Tablet:
+✔ Split route layout
+
+---------------------------------------------------
+📦 DELIVERY REQUESTS & ACTIVE ORDERS
+---------------------------------------------------
+
+Mobile:
+✔ Card-based requests
+✔ Expandable view details
+✔ Animal cards responsive
+✔ Upload sections responsive
+
+Tablet:
+✔ Multi-column detail layout
+
+---------------------------------------------------
+📋 VIEW DETAILS DROPDOWN
+---------------------------------------------------
+
+Must remain fully functional on:
+✔ Mobile
+✔ Tablet
+
+Including:
+✔ Pickup location
+✔ Delivery location
+✔ Seller details
+✔ Buyer details
+✔ Earnings
+✔ Animal cards
+✔ Upload pickup video
+✔ Upload delivery video
+
+---------------------------------------------------
+🔔 6. NOTIFICATION SYSTEM RESPONSIVE FIX
+---------------------------------------------------
+
+Ensure notifications work properly on:
+✔ Mobile
+✔ Tablet
+
+---------------------------------------------------
+MUST INCLUDE:
+---------------------------------------------------
+
+✔ Real-time updates
+✔ Correct badge count
+✔ Scrollable notification list
+✔ Tap opens correct page
+
+---------------------------------------------------
+🧠 7. RESPONSIVE NAVIGATION SYSTEM
+---------------------------------------------------
+
+---------------------------------------------------
+📱 MOBILE NAVIGATION
+---------------------------------------------------
+
+Use bottom navigation with:
+
+BUYER:
+✔ Dashboard
+✔ Browse
+✔ Orders
+✔ Notifications
+✔ Profile
+
+SELLER:
+✔ Dashboard
+✔ Listings
+✔ Orders
+✔ Notifications
+✔ Profile
+
+TRANSPORTER:
+✔ Dashboard
+✔ Routes
+✔ Deliveries
+✔ Notifications
+✔ Profile
+
+---------------------------------------------------
+📲 TABLET NAVIGATION
+---------------------------------------------------
+
+Use:
+✔ Collapsible sidebar
+✔ Compact topbar
+
+---------------------------------------------------
+⚠️ IMPORTANT
+---------------------------------------------------
+
+Navigation must preserve:
+✔ Current page state
+✔ Login session
+✔ Unsaved data
+
+---------------------------------------------------
+🔄 8. BACKEND & FUNCTIONALITY RULE
+---------------------------------------------------
+
+DO NOT change:
+✔ APIs
+✔ Database schema
+✔ Auth flow
+✔ Business logic
+✔ Timer logic
+✔ Alert logic
+✔ Order flow
+
+Only update:
+✔ UI
+✔ Responsive layout
+✔ Adaptive navigation
+
+---------------------------------------------------
+🧪 9. RESPONSIVE TESTING REQUIRED
+---------------------------------------------------
+
+TEST ALL PAGES ON:
+
+---------------------------------------------------
+📱 MOBILE
+---------------------------------------------------
+
+✔ Small Android
+✔ Large Android
+✔ iPhone sizes
+
+---------------------------------------------------
+📲 TABLET
+---------------------------------------------------
+
+✔ iPad
+✔ Android tablet
+
+---------------------------------------------------
+🖥 DESKTOP
+---------------------------------------------------
+
+✔ Existing desktop UI unchanged
+
+---------------------------------------------------
+⚠️ VALIDATE:
+---------------------------------------------------
+
+✔ No overlapping
+✔ No clipped content
+✔ No broken cards
+✔ No missing buttons
+✔ No horizontal scrolling
+✔ All uploads work
+✔ All dropdowns work
+✔ All alerts work
+✔ All navigation works
+
+---------------------------------------------------
+🎯 FINAL REQUIREMENT
+---------------------------------------------------
+
+After implementation:
+
+✔ Same backend/auth/database for all devices
+✔ Fully responsive UI
+✔ Proper mobile experience
+✔ Proper tablet experience
+✔ Desktop unchanged
+✔ All buyer pages responsive
+✔ All seller pages responsive
+✔ All transporter pages responsive
+✔ All workflows still working
+✔ No broken layouts
+✔ Production-ready multi-device UI

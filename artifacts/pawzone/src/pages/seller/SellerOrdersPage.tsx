@@ -61,16 +61,16 @@ export function SellerOrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-6 py-8">
+      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Package className="w-6 h-6" /> Seller Orders
+          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+            <Package className="w-5 h-5 sm:w-6 sm:h-6" /> Seller Orders
           </h1>
           <p className="text-teal-100 text-sm mt-1">{orders.length} total orders</p>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 -mt-4 pb-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 -mt-4 pb-12">
         <div className="flex gap-1.5 bg-white border border-gray-200 rounded-2xl p-1.5 mb-6 shadow-sm overflow-x-auto w-fit max-w-full">
           {tabs.map(tab => (
             <button

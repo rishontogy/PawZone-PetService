@@ -46,7 +46,7 @@ export function AdminSellerLedgerPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-blue-700 to-blue-500 px-6 py-8">
+      <div className="bg-gradient-to-r from-blue-700 to-blue-500 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center gap-4 mb-2">
             <Link href="/admin/accounting">
@@ -65,7 +65,7 @@ export function AdminSellerLedgerPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {summaryCards.map(card => (
             <div key={card.label} className={`${card.bg} border ${card.border} rounded-2xl p-5 shadow-sm`}>

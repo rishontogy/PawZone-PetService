@@ -196,7 +196,7 @@ export function OrderDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 shadow-sm px-6 py-4">
+      <div className="bg-white border-b border-gray-100 shadow-sm px-4 sm:px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center gap-4">
           <div className="flex-1">
             <h1 className="font-bold text-gray-900">Order #{o.orderNumber}</h1>
@@ -210,7 +210,7 @@ export function OrderDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 py-6 space-y-4">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-4">
         {/* Awaiting Seller Banner */}
         {isAwaitingSeller && (
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">

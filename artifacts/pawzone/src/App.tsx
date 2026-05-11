@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import { GlobalBackBar } from "@/components/GlobalBackBar";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import NotFound from "@/pages/not-found";
 
 import { LoginPage } from "@/pages/LoginPage";
@@ -69,11 +70,15 @@ function RequireAuth({ children, allowedRoles }: { children: React.ReactNode; al
 }
 
 function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   return (
     <div className="min-h-screen">
       <Navbar />
       <GlobalBackBar />
-      {children}
+      <div className={user ? "pb-16 md:pb-0" : ""}>
+        {children}
+      </div>
+      <MobileBottomNav />
     </div>
   );
 }

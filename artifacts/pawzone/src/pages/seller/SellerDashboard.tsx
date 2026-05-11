@@ -47,7 +47,7 @@ export function SellerDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Gradient Header */}
-      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-6 py-8">
+      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -69,7 +69,7 @@ export function SellerDashboard() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 -mt-4 pb-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 -mt-4 pb-12">
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {statCards.map(card => (
@@ -84,7 +84,7 @@ export function SellerDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
           {[
             { href: "/seller/listings/new", icon: <PlusCircle className="w-5 h-5 text-teal-600" />, label: "Add Pet", desc: "Create listing", bg: "bg-teal-50" },
             { href: "/seller/listings", icon: <Package className="w-5 h-5 text-blue-600" />, label: "My Listings", desc: `${listings.length} total`, bg: "bg-blue-50" },

@@ -82,7 +82,7 @@ export function AdminOrdersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-8">
+      <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
         <div className="max-w-6xl mx-auto flex items-center gap-4">
           <Link href="/admin">
             <button className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
@@ -98,7 +98,7 @@ export function AdminOrdersPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-6 space-y-3">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-3">
         {orders.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center">
             <ShoppingBag className="w-10 h-10 text-gray-200 mx-auto mb-3" />

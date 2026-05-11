@@ -71,7 +71,7 @@ export function AdminAlertsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-8">
+      <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto flex items-center gap-4">
           <Link href="/admin">
             <button className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
@@ -97,7 +97,7 @@ export function AdminAlertsPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
         {/* Filter tabs */}
         <div className="flex gap-2 flex-wrap mb-6">
           {FILTER_TYPES.map(f => (
