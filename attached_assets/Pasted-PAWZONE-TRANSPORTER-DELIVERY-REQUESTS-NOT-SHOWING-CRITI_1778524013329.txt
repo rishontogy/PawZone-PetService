@@ -1,0 +1,244 @@
+PAWZONE – TRANSPORTER DELIVERY REQUESTS NOT SHOWING (CRITICAL FIX)
+
+CRITICAL BUG:
+Transporters are NOT seeing any orders in:
+“Delivery Requests & Active Orders”
+
+Even valid matching orders are not appearing for acceptance.
+
+This is a FULL backend + frontend + route matching fix.
+Find the exact root cause and FIX IT completely.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 1. ROOT CAUSE VALIDATION (MANDATORY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Check ALL of the following immediately:
+
+✔ Transporter route data loading
+✔ Order status filtering
+✔ Pickup/drop town extraction
+✔ Route normalization
+✔ API response
+✔ Database query
+✔ Realtime updates
+✔ Frontend rendering
+✔ Authentication filtering
+✔ Role permissions
+
+If ANY issue exists:
+→ FIX immediately.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠 2. FIX DELIVERY REQUEST QUERY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter page must fetch:
+
+ONLY orders where:
+
+✔ Order status = WAITING_TRANSPORTER
+✔ Need transport = TRUE
+✔ Payment not yet completed
+✔ No transporter assigned yet
+
+AND
+
+Transporter route contains:
+
+✔ Any seller pickup town
+AND
+✔ Any buyer delivery town
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 3. FIX ROUTE MATCHING LOGIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current route matching is failing.
+
+Implement normalized matching:
+
+```js
+const normalize = (value = "") =>
+  value.toString().trim().toLowerCase();
+
+Use normalized comparison for:
+
+✔ Seller towns
+✔ Buyer towns
+✔ Custom delivery towns
+✔ Transporter stops
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ MATCHING RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter gets order ONLY IF:
+
+pickupMatched === true
+AND
+dropMatched === true
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 4. USE CORRECT DELIVERY POINTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IMPORTANT:
+
+If buyer added custom delivery points in cart:
+→ Use ONLY those points for THIS order.
+
+Do NOT use saved profile delivery points.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 5. FIX ORDER STATUS FLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Correct order flow:
+
+Buyer places order
+→ Seller confirms
+→ Status = WAITING_TRANSPORTER
+→ Transporters receive request
+→ First transporter accepts
+→ Status = TRANSPORT_ASSIGNED
+→ Buyer payment unlocked
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ CURRENT ISSUE TO FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Currently:
+• Orders never move to WAITING_TRANSPORTER
+OR
+• Transporter query returns empty array
+OR
+• Matching logic always false
+OR
+• Frontend not rendering cards
+
+Find which one is failing and fix all failures.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 6. FIX TRANSPORTER PAGE UI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Delivery Requests page must show cards with:
+
+✔ Pet image
+✔ Pet name
+✔ Quantity
+✔ Pickup town
+✔ Drop town
+✔ Seller district
+✔ Buyer district
+✔ Transport earnings
+✔ Platform deduction
+✔ Accept button
+✔ View Details dropdown
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ 7. ACCEPT BUTTON FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Currently accept may fail or not appear.
+
+Fix:
+
+When transporter clicks Accept:
+
+Require:
+✔ Pickup date
+✔ Pickup time
+✔ Estimated delivery time
+✔ Transport amount
+
+Then:
+
+✔ Save transporter assignment
+✔ Lock order
+✔ Remove request from others
+✔ Notify buyer
+✔ Notify seller
+✔ Unlock payment
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚫 8. PREVENT DUPLICATE ACCEPTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If one transporter accepts:
+
+✔ Immediately remove order from all others
+✔ Prevent race condition
+✔ Use transaction/database lock
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔔 9. REALTIME UPDATES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure transporter page updates instantly:
+
+✔ New order appears automatically
+✔ Accepted order disappears from request list
+✔ Active order moves correctly
+
+No manual refresh required.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 10. REQUIRED TEST CASES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CASE 1:
+Matching route transporter sees order
+→ PASS
+
+CASE 2:
+Non-matching transporter does NOT see order
+→ PASS
+
+CASE 3:
+Case-insensitive matching works
+→ PASS
+
+CASE 4:
+Custom buyer delivery points work
+→ PASS
+
+CASE 5:
+Accept button works
+→ PASS
+
+CASE 6:
+Other transporters lose access after accept
+→ PASS
+
+CASE 7:
+Realtime updates work
+→ PASS
+
+CASE 8:
+No blank request page
+→ PASS
+
+CASE 9:
+No request failed errors
+→ PASS
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The transporter system must become FULLY operational.
+
+Transporters MUST:
+✔ Receive matching orders
+✔ View requests instantly
+✔ Accept successfully
+✔ Get correct pickup/drop points
+✔ See accurate earnings
+✔ Trigger payment unlock properly
+
+No empty delivery requests.
+No broken matching.
+No hidden orders.
+No failed accept actions.

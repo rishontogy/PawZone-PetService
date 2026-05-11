@@ -25,9 +25,9 @@ export function TransporterDashboard() {
   const [deleting, setDeleting] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
-  const { data: dash } = useGetTransporterDashboard({ query: { enabled: !!user } });
-  const { data: routesData, refetch: refetchRoutes } = useGetTransporterRoutes({ query: { enabled: !!user } });
-  const { data: ordersData, refetch } = useGetTransporterOrders({ query: { enabled: !!user } });
+  const { data: dash } = useGetTransporterDashboard({ query: { enabled: !!user, refetchInterval: 30000 } });
+  const { data: routesData, refetch: refetchRoutes } = useGetTransporterRoutes({ query: { enabled: !!user, refetchInterval: 30000 } });
+  const { data: ordersData, refetch } = useGetTransporterOrders({ query: { enabled: !!user, refetchInterval: 15000 } });
 
   const routes = Array.isArray(routesData) ? routesData : [];
   // Sort newest first

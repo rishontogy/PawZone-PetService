@@ -36,10 +36,10 @@ function normalize(s: string): string {
   return s?.trim().toLowerCase() ?? "";
 }
 
-// Directional route matching: seller point must appear BEFORE buyer point in the same route.
-// Case-insensitive: "Kochi" and "kochi" are treated as the same stop.
-// Returns the matched pickup and delivery towns (original casing), or null if no match found.
-function findDirectionalMatch(
+// Route matching: checks if BOTH a seller pickup point AND a buyer delivery point
+// exist anywhere in the transporter's route stops (non-directional, case-insensitive).
+// Returns the first matched pickup and delivery towns (original casing).
+function findRouteMatch(
   sellerPoints: string[],
   buyerPoints: string[],
   routes: { startCity: string; stops: string[] | null; endCity: string }[]
@@ -51,16 +51,24 @@ function findDirectionalMatch(
     const rawStops = [route.startCity, ...(route.stops ?? []), route.endCity].filter((s): s is string => !!s);
     const normStops = rawStops.map(normalize);
 
+    let matchedPickup: string | null = null;
+    let matchedDelivery: string | null = null;
+
     for (let si = 0; si < normSeller.length; si++) {
-      const sellerIdx = normStops.indexOf(normSeller[si]);
-      if (sellerIdx === -1) continue;
-      for (let bi = 0; bi < normBuyer.length; bi++) {
-        const buyerIdx = normStops.indexOf(normBuyer[bi]);
-        if (buyerIdx !== -1 && buyerIdx > sellerIdx) {
-          // Return original (non-normalized) values for display
-          return { pickup: sellerPoints[si], delivery: buyerPoints[bi], isMatch: true };
-        }
+      if (normStops.includes(normSeller[si])) {
+        matchedPickup = sellerPoints[si];
+        break;
       }
+    }
+    for (let bi = 0; bi < normBuyer.length; bi++) {
+      if (normStops.includes(normBuyer[bi])) {
+        matchedDelivery = buyerPoints[bi];
+        break;
+      }
+    }
+
+    if (matchedPickup && matchedDelivery) {
+      return { pickup: matchedPickup, delivery: matchedDelivery, isMatch: true };
     }
   }
   return { pickup: null, delivery: null, isMatch: false };
@@ -254,8 +262,8 @@ router.get("/transporter/orders", authMiddleware, async (req, res): Promise<void
         ? buyer.deliveryPoints
         : buyer?.city ? [buyer.city] : [];
 
-    // Directional match: seller point must appear BEFORE buyer point in the same route
-    const match = findDirectionalMatch(sellerPickupPoints, buyerDeliveryPoints, myRoutes);
+    // Route match: both seller pickup point AND buyer delivery point must be in route stops
+    const match = findRouteMatch(sellerPickupPoints, buyerDeliveryPoints, myRoutes);
 
     return {
       ...order,
@@ -363,7 +371,7 @@ router.post("/transporter/orders/:id/accept", authMiddleware, async (req, res): 
     : acceptBuyer?.deliveryPoints?.length
       ? acceptBuyer.deliveryPoints
       : acceptBuyer?.city ? [acceptBuyer.city] : [];
-  const dirMatch = findDirectionalMatch(sellerPts, buyerPts, acceptRoutes);
+  const dirMatch = findRouteMatch(sellerPts, buyerPts, acceptRoutes);
   const autoPickupPoint = dirMatch.pickup;
   const autoDeliveryPoint = dirMatch.delivery;
 

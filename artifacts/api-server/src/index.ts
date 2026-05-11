@@ -2,7 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { startCartSweeper } from "./lib/cartSweeper";
 import { startTimerSweeper } from "./lib/timerSweeper";
-import { seedAdmin, seedDemoUsers } from "./lib/seed";
+import { seedAdmin, seedDemoUsers, seedDemoRoutes } from "./lib/seed";
 import { startAlertEngine } from "./lib/alertEngine";
 
 const rawPort = process.env["PORT"];
@@ -30,5 +30,6 @@ app.listen(port, (err) => {
   startTimerSweeper();
   seedAdmin().catch((e) => logger.error({ err: e }, "Failed to seed admin"));
   seedDemoUsers().catch((e) => logger.error({ err: e }, "Failed to seed demo users"));
+  seedDemoRoutes().catch((e) => logger.error({ err: e }, "Failed to seed demo routes"));
   startAlertEngine();
 });
