@@ -1,0 +1,353 @@
+PAWZONE – ADMIN ACCOUNT RESTORATION & FULL ADMIN PANEL RECOVERY
+
+CRITICAL ISSUE:
+The Admin account and/or Admin dashboard access is missing or broken.
+
+Restore the COMPLETE Admin system immediately without affecting any existing Buyer, Seller, or Transporter data.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔐 1. FIXED ADMIN LOGIN (DO NOT CHANGE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Restore the fixed Admin credentials EXACTLY as below:
+
+Admin ID:
+PAWZONE_A2005
+
+Password:
+PawZone2005
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Admin login must always exist
+• Admin account must not depend on signup
+• Admin must bypass approval system
+• Admin must have full system access
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠 2. RESTORE ADMIN AUTH SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Fix and verify:
+
+✔ Admin login API
+✔ Session handling
+✔ Token authentication
+✔ Route protection
+✔ Role validation
+✔ Persistent login
+✔ Auto redirect to admin dashboard
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ FIX CURRENT ISSUES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If showing:
+• Invalid credentials
+• Unauthorized
+• Admin not found
+• Blank page
+• Infinite loading
+• Wrong redirect
+
+Fix immediately.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 3. FULL ADMIN DASHBOARD RESTORATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Restore ALL admin pages and functionality exactly as before.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏠 REQUIRED ADMIN PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Dashboard
+✔ User Management
+✔ Review Listings
+✔ All Orders
+✔ Accounting & Ledger
+✔ Seller Ledger Details
+✔ Transporter Ledger Details
+✔ Disputes
+✔ Alerts
+✔ Notifications
+✔ Analytics / Overview
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📈 4. DASHBOARD RESTORATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dashboard must properly show:
+
+✔ Total users
+✔ Buyers count
+✔ Sellers count
+✔ Transporters count
+✔ Active users
+✔ Total orders
+✔ Pending approvals
+✔ Active deliveries
+✔ Platform revenue
+✔ Recent orders
+✔ Transporters in recent orders
+✔ Correct order amounts
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 5. PLATFORM REVENUE CALCULATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Restore correct calculations:
+
+Example:
+
+Pet Price = ₹8000
+
+Buyer Fee = ₹20
+Seller Fee = ₹20
+Transporter Fee = ₹40
+
+Platform Revenue = ₹80
+
+Seller Receives = ₹7980
+Transporter Receives = transport amount - ₹40
+
+Only PAID orders should count toward revenue.
+
+Cancelled/unpaid orders:
+❌ Must NOT count
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧾 6. ALL ORDERS PAGE RESTORATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Restore:
+
+✔ Correct amounts
+✔ Proper platform fee
+✔ Pet code
+✔ Buyer/Seller/Transporter details
+✔ Dropdown detail view
+✔ Payment status
+✔ Delivery status
+✔ Pickup & drop points
+
+Fix:
+❌ NaN values
+❌ Zero amounts
+❌ Missing transport info
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚 7. ACCOUNTING & LEDGER RESTORATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Restore fully working:
+
+✔ Transaction history
+✔ Seller ledger
+✔ Transporter ledger
+✔ Revenue overview
+✔ Daily revenue
+✔ Monthly revenue
+✔ Platform earnings
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧮 CALCULATIONS MUST MATCH EXACTLY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Example:
+
+Buyer Paid = ₹5520
+
+Platform Fee:
+Buyer ₹20
+Seller ₹20
+Transport ₹40
+
+Total Platform Revenue = ₹80
+
+Seller Payout = ₹4980
+Transporter Payout = ₹460
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📑 LEDGER DETAIL PAGES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Clicking Seller:
+→ Open detailed seller ledger page
+
+Clicking Transporter:
+→ Open detailed transporter ledger page
+
+Show:
+✔ All transactions
+✔ Paid orders
+✔ Revenue
+✔ Platform deductions
+✔ Dates
+✔ Order IDs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚨 8. ALERTS PAGE RESTORATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Restore fully functional Alerts page.
+
+Must show:
+
+✔ Seller delays
+✔ Payment delays
+✔ Transport delays
+✔ Fraud alerts
+✔ Disputes
+✔ Approval pending
+✔ Manual assignment needed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠ ALERT ACTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Admin can:
+✔ Open alert
+✔ View details
+✔ Cancel order
+✔ Assign transporter
+✔ Send warning
+✔ Resolve alert
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧑‍⚖️ 9. DISPUTES PAGE RESTORATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Restore:
+
+✔ Issue listing
+✔ Reply box
+✔ Send response
+✔ Notification to reporter
+
+Fix:
+❌ Reply send failure
+❌ Notification not updating
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👥 10. USER MANAGEMENT RESTORATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Restore:
+
+✔ Buyer management
+✔ Seller approval
+✔ Transporter approval
+✔ Block/unblock
+✔ View uploaded documents
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 DOCUMENT VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Admin must see:
+
+Seller:
+✔ Govt ID
+
+Transporter:
+✔ Govt ID
+✔ RC Book
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐾 11. REVIEW LISTINGS RESTORATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Admin must:
+✔ Open listing card
+✔ View full details
+✔ View pet images
+✔ View parent photos
+✔ View videos
+✔ Approve
+✔ Reject
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 12. RESPONSIVE ADMIN UI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure Admin UI works properly on:
+
+✔ Desktop
+✔ Tablet
+✔ Mobile
+
+Fix:
+❌ Broken layouts
+❌ Hidden cards
+❌ Overflow issues
+❌ Broken tables
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔒 13. SECURITY VALIDATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure:
+✔ Only admin can access admin routes
+✔ Buyers cannot access admin pages
+✔ Sellers cannot access admin pages
+✔ Transporters cannot access admin pages
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 14. FULL VALIDATION (MUST PASS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CASE 1:
+Admin login works
+→ PASS
+
+CASE 2:
+Dashboard loads
+→ PASS
+
+CASE 3:
+Revenue calculations correct
+→ PASS
+
+CASE 4:
+Alerts visible
+→ PASS
+
+CASE 5:
+Ledger amounts correct
+→ PASS
+
+CASE 6:
+Review listings works
+→ PASS
+
+CASE 7:
+Dispute replies send correctly
+→ PASS
+
+CASE 8:
+All orders show correct amounts
+→ PASS
+
+CASE 9:
+Responsive UI works
+→ PASS
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Restore the Admin system completely to full production-level functionality.
+
+The Admin panel must:
+✔ Exist permanently
+✔ Use the fixed credentials exactly
+✔ Show all system data correctly
+✔ Calculate revenue properly
+✔ Handle alerts/disputes/orders perfectly
+✔ Be stable and responsive
+✔ Work without login failures
+✔ Match all PawZone business rules
