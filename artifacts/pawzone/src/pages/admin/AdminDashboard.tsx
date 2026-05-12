@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice } from "@/lib/api";
 import {
   Users, Package, ShoppingBag, AlertTriangle, TrendingUp, Shield,
-  ChevronRight, BarChart2, CheckCircle, Clock, DollarSign, Truck, Bell, CreditCard
+  ChevronRight, BarChart2, CheckCircle, Clock, DollarSign, Truck, Bell, CreditCard, KeyRound
 } from "lucide-react";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -47,6 +47,7 @@ export function AdminDashboard() {
     { href: "/admin/disputes", icon: <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />, label: "Disputes", desc: "Resolve buyer/seller disputes", bg: "bg-red-50", badge: stats.openDisputes > 0 ? stats.openDisputes : null },
     { href: "/admin/alerts", icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />, label: "Alerts", desc: "System alerts & operations log", bg: "bg-yellow-50", badge: null },
     { href: "/admin/payments", icon: <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />, label: "Payments", desc: "Verify UPI payment proofs", bg: "bg-indigo-50", badge: null },
+    { href: "/admin/password-resets", icon: <KeyRound className="w-5 h-5 sm:w-6 sm:h-6 text-teal-600" />, label: "Password Resets", desc: "Verify & generate reset codes", bg: "bg-teal-50", badge: null },
   ];
 
   return (

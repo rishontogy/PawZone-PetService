@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { eq, and, desc, ne } from "drizzle-orm";
-import { db, usersTable, listingsTable, ordersTable, orderTimelineTable, disputesTable, waitlistTable, notificationsTable, alertsTable, paymentProofsTable } from "@workspace/db";
+import { db, usersTable, listingsTable, ordersTable, orderTimelineTable, disputesTable, waitlistTable, notificationsTable, alertsTable, paymentProofsTable, passwordResetRequestsTable } from "@workspace/db";
 import { restoreStock } from "../lib/timerSweeper";
 import { triggerAlert } from "../lib/alertEngine";
 import {
@@ -955,6 +955,76 @@ router.post("/admin/payment-proofs/:id/reject", async (req, res): Promise<void> 
   }
 
   res.json(updatedProof);
+});
+
+// ─── Password Reset Requests (Admin) ─────────────────────────────────────
+
+router.get("/admin/password-resets", async (req, res): Promise<void> => {
+  const requests = await db
+    .select({
+      id: passwordResetRequestsTable.id,
+      userId: passwordResetRequestsTable.userId,
+      status: passwordResetRequestsTable.status,
+      resetCode: passwordResetRequestsTable.resetCode,
+      createdAt: passwordResetRequestsTable.createdAt,
+      expiresAt: passwordResetRequestsTable.expiresAt,
+      userName: usersTable.name,
+      userEmail: usersTable.email,
+      userRole: usersTable.role,
+    })
+    .from(passwordResetRequestsTable)
+    .innerJoin(usersTable, eq(passwordResetRequestsTable.userId, usersTable.id))
+    .orderBy(desc(passwordResetRequestsTable.createdAt));
+
+  res.json({ requests });
+});
+
+router.post("/admin/password-resets/:id/generate-code", async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id, 10);
+  const [resetReq] = await db
+    .select()
+    .from(passwordResetRequestsTable)
+    .where(eq(passwordResetRequestsTable.id, id));
+
+  if (!resetReq) {
+    res.status(404).json({ error: "Request not found" });
+    return;
+  }
+
+  if (resetReq.status === "completed" || resetReq.status === "rejected") {
+    res.status(400).json({ error: "This request has already been closed." });
+    return;
+  }
+
+  const code = String(Math.floor(1000 + Math.random() * 9000));
+  const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
+
+  await db
+    .update(passwordResetRequestsTable)
+    .set({ resetCode: code, status: "code_sent", expiresAt })
+    .where(eq(passwordResetRequestsTable.id, id));
+
+  res.json({ code });
+});
+
+router.post("/admin/password-resets/:id/reject", async (req, res): Promise<void> => {
+  const id = parseInt(req.params.id, 10);
+  const [resetReq] = await db
+    .select()
+    .from(passwordResetRequestsTable)
+    .where(eq(passwordResetRequestsTable.id, id));
+
+  if (!resetReq) {
+    res.status(404).json({ error: "Request not found" });
+    return;
+  }
+
+  await db
+    .update(passwordResetRequestsTable)
+    .set({ status: "rejected" })
+    .where(eq(passwordResetRequestsTable.id, id));
+
+  res.json({ success: true });
 });
 
 export default router;

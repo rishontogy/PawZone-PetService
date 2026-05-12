@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PawPrint, AlertCircle, CheckCircle, User, Mail, Phone, Lock, MapPin, Upload, Loader2, FileText, X } from "lucide-react";
+import { PawPrint, AlertCircle, CheckCircle, User, Mail, Phone, Lock, MapPin, Upload, Loader2, FileText, X, Eye, EyeOff } from "lucide-react";
 
 const KERALA_DISTRICTS: Record<string, string[]> = {
   "Thiruvananthapuram": ["Thiruvananthapuram", "Neyyattinkara", "Attingal", "Varkala", "Nedumangad", "Kazhakoottam", "Balaramapuram"],
@@ -118,6 +118,20 @@ function DocUpload({
   );
 }
 
+// Validation helpers
+function validateName(v: string) {
+  return /^[A-Za-z\s]+$/.test(v.trim());
+}
+function validateEmail(v: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+}
+function validatePhone(v: string) {
+  return /^\d{10}$/.test(v.trim());
+}
+function validatePincode(v: string) {
+  return v === "" || /^\d{6}$/.test(v.trim());
+}
+
 export function SignupPage() {
   const [, setLocation] = useLocation();
   const { login } = useAuth();
@@ -134,6 +148,11 @@ export function SignupPage() {
     pincode: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Field-level validation errors
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
   // Location
   const [locationDistrict, setLocationDistrict] = useState("");
 
@@ -147,6 +166,7 @@ export function SignupPage() {
   const [success, setSuccess] = useState(false);
 
   const isKerala = form.state === "Kerala";
+  const isIndia = form.country === "India";
   const locationTowns = locationDistrict ? (KERALA_DISTRICTS[locationDistrict] ?? []) : [];
   const dpTownOptions = dpDistrict ? (KERALA_DISTRICTS[dpDistrict] ?? []) : [];
 
@@ -157,6 +177,23 @@ export function SignupPage() {
   };
 
   const removeDpTown = (town: string) => setDpTowns(prev => prev.filter(t => t !== town));
+
+  const validateField = (field: string, value: string) => {
+    let msg = "";
+    if (field === "name" && value && !validateName(value)) {
+      msg = "Name must contain letters and spaces only.";
+    }
+    if (field === "email" && value && !validateEmail(value)) {
+      msg = "Enter a valid email address (e.g. user@gmail.com).";
+    }
+    if (field === "phone" && value && !validatePhone(value)) {
+      msg = "Phone must be a 10-digit Indian number.";
+    }
+    if (field === "pincode" && value && !validatePincode(value)) {
+      msg = "Pincode must be exactly 6 digits.";
+    }
+    setFieldErrors(prev => ({ ...prev, [field]: msg }));
+  };
 
   const signupMutation = useSignup({
     mutation: {
@@ -176,6 +213,30 @@ export function SignupPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Full validation pass
+    if (!validateName(form.name)) {
+      setError("Full name must contain letters and spaces only — no numbers or symbols.");
+      return;
+    }
+    if (!validateEmail(form.email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (!validatePhone(form.phone)) {
+      setError("Phone number must be exactly 10 digits.");
+      return;
+    }
+    if (form.pincode && !validatePincode(form.pincode)) {
+      setError("Pincode must be exactly 6 digits.");
+      return;
+    }
+
+    // Kerala/India restriction
+    if (!isIndia || !isKerala) {
+      setError("This area is not available yet. PawZone will expand soon.");
+      return;
+    }
 
     if (form.role === "seller" && !governmentIdUrl) {
       setError("Please upload your Government ID card before submitting.");
@@ -288,29 +349,92 @@ export function SignupPage() {
                   <Label className="text-sm font-semibold text-gray-700">Full Name *</Label>
                   <div className="relative mt-1">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input className="pl-9 rounded-xl border-gray-200" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required placeholder="Your full name" />
+                    <Input
+                      className={`pl-9 rounded-xl border-gray-200 ${fieldErrors.name ? "border-red-300 focus:border-red-400" : ""}`}
+                      value={form.name}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setForm({ ...form, name: v });
+                        validateField("name", v);
+                      }}
+                      required
+                      placeholder="Your full name (letters only)"
+                    />
                   </div>
+                  {fieldErrors.name && <p className="text-xs text-red-600 mt-1">{fieldErrors.name}</p>}
                 </div>
+
                 <div>
                   <Label className="text-sm font-semibold text-gray-700">Email *</Label>
                   <div className="relative mt-1">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input type="email" className="pl-9 rounded-xl border-gray-200" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required placeholder="your@email.com" />
+                    <Input
+                      type="email"
+                      className={`pl-9 rounded-xl border-gray-200 ${fieldErrors.email ? "border-red-300" : ""}`}
+                      value={form.email}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setForm({ ...form, email: v });
+                        validateField("email", v);
+                      }}
+                      required
+                      placeholder="your@email.com"
+                    />
                   </div>
+                  {fieldErrors.email && <p className="text-xs text-red-600 mt-1">{fieldErrors.email}</p>}
                 </div>
+
                 <div>
                   <Label className="text-sm font-semibold text-gray-700">Phone *</Label>
                   <div className="relative mt-1">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input type="tel" className="pl-9 rounded-xl border-gray-200" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required placeholder="+91 98765 43210" />
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      className={`pl-9 rounded-xl border-gray-200 ${fieldErrors.phone ? "border-red-300" : ""}`}
+                      value={form.phone}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        setForm({ ...form, phone: v });
+                        validateField("phone", v);
+                      }}
+                      required
+                      placeholder="10-digit mobile number"
+                      maxLength={10}
+                    />
                   </div>
+                  {fieldErrors.phone && <p className="text-xs text-red-600 mt-1">{fieldErrors.phone}</p>}
+                  {!fieldErrors.phone && form.phone.length > 0 && form.phone.length < 10 && (
+                    <p className="text-xs text-gray-400 mt-1">{10 - form.phone.length} more digit{10 - form.phone.length !== 1 ? "s" : ""} needed</p>
+                  )}
                 </div>
+
                 <div>
                   <Label className="text-sm font-semibold text-gray-700">Password *</Label>
                   <div className="relative mt-1">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input type="password" className="pl-9 rounded-xl border-gray-200" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={6} placeholder="At least 6 characters" autoComplete="new-password" />
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      className="pl-9 pr-10 rounded-xl border-gray-200"
+                      value={form.password}
+                      onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      required
+                      minLength={6}
+                      placeholder="At least 6 characters"
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
+                  {form.password.length > 0 && form.password.length < 6 && (
+                    <p className="text-xs text-amber-600 mt-1">Need at least 6 characters ({form.password.length}/6)</p>
+                  )}
                 </div>
               </div>
 
@@ -322,7 +446,7 @@ export function SignupPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-xs text-gray-500">Country</Label>
-                    <Select value={form.country} onValueChange={(v) => setForm({ ...form, country: v })}>
+                    <Select value={form.country} onValueChange={(v) => setForm({ ...form, country: v, state: v === "India" ? "Kerala" : "", city: "" })}>
                       <SelectTrigger className="mt-1 rounded-xl border-gray-200">
                         <SelectValue />
                       </SelectTrigger>
@@ -389,17 +513,34 @@ export function SignupPage() {
 
                   <div>
                     <Label className="text-xs text-gray-500">Pincode</Label>
-                    <Input className="mt-1 rounded-xl border-gray-200" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} placeholder="PIN / ZIP code" />
+                    <Input
+                      className={`mt-1 rounded-xl border-gray-200 ${fieldErrors.pincode ? "border-red-300" : ""}`}
+                      value={form.pincode}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/\D/g, "").slice(0, 6);
+                        setForm({ ...form, pincode: v });
+                        validateField("pincode", v);
+                      }}
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="6-digit PIN code"
+                    />
+                    {fieldErrors.pincode && <p className="text-xs text-red-600 mt-1">{fieldErrors.pincode}</p>}
                   </div>
                   <div className="col-span-2">
                     <Label className="text-xs text-gray-500">Street Address</Label>
                     <Input className="mt-1 rounded-xl border-gray-200" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Flat/House no, Street name" />
                   </div>
                 </div>
-                {!isKerala && (
-                  <p className="text-xs text-amber-600 mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    ⚠️ Full services are currently available within Kerala. You can sign up now and be ready when we expand!
-                  </p>
+
+                {/* Kerala/India restriction notice */}
+                {(!isIndia || !isKerala) && (
+                  <div className="mt-3 p-3 bg-amber-50 border border-amber-300 rounded-xl flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-amber-700 font-medium">
+                      This area is not available yet. PawZone will expand soon.
+                    </p>
+                  </div>
                 )}
               </div>
 
@@ -418,7 +559,6 @@ export function SignupPage() {
                     </p>
                   </div>
 
-                  {/* District selector */}
                   <div>
                     <Label className="text-xs text-gray-500 mb-1 block">District</Label>
                     <Select
@@ -436,7 +576,6 @@ export function SignupPage() {
                     </Select>
                   </div>
 
-                  {/* Town checkboxes — only shown once district is selected */}
                   {dpDistrict && (
                     <div>
                       <Label className="text-xs text-gray-500 mb-1.5 block">
@@ -468,7 +607,6 @@ export function SignupPage() {
                     </div>
                   )}
 
-                  {/* Selected towns summary */}
                   {dpTowns.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {dpTowns.map(town => (
@@ -526,9 +664,19 @@ export function SignupPage() {
                 </div>
               )}
 
-              <Button type="submit" className="w-full h-12 rounded-xl text-base font-bold" disabled={signupMutation.isPending}>
+              <Button
+                type="submit"
+                className="w-full h-12 rounded-xl text-base font-bold"
+                disabled={signupMutation.isPending || (!isIndia || !isKerala)}
+              >
                 {signupMutation.isPending ? "Creating account..." : "Create Account"}
               </Button>
+
+              {(!isIndia || !isKerala) && (
+                <p className="text-center text-xs text-amber-600">
+                  Registration is currently available for Kerala, India only.
+                </p>
+              )}
             </form>
 
             <div className="mt-5 text-center text-sm text-gray-500">

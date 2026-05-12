@@ -4,7 +4,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
-import { GlobalBackBar } from "@/components/GlobalBackBar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import NotFound from "@/pages/not-found";
 
@@ -41,6 +40,7 @@ import { AdminPaymentsPage } from "@/pages/admin/AdminPaymentsPage";
 import { AdminAccountingPage } from "@/pages/admin/AdminAccountingPage";
 import { AdminSellerLedgerPage } from "@/pages/admin/AdminSellerLedgerPage";
 import { AdminTransporterLedgerPage } from "@/pages/admin/AdminTransporterLedgerPage";
+import { AdminPasswordResetsPage } from "@/pages/admin/AdminPasswordResetsPage";
 import { UPIPaymentPage } from "@/pages/buyer/UPIPaymentPage";
 
 const queryClient = new QueryClient({
@@ -74,7 +74,6 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <GlobalBackBar />
       <div className={user ? "pb-16 md:pb-0" : ""}>
         {children}
       </div>
@@ -236,6 +235,11 @@ function Router() {
       <Route path="/admin/ledger/transporter/:transporterId">
         <RequireAuth allowedRoles={["admin"]}>
           <AppLayout><AdminTransporterLedgerPage /></AppLayout>
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/password-resets">
+        <RequireAuth allowedRoles={["admin"]}>
+          <AppLayout><AdminPasswordResetsPage /></AppLayout>
         </RequireAuth>
       </Route>
 

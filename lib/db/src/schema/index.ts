@@ -13,3 +13,4 @@ export * from "./notifications";
 export * from "./sessions";
 export * from "./alerts";
 export * from "./payment_proofs";
+export * from "./password_reset_requests";

@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { eq } from "drizzle-orm";
-import { db, usersTable, sessionsTable, waitlistTable } from "@workspace/db";
+import { eq, and, gt } from "drizzle-orm";
+import { db, usersTable, sessionsTable, waitlistTable, passwordResetRequestsTable } from "@workspace/db";
 import {
   LoginBody,
   SignupBody,
@@ -135,6 +135,134 @@ router.post("/auth/waitlist", async (req, res): Promise<void> => {
   }
   await db.insert(waitlistTable).values(parsed.data);
   res.status(201).json({ success: true, message: "Added to waitlist" });
+});
+
+// ─── Forgot Password ───────────────────────────────────────────────────────
+
+router.post("/auth/forgot-password", async (req, res): Promise<void> => {
+  const { name, phone, email } = req.body ?? {};
+  if (!name || !phone || !email) {
+    res.status(400).json({ error: "Name, phone, and email are required." });
+    return;
+  }
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const normalizedPhone = String(phone).trim();
+  const normalizedName = String(name).trim().toLowerCase();
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.email, normalizedEmail));
+  if (
+    !user ||
+    user.name.trim().toLowerCase() !== normalizedName ||
+    (user.phone ?? "").trim() !== normalizedPhone
+  ) {
+    res.status(404).json({ error: "No account found matching these details. Please check your name, phone, and email." });
+    return;
+  }
+
+  if (user.status === "blocked") {
+    res.status(403).json({ error: "This account has been blocked." });
+    return;
+  }
+
+  const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours
+
+  if (user.role === "buyer") {
+    const token = generateToken();
+    const [req_] = await db.insert(passwordResetRequestsTable).values({
+      userId: user.id,
+      token,
+      status: "pending",
+      expiresAt,
+    }).returning();
+    res.json({ role: "buyer", token, requestId: req_.id });
+    return;
+  }
+
+  // seller / transporter → admin must generate code
+  const [req_] = await db.insert(passwordResetRequestsTable).values({
+    userId: user.id,
+    status: "pending",
+    expiresAt,
+  }).returning();
+
+  res.json({ role: user.role, requestId: req_.id });
+});
+
+router.post("/auth/reset-password", async (req, res): Promise<void> => {
+  const { token, newPassword } = req.body ?? {};
+  if (!token || !newPassword) {
+    res.status(400).json({ error: "Token and new password are required." });
+    return;
+  }
+  if (String(newPassword).length < 6) {
+    res.status(400).json({ error: "Password must be at least 6 characters." });
+    return;
+  }
+
+  const now = new Date();
+  const [resetReq] = await db.select().from(passwordResetRequestsTable).where(
+    and(
+      eq(passwordResetRequestsTable.token, String(token)),
+      eq(passwordResetRequestsTable.status, "pending"),
+      gt(passwordResetRequestsTable.expiresAt, now),
+    )
+  );
+
+  if (!resetReq) {
+    res.status(400).json({ error: "Invalid or expired reset link. Please start over." });
+    return;
+  }
+
+  await db.update(usersTable)
+    .set({ passwordHash: hashPassword(String(newPassword)) })
+    .where(eq(usersTable.id, resetReq.userId));
+
+  await db.update(passwordResetRequestsTable)
+    .set({ status: "completed" })
+    .where(eq(passwordResetRequestsTable.id, resetReq.id));
+
+  res.json({ success: true, message: "Password reset successfully." });
+});
+
+router.post("/auth/verify-reset-code", async (req, res): Promise<void> => {
+  const { requestId, code, newPassword } = req.body ?? {};
+  if (!requestId || !code || !newPassword) {
+    res.status(400).json({ error: "Request ID, code, and new password are required." });
+    return;
+  }
+  if (String(newPassword).length < 6) {
+    res.status(400).json({ error: "Password must be at least 6 characters." });
+    return;
+  }
+
+  const now = new Date();
+  const [resetReq] = await db.select().from(passwordResetRequestsTable).where(
+    and(
+      eq(passwordResetRequestsTable.id, Number(requestId)),
+      eq(passwordResetRequestsTable.status, "code_sent"),
+      gt(passwordResetRequestsTable.expiresAt, now),
+    )
+  );
+
+  if (!resetReq) {
+    res.status(400).json({ error: "Invalid or expired request. Please start the process again." });
+    return;
+  }
+
+  if (resetReq.resetCode !== String(code)) {
+    res.status(400).json({ error: "Invalid code. Please check the code and try again." });
+    return;
+  }
+
+  await db.update(usersTable)
+    .set({ passwordHash: hashPassword(String(newPassword)) })
+    .where(eq(usersTable.id, resetReq.userId));
+
+  await db.update(passwordResetRequestsTable)
+    .set({ status: "completed" })
+    .where(eq(passwordResetRequestsTable.id, resetReq.id));
+
+  res.json({ success: true, message: "Password reset successfully." });
 });
 
 function formatUser(user: any) {

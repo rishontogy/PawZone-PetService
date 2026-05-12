@@ -31,9 +31,9 @@ export async function seedAdmin(): Promise<void> {
 
 export async function seedDemoUsers(): Promise<void> {
   const demoUsers = [
-    { role: "buyer" as const, name: "Arun Kumar", email: "arun@example.com", password: "test123", status: "approved" as const },
-    { role: "seller" as const, name: "Rajan Pillai", email: "rajan@example.com", password: "seller123", status: "approved" as const, sellerId: "SEL001" },
-    { role: "transporter" as const, name: "Saji Thomas", email: "saji@example.com", password: "transport123", status: "approved" as const },
+    { role: "buyer" as const, name: "Arun Kumar", email: "arun@example.com", password: "test123", status: "approved" as const, phone: "9876543210" },
+    { role: "seller" as const, name: "Rajan Pillai", email: "rajan@example.com", password: "seller123", status: "approved" as const, sellerId: "SEL001", phone: "9876543211" },
+    { role: "transporter" as const, name: "Saji Thomas", email: "saji@example.com", password: "transport123", status: "approved" as const, phone: "9876543212" },
   ];
 
   for (const u of demoUsers) {
@@ -44,6 +44,7 @@ export async function seedDemoUsers(): Promise<void> {
           role: u.role,
           name: u.name,
           email: u.email,
+          phone: u.phone,
           passwordHash: hashPassword(u.password),
           status: u.status,
           sellerId: (u as any).sellerId ?? null,
@@ -53,6 +54,7 @@ export async function seedDemoUsers(): Promise<void> {
           target: usersTable.email,
           set: {
             status: u.status,
+            phone: u.phone,
             passwordHash: hashPassword(u.password),
           },
         });
