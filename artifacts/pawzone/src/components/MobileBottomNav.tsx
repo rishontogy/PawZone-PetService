@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   Home, Search, ShoppingCart, Package, User,
   LayoutDashboard, PlusCircle, MapPin, Bell,
-  Users, Shield, CreditCard,
+  Users, Shield, CreditCard, Wallet,
 } from "lucide-react";
 import { useGetCart } from "@workspace/api-client-react";
 
@@ -41,20 +41,20 @@ export function MobileBottomNav() {
       { icon: <Package className="w-5 h-5" />, label: "Listings", href: "/seller/listings" },
       { icon: <PlusCircle className="w-5 h-5" />, label: "Add Pet", href: "/seller/listings/new" },
       { icon: <ShoppingCart className="w-5 h-5" />, label: "Orders", href: "/seller/orders" },
-      { icon: <User className="w-5 h-5" />, label: "Profile", href: "/profile" },
+      { icon: <Wallet className="w-5 h-5" />, label: "Payout", href: "/seller/payout" },
     ],
     transporter: [
       { icon: <LayoutDashboard className="w-5 h-5" />, label: "Dashboard", href: "/transporter" },
       { icon: <MapPin className="w-5 h-5" />, label: "Routes", href: "/transporter/routes/new" },
       { icon: <Package className="w-5 h-5" />, label: "Deliveries", href: "/transporter" },
-      { icon: <Bell className="w-5 h-5" />, label: "Notifs", href: "/notifications" },
+      { icon: <Wallet className="w-5 h-5" />, label: "Payout", href: "/transporter/payout" },
       { icon: <User className="w-5 h-5" />, label: "Profile", href: "/profile" },
     ],
     admin: [
       { icon: <Shield className="w-5 h-5" />, label: "Dashboard", href: "/admin" },
       { icon: <Users className="w-5 h-5" />, label: "Users", href: "/admin/users" },
-      { icon: <Package className="w-5 h-5" />, label: "Listings", href: "/admin/listings" },
       { icon: <CreditCard className="w-5 h-5" />, label: "Payments", href: "/admin/payments" },
+      { icon: <Wallet className="w-5 h-5" />, label: "Payouts", href: "/admin/payouts" },
       { icon: <ShoppingCart className="w-5 h-5" />, label: "Orders", href: "/admin/orders" },
     ],
   };

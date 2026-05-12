@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   ShoppingCart, User, LogOut, LayoutDashboard, PawPrint, Search,
-  Bell, Menu, X, Settings, Package, MapPin, Shield, Users,
+  Bell, Menu, X, Settings, Package, MapPin, Shield, Users, Wallet,
 } from "lucide-react";
 import { useGetCart, useGetNotifications, useMarkNotificationRead } from "@workspace/api-client-react";
 import { useState } from "react";
@@ -74,11 +74,13 @@ export function Navbar() {
           ? [
               { icon: <Package className="w-4 h-4" />, label: "My Listings", href: "/seller/listings" },
               { icon: <ShoppingCart className="w-4 h-4" />, label: "Orders", href: "/seller/orders" },
+              { icon: <Wallet className="w-4 h-4" />, label: "Payout", href: "/seller/payout" },
             ]
           : []),
         ...(user.role === "transporter"
           ? [
               { icon: <MapPin className="w-4 h-4" />, label: "My Routes", href: "/transporter/routes/new" },
+              { icon: <Wallet className="w-4 h-4" />, label: "Payout", href: "/transporter/payout" },
             ]
           : []),
         ...(user.role === "admin"
@@ -86,6 +88,7 @@ export function Navbar() {
               { icon: <Users className="w-4 h-4" />, label: "Users", href: "/admin/users" },
               { icon: <Package className="w-4 h-4" />, label: "Listings", href: "/admin/listings" },
               { icon: <Shield className="w-4 h-4" />, label: "Orders", href: "/admin/orders" },
+              { icon: <Wallet className="w-4 h-4" />, label: "Payouts", href: "/admin/payouts" },
             ]
           : []),
         { icon: <Bell className="w-4 h-4" />, label: `Notifications${unreadCount > 0 ? ` (${unreadCount})` : ""}`, href: "/notifications" },

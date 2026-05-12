@@ -14,3 +14,5 @@ export * from "./sessions";
 export * from "./alerts";
 export * from "./payment_proofs";
 export * from "./password_reset_requests";
+export * from "./payout_details";
+export * from "./payout_transactions";

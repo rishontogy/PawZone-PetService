@@ -12,6 +12,7 @@ import usersRouter from "./users";
 import uploadRouter from "./upload";
 import supportRouter from "./support";
 import storageRouter from "./storage";
+import payoutRouter from "./payout";
 
 const router: IRouter = Router();
 
@@ -28,5 +29,6 @@ router.use(usersRouter);
 router.use(uploadRouter);
 router.use(supportRouter);
 router.use(storageRouter);
+router.use(payoutRouter);
 
 export default router;

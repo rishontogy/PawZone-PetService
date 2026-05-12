@@ -1,0 +1,346 @@
+PAWZONE – COMPLETE PAYOUT MANAGEMENT SYSTEM
+(SELLER + TRANSPORTER + ADMIN PAYOUT WORKFLOW)
+
+IMPORTANT:
+This is a FULL payout accounting system update.
+
+Maintain:
+✔ Existing backend
+✔ Existing accounting logic
+✔ Existing ledger system
+✔ Existing role permissions
+
+Add COMPLETE payout workflow between:
+✔ Admin
+✔ Sellers
+✔ Transporters
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 1. NEW PAGE – PAYOUT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add a new page named:
+
+✔ “Payout”
+
+In:
+✔ Seller account
+✔ Transporter account
+✔ Admin account
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 2. SELLER / TRANSPORTER PAYOUT PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create a premium payout page.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 SECTION A – PAYMENT RECEIVING DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller/Transporter can upload:
+
+✔ UPI ID
+✔ QR Code image
+
+Fields:
+✔ UPI ID input
+✔ Upload QR Code image
+
+Validation:
+✔ UPI ID format valid
+✔ QR image stored properly
+✔ Preview image after upload
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🖼 QR IMAGE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Store properly in database/storage
+✔ Must load correctly everywhere
+✔ Responsive preview
+✔ Fullscreen preview on tap
+✔ Mobile optimized
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 SECTION B – PAYOUT SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Show:
+
+✔ Total Earnings
+✔ Total Paid
+✔ Remaining Amount
+✔ Last Payout Date
+
+Calculations must be REAL-TIME.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📜 SECTION C – TRANSACTION HISTORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create payout transaction history.
+
+Each payout entry must show:
+
+✔ Amount Paid
+✔ Reference Number
+✔ Payment Screenshot
+✔ Payment Date
+✔ Status
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧾 Each transaction card includes:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Screenshot preview
+✔ Download/View button
+✔ UPI reference number
+✔ Paid by admin tag
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠 3. ADMIN PAYOUT PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create:
+✔ Admin → “Payout” section
+
+This page shows ALL:
+✔ Sellers
+✔ Transporters
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 ADMIN PAYOUT LIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Each card must show:
+
+✔ Name
+✔ Role (Seller/Transporter)
+✔ Remaining amount to pay
+✔ Total earnings
+✔ Total already paid
+✔ Pending payout amount
+
+Sort:
+✔ Highest pending first
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🪟 4. ADMIN PAYOUT POPUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When admin clicks a payout card:
+
+Open popup/modal with FULL details.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 POPUP MUST SHOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ User name
+✔ Role
+✔ UPI ID
+✔ Uploaded QR code
+✔ Remaining amount to pay
+✔ Total paid
+✔ Total earnings
+✔ Previous payout history
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💳 ADMIN PAYMENT PROCESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Admin workflow:
+
+1. Scan QR
+2. Pay manually
+3. Upload payment screenshot
+4. Enter:
+   ✔ Reference number
+   ✔ Amount paid
+5. Press:
+   ✔ “Update Payout”
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📤 REQUIRED INPUTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Fields:
+✔ Payment Screenshot Upload
+✔ UPI Reference Number
+✔ Amount Paid
+
+Validation:
+✔ Amount > 0
+✔ Reference number required
+✔ Screenshot required
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 5. UPDATE LOGIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When admin presses:
+✔ “Update Payout”
+
+System must:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ ADMIN SIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Deduct paid amount from remaining balance
+✔ Update seller/transporter ledger
+✔ Update payout statistics
+✔ Update transaction history
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ SELLER/TRANSPORTER SIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Immediately update:
+
+✔ Remaining amount
+✔ Total paid
+✔ Transaction history
+
+Show:
+✔ Screenshot
+✔ Reference number
+✔ Amount paid
+✔ Payment date
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📚 6. LEDGER INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CRITICAL:
+
+Payouts MUST integrate with existing ledger system.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SELLER LEDGER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Update:
+✔ Paid amount
+✔ Pending amount
+✔ Transaction references
+✔ Payment dates
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRANSPORTER LEDGER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Update:
+✔ Paid amount
+✔ Remaining payout
+✔ Transaction history
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 7. ACCOUNTING RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ONLY completed + paid orders count.
+
+Do NOT include:
+❌ Cancelled orders
+❌ Unpaid orders
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SELLER PAYOUT FORMULA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller receives:
+
+Buyer item amount
+− Seller platform fee
+
+Example:
+
+Dog = ₹8000
+
+Buyer pays:
+₹8020
+
+Seller receives:
+₹7980
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRANSPORTER PAYOUT FORMULA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter receives:
+
+Transport fee
+− Transport platform fee
+
+Example:
+
+Transport = ₹400
+
+Transporter receives:
+₹360
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 8. UI/UX REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Design must match premium mobile/tablet UI.
+
+Use:
+✔ Responsive cards
+✔ Clean typography
+✔ Samsung-style layouts
+✔ Smooth popups
+✔ Elegant transaction cards
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 MOBILE/TABLET OPTIMIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure:
+✔ QR visible properly
+✔ Popup responsive
+✔ Transaction cards scroll smoothly
+✔ Screenshot previews optimized
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔐 9. SECURITY RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Users can ONLY see their own payout data
+✔ Sellers cannot access transporter payouts
+✔ Transporters cannot access seller payouts
+✔ Admin sees all payouts
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 10. REQUIRED TEST CASES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TEST:
+✔ QR upload works
+✔ UPI ID saves
+✔ Admin payout update works
+✔ Ledger updates properly
+✔ Remaining amount deducts correctly
+✔ Transaction history updates
+✔ Screenshot previews work
+✔ Mobile view works
+✔ Tablet view works
+✔ Data persists after refresh
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The payout system must behave like a REAL accounting payout workflow.
+
+Requirements:
+✔ Accurate accounting
+✔ Real-time ledger update
+✔ Proper payout tracking
+✔ Professional payout history
+✔ Secure role-based visibility
+✔ Premium UI
+✔ Mobile/tablet optimized
+✔ Fully production-ready

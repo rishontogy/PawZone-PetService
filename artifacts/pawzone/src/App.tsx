@@ -26,9 +26,11 @@ import { SellerListingsPage } from "@/pages/seller/SellerListingsPage";
 import { CreateListingPage } from "@/pages/seller/CreateListingPage";
 import { EditListingPage } from "@/pages/seller/EditListingPage";
 import { SellerOrdersPage } from "@/pages/seller/SellerOrdersPage";
+import { SellerPayoutPage } from "@/pages/seller/SellerPayoutPage";
 
 import { TransporterDashboard } from "@/pages/transporter/TransporterDashboard";
 import { AddRoutePage } from "@/pages/transporter/AddRoutePage";
+import { TransporterPayoutPage } from "@/pages/transporter/TransporterPayoutPage";
 
 import { AdminDashboard } from "@/pages/admin/AdminDashboard";
 import { AdminUsersPage } from "@/pages/admin/AdminUsersPage";
@@ -41,6 +43,7 @@ import { AdminAccountingPage } from "@/pages/admin/AdminAccountingPage";
 import { AdminSellerLedgerPage } from "@/pages/admin/AdminSellerLedgerPage";
 import { AdminTransporterLedgerPage } from "@/pages/admin/AdminTransporterLedgerPage";
 import { AdminPasswordResetsPage } from "@/pages/admin/AdminPasswordResetsPage";
+import { AdminPayoutsPage } from "@/pages/admin/AdminPayoutsPage";
 import { UPIPaymentPage } from "@/pages/buyer/UPIPaymentPage";
 
 const queryClient = new QueryClient({
@@ -168,6 +171,11 @@ function Router() {
           <AppLayout><SellerOrdersPage /></AppLayout>
         </RequireAuth>
       </Route>
+      <Route path="/seller/payout">
+        <RequireAuth allowedRoles={["seller"]}>
+          <AppLayout><SellerPayoutPage /></AppLayout>
+        </RequireAuth>
+      </Route>
 
       {/* Transporter routes */}
       <Route path="/transporter">
@@ -183,6 +191,11 @@ function Router() {
       <Route path="/transporter/routes/:id/edit">
         <RequireAuth allowedRoles={["transporter"]}>
           <AppLayout><AddRoutePage /></AppLayout>
+        </RequireAuth>
+      </Route>
+      <Route path="/transporter/payout">
+        <RequireAuth allowedRoles={["transporter"]}>
+          <AppLayout><TransporterPayoutPage /></AppLayout>
         </RequireAuth>
       </Route>
 
@@ -240,6 +253,11 @@ function Router() {
       <Route path="/admin/password-resets">
         <RequireAuth allowedRoles={["admin"]}>
           <AppLayout><AdminPasswordResetsPage /></AppLayout>
+        </RequireAuth>
+      </Route>
+      <Route path="/admin/payouts">
+        <RequireAuth allowedRoles={["admin"]}>
+          <AppLayout><AdminPayoutsPage /></AppLayout>
         </RequireAuth>
       </Route>
 
