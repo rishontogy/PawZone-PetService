@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatPrice, getStatusColor } from "@/lib/api";
 import {
   PlusCircle, Package, Star, TrendingUp, PawPrint,
-  ShoppingBag, ChevronRight, AlertCircle, CheckCircle, Clock
+  ShoppingBag, ChevronRight, AlertCircle, CheckCircle, Clock, Wallet
 } from "lucide-react";
 
 export function SellerDashboard() {
@@ -84,11 +84,12 @@ export function SellerDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-6">
           {[
             { href: "/seller/listings/new", icon: <PlusCircle className="w-5 h-5 text-teal-600" />, label: "Add Pet", desc: "Create listing", bg: "bg-teal-50" },
             { href: "/seller/listings", icon: <Package className="w-5 h-5 text-blue-600" />, label: "My Listings", desc: `${listings.length} total`, bg: "bg-blue-50" },
             { href: "/seller/orders", icon: <ShoppingBag className="w-5 h-5 text-amber-600" />, label: "Orders", desc: `${recentOrders.length} recent`, bg: "bg-amber-50" },
+            { href: "/seller/payout", icon: <Wallet className="w-5 h-5 text-emerald-600" />, label: "Payout", desc: "Earnings & history", bg: "bg-emerald-50" },
           ].map(action => (
             <Link key={action.href} href={action.href}>
               <div className="bg-white border border-gray-100 rounded-2xl p-4 hover:shadow-md transition-all cursor-pointer group">
@@ -101,6 +102,20 @@ export function SellerDashboard() {
             </Link>
           ))}
         </div>
+
+        {/* Payout Banner */}
+        <Link href="/seller/payout">
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-sm hover:shadow-md active:scale-[0.99] transition-all cursor-pointer mb-5 sm:mb-6">
+            <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Wallet className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-white text-base">My Payout</p>
+              <p className="text-emerald-100 text-xs mt-0.5">View earnings, pending balance & payment history</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-white/70" />
+          </div>
+        </Link>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Recent Orders */}

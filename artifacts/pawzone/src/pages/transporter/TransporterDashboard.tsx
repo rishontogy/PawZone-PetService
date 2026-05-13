@@ -12,7 +12,7 @@ import {
 import {
   Truck, MapPin, Package, PlusCircle, ArrowRight, Clock, CheckCircle,
   AlertCircle, Pencil, Trash2, Upload, IndianRupee,
-  ChevronDown, ChevronUp, User, Phone,
+  ChevronDown, ChevronUp, User, Phone, Wallet,
 } from "lucide-react";
 import { useRef, useState } from "react";
 
@@ -141,7 +141,7 @@ export function TransporterDashboard() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 -mt-4 pb-12">
         {/* Stats */}
-        <div className="grid grid-cols-3 sm:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-6">
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-5">
           {[
             { icon: <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />, label: "Done", value: (dash as any)?.stats?.completedDeliveries ?? 0, bg: "bg-green-50", border: "border-green-200" },
             { icon: <Package className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />, label: "Active", value: (dash as any)?.stats?.activeDeliveries ?? 0, bg: "bg-amber-50", border: "border-amber-200" },
@@ -158,6 +158,20 @@ export function TransporterDashboard() {
             </div>
           ))}
         </div>
+
+        {/* Payout Quick Action */}
+        <Link href="/transporter/payout">
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-4 sm:p-5 flex items-center gap-4 shadow-sm hover:shadow-md active:scale-[0.99] transition-all cursor-pointer mb-5 sm:mb-6">
+            <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Wallet className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-white text-base">My Payout</p>
+              <p className="text-emerald-100 text-xs mt-0.5">View earnings, pending balance & payment history</p>
+            </div>
+            <ChevronDown className="w-5 h-5 text-white/70 rotate-[-90deg]" />
+          </div>
+        </Link>
 
         {/* My Routes */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
