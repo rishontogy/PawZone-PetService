@@ -129,16 +129,6 @@ export function LoginPage() {
             </div>
           </div>
 
-          {/* Demo credentials */}
-          <div className="mt-5 p-4 bg-white border border-gray-200 rounded-2xl shadow-sm">
-            <p className="font-semibold text-gray-700 text-sm mb-2">Demo Credentials:</p>
-            <div className="space-y-1 text-xs text-gray-500 font-mono">
-              <p>🛒 Buyer: arun@example.com / test123</p>
-              <p>🏪 Seller: rajan@example.com / seller123</p>
-              <p>🚚 Transporter: saji@example.com / transport123</p>
-              <p>🛡️ Admin: PAWZONE_A2005 / PawZone2005</p>
-            </div>
-          </div>
         </div>
       </div>
 
