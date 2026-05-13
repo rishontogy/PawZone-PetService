@@ -209,15 +209,20 @@ router.post("/orders", authMiddleware, async (req, res): Promise<void> => {
       subtotal: listing.price * cart.quantity,
       gender: cart.gender ?? undefined,
     });
-    const newAvailable = listing.availableQuantity - cart.quantity;
+    const actualAvailDeduct = cart.gender === "pair" ? cart.quantity * 2 : cart.quantity;
+    const adjustedAvailable = listing.availableQuantity - actualAvailDeduct;
     const genderUpdates: any = {
-      availableQuantity: newAvailable,
-      ...(newAvailable <= 0 ? { status: "sold_out" as const } : {}),
+      availableQuantity: Math.max(0, adjustedAvailable),
+      ...(adjustedAvailable <= 0 ? { status: "sold_out" as const } : {}),
     };
     if (cart.gender === "male") {
       genderUpdates.maleQuantity = Math.max(0, listing.maleQuantity - cart.quantity);
     } else if (cart.gender === "female") {
       genderUpdates.femaleQuantity = Math.max(0, listing.femaleQuantity - cart.quantity);
+    } else if (cart.gender === "pair") {
+      genderUpdates.maleQuantity = Math.max(0, listing.maleQuantity - cart.quantity);
+      genderUpdates.femaleQuantity = Math.max(0, listing.femaleQuantity - cart.quantity);
+      genderUpdates.pairCount = Math.max(0, ((listing as any).pairCount ?? 0) - cart.quantity);
     }
     await db.update(listingsTable)
       .set(genderUpdates)

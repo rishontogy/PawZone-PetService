@@ -9,7 +9,7 @@ export const cartTable = pgTable("cart", {
   userId: integer("user_id").notNull().references(() => usersTable.id),
   listingId: integer("listing_id").notNull().references(() => listingsTable.id),
   quantity: integer("quantity").notNull().default(1),
-  gender: text("gender").$type<"male" | "female">(),
+  gender: text("gender").$type<"male" | "female" | "pair">(),
   addedAt: timestamp("added_at", { withTimezone: true }).notNull().defaultNow(),
   expiringNotified: boolean("expiring_notified").notNull().default(false),
 });

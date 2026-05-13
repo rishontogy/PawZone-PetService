@@ -59,7 +59,8 @@ router.post("/cart", authMiddleware, async (req, res): Promise<void> => {
     return;
   }
   const { listingId, quantity } = parsed.data;
-  const gender = (req.body?.gender === "male" || req.body?.gender === "female") ? req.body.gender as "male" | "female" : undefined;
+  const rawGender = req.body?.gender;
+  const gender = (rawGender === "male" || rawGender === "female" || rawGender === "pair") ? rawGender as "male" | "female" | "pair" : undefined;
 
   const [listing] = await db.select().from(listingsTable).where(eq(listingsTable.id, listingId));
   if (!listing || listing.status !== "approved") {
@@ -75,24 +76,43 @@ router.post("/cart", authMiddleware, async (req, res): Promise<void> => {
     res.status(400).json({ error: `Only ${listing.femaleQuantity} female(s) available` });
     return;
   }
+  if (gender === "pair") {
+    if (quantity > (listing as any).pairCount) {
+      res.status(400).json({ error: `Only ${(listing as any).pairCount} bonded pair(s) available` });
+      return;
+    }
+    if (quantity > listing.maleQuantity) {
+      res.status(400).json({ error: `Not enough males for ${quantity} pair(s)` });
+      return;
+    }
+    if (quantity > listing.femaleQuantity) {
+      res.status(400).json({ error: `Not enough females for ${quantity} pair(s)` });
+      return;
+    }
+  }
   if (!gender && quantity > listing.availableQuantity) {
     res.status(400).json({ error: "Requested quantity exceeds available stock" });
     return;
   }
 
+  const genderVal = gender ?? null;
   const [existing] = await db.select().from(cartTable)
-    .where(and(eq(cartTable.userId, user.id), eq(cartTable.listingId, listingId)));
+    .where(and(
+      eq(cartTable.userId, user.id),
+      eq(cartTable.listingId, listingId),
+      genderVal ? eq(cartTable.gender, genderVal) : eq(cartTable.gender, null as any),
+    ));
 
   if (existing) {
     await db.update(cartTable)
-      .set({ quantity, gender: gender ?? null, addedAt: new Date(), expiringNotified: false })
+      .set({ quantity, addedAt: new Date(), expiringNotified: false })
       .where(eq(cartTable.id, existing.id));
   } else {
     await db.insert(cartTable).values({
       userId: user.id,
       listingId,
       quantity,
-      gender: gender ?? null,
+      gender: genderVal,
       addedAt: new Date(),
       expiringNotified: false,
     });

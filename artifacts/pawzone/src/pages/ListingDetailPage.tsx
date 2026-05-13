@@ -207,7 +207,9 @@ export function ListingDetailPage() {
   const { user, token } = useAuth();
   const { toast } = useToast();
   const [qty, setQty] = useState(1);
-  const [gender, setGender] = useState<"male" | "female" | null>(null);
+  const [maleQtyBoth, setMaleQtyBoth] = useState(1);
+  const [femaleQtyBoth, setFemaleQtyBoth] = useState(1);
+  const [gender, setGender] = useState<"male" | "female" | "pair" | "both" | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
   const [parentViewerOpen, setParentViewerOpen] = useState(false);
   const [parentViewerIdx, setParentViewerIdx] = useState(0);
@@ -222,22 +224,53 @@ export function ListingDetailPage() {
     const hasFemale = (l.femaleQuantity ?? 0) > 0;
     const needsGender = hasMale || hasFemale;
     if (needsGender && !gender) {
-      toast({ variant: "destructive", title: "Select gender", description: "Please choose Male or Female before adding to cart." });
+      toast({ variant: "destructive", title: "Select option", description: "Please choose how you'd like to buy." });
       return;
     }
+
     setAddingToCart(true);
     try {
-      const res = await fetch(`${getApiBase()}/cart`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ listingId: listing.id, quantity: qty, ...(gender ? { gender } : {}) }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        toast({ variant: "destructive", title: "Error", description: data.error || "Failed to add to cart" });
-        return;
+      if (gender === "both") {
+        if (maleQtyBoth <= 0 && femaleQtyBoth <= 0) {
+          toast({ variant: "destructive", title: "Invalid quantity", description: "Select at least 1 male or female." });
+          return;
+        }
+        const requests: Promise<Response>[] = [];
+        if (maleQtyBoth > 0) {
+          requests.push(fetch(`${getApiBase()}/cart`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ listingId: listing.id, quantity: maleQtyBoth, gender: "male" }),
+          }));
+        }
+        if (femaleQtyBoth > 0) {
+          requests.push(fetch(`${getApiBase()}/cart`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ listingId: listing.id, quantity: femaleQtyBoth, gender: "female" }),
+          }));
+        }
+        const results = await Promise.all(requests);
+        const failed = results.find(r => !r.ok);
+        if (failed) {
+          const errData = await failed.json();
+          toast({ variant: "destructive", title: "Error", description: errData.error || "Failed to add to cart" });
+          return;
+        }
+        toast({ title: "Added to cart!", description: `${listing.breed} (both genders) added to your cart.` });
+      } else {
+        const res = await fetch(`${getApiBase()}/cart`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ listingId: listing.id, quantity: qty, ...(gender ? { gender } : {}) }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          toast({ variant: "destructive", title: "Error", description: data.error || "Failed to add to cart" });
+          return;
+        }
+        toast({ title: "Added to cart!", description: `${listing.breed} added to your cart.` });
       }
-      toast({ title: "Added to cart!", description: `${listing.breed} added to your cart.` });
       void queryClient.invalidateQueries({ queryKey: getGetCartQueryKey() });
     } finally {
       setAddingToCart(false);
@@ -398,73 +431,137 @@ export function ListingDetailPage() {
             {/* Add to Cart */}
             {user?.role === "buyer" ? (
               <div className="space-y-3">
-                {/* Gender Selection */}
+                {/* Purchase mode selection */}
                 {(() => {
                   const l = listing as any;
                   const maleQty = l.maleQuantity ?? 0;
                   const femaleQty = l.femaleQuantity ?? 0;
+                  const pairQty = l.pairCount ?? 0;
+                  const hasBoth = maleQty > 0 && femaleQty > 0;
+
                   if (maleQty > 0 || femaleQty > 0) {
                     return (
-                      <div className="space-y-2">
-                        <p className="text-sm font-semibold text-gray-700">Select Gender:</p>
-                        <div className="flex gap-3">
-                          <button
-                            type="button"
-                            onClick={() => { setGender("male"); setQty(1); }}
-                            disabled={maleQty === 0}
-                            className={`flex-1 py-2.5 px-4 rounded-xl border-2 text-sm font-medium transition-all ${
-                              gender === "male"
-                                ? "border-blue-500 bg-blue-50 text-blue-700"
-                                : maleQty === 0
-                                  ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+                      <div className="space-y-3">
+                        <p className="text-sm font-semibold text-gray-700">How would you like to buy?</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {maleQty > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => { setGender("male"); setQty(1); }}
+                              className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all text-left ${
+                                gender === "male"
+                                  ? "border-blue-500 bg-blue-50 text-blue-700"
                                   : "border-gray-200 hover:border-blue-300 text-gray-700"
-                            }`}
-                          >
-                            ♂ Male
-                            <span className="block text-xs mt-0.5 font-normal">
-                              {maleQty === 0 ? "Out of stock" : `${maleQty} available`}
-                            </span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => { setGender("female"); setQty(1); }}
-                            disabled={femaleQty === 0}
-                            className={`flex-1 py-2.5 px-4 rounded-xl border-2 text-sm font-medium transition-all ${
-                              gender === "female"
-                                ? "border-pink-500 bg-pink-50 text-pink-700"
-                                : femaleQty === 0
-                                  ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+                              }`}
+                            >
+                              ♂ Male only
+                              <span className="block text-xs mt-0.5 font-normal text-gray-500">{maleQty} available</span>
+                            </button>
+                          )}
+                          {femaleQty > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => { setGender("female"); setQty(1); }}
+                              className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all text-left ${
+                                gender === "female"
+                                  ? "border-pink-500 bg-pink-50 text-pink-700"
                                   : "border-gray-200 hover:border-pink-300 text-gray-700"
-                            }`}
-                          >
-                            ♀ Female
-                            <span className="block text-xs mt-0.5 font-normal">
-                              {femaleQty === 0 ? "Out of stock" : `${femaleQty} available`}
-                            </span>
-                          </button>
+                              }`}
+                            >
+                              ♀ Female only
+                              <span className="block text-xs mt-0.5 font-normal text-gray-500">{femaleQty} available</span>
+                            </button>
+                          )}
+                          {hasBoth && (
+                            <button
+                              type="button"
+                              onClick={() => { setGender("both"); setMaleQtyBoth(1); setFemaleQtyBoth(1); }}
+                              className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all text-left ${
+                                gender === "both"
+                                  ? "border-teal-500 bg-teal-50 text-teal-700"
+                                  : "border-gray-200 hover:border-teal-300 text-gray-700"
+                              }`}
+                            >
+                              ♂♀ Both genders
+                              <span className="block text-xs mt-0.5 font-normal text-gray-500">Mix male + female</span>
+                            </button>
+                          )}
+                          {pairQty > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => { setGender("pair"); setQty(1); }}
+                              className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all text-left ${
+                                gender === "pair"
+                                  ? "border-purple-500 bg-purple-50 text-purple-700"
+                                  : "border-gray-200 hover:border-purple-300 text-gray-700"
+                              }`}
+                            >
+                              ♥ Bonded pair
+                              <span className="block text-xs mt-0.5 font-normal text-gray-500">{pairQty} pair{pairQty > 1 ? "s" : ""} available</span>
+                            </button>
+                          )}
                         </div>
+
+                        {/* Both genders: separate qty controls */}
+                        {gender === "both" && (
+                          <div className="bg-teal-50 border border-teal-100 rounded-xl p-3 space-y-2">
+                            <p className="text-xs text-gray-500 font-medium">Set quantity for each gender:</p>
+                            <div className="flex gap-4">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-blue-700 font-medium w-16">♂ Male:</span>
+                                <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={() => setMaleQtyBoth(q => Math.max(0, q - 1))}>-</Button>
+                                <span className="w-6 text-center text-sm font-medium">{maleQtyBoth}</span>
+                                <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={() => setMaleQtyBoth(q => Math.min(maleQty, q + 1))}>+</Button>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-pink-600 font-medium w-16">♀ Female:</span>
+                                <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={() => setFemaleQtyBoth(q => Math.max(0, q - 1))}>-</Button>
+                                <span className="w-6 text-center text-sm font-medium">{femaleQtyBoth}</span>
+                                <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={() => setFemaleQtyBoth(q => Math.min(femaleQty, q + 1))}>+</Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   }
                   return null;
                 })()}
-                <div className="flex items-center gap-3">
-                  <label className="text-sm font-medium">Quantity:</label>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setQty(q => Math.max(1, q - 1))}>-</Button>
-                    <span className="w-8 text-center font-medium">{qty}</span>
-                    <Button variant="outline" size="sm" onClick={() => {
-                      const l = listing as any;
-                      const maxQty = gender === "male" ? (l.maleQuantity ?? listing.availableQuantity) :
-                                     gender === "female" ? (l.femaleQuantity ?? listing.availableQuantity) :
-                                     listing.availableQuantity;
-                      setQty(q => Math.min(maxQty, q + 1));
-                    }}>+</Button>
+
+                {/* Single qty (male/female/pair modes) */}
+                {gender !== "both" && (
+                  <div className="flex items-center gap-3">
+                    <label className="text-sm font-medium">Quantity:</label>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setQty(q => Math.max(1, q - 1))}>-</Button>
+                      <span className="w-8 text-center font-medium">{qty}</span>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        const l = listing as any;
+                        const maxQty = gender === "male" ? (l.maleQuantity ?? listing.availableQuantity) :
+                                       gender === "female" ? (l.femaleQuantity ?? listing.availableQuantity) :
+                                       gender === "pair" ? (l.pairCount ?? 1) :
+                                       listing.availableQuantity;
+                        setQty(q => Math.min(maxQty, q + 1));
+                      }}>+</Button>
+                    </div>
+                    {gender === "pair" && <span className="text-xs text-purple-600 font-medium">= {qty * 2} pets</span>}
                   </div>
-                </div>
+                )}
+
                 <div className="text-sm text-muted-foreground">
-                  Total: <span className="font-semibold text-foreground">{formatPrice(total)}</span>
-                  <span className="text-xs ml-1">(incl. platform fee)</span>
+                  {gender === "both" ? (
+                    <span>
+                      Total: <span className="font-semibold text-foreground">
+                        {formatPrice((listing.price + platformFee(listing.price)) * (maleQtyBoth + femaleQtyBoth))}
+                      </span>
+                      <span className="text-xs ml-1">(incl. platform fee)</span>
+                    </span>
+                  ) : (
+                    <span>
+                      Total: <span className="font-semibold text-foreground">{formatPrice((listing.price + platformFee(listing.price)) * (gender === "pair" ? qty * 2 : qty))}</span>
+                      <span className="text-xs ml-1">(incl. platform fee)</span>
+                    </span>
+                  )}
                 </div>
                 <Button
                   className="w-full gap-2"

@@ -13,6 +13,8 @@ export const listingsTable = pgTable("listings", {
   availableQuantity: integer("available_quantity").notNull(),
   maleQuantity: integer("male_quantity").notNull().default(0),
   femaleQuantity: integer("female_quantity").notNull().default(0),
+  pairCount: integer("pair_count").notNull().default(0),
+  age: integer("age"),
   vaccinated: boolean("vaccinated").notNull().default(false),
   vaccinationDetails: text("vaccination_details"),
   photos: text("photos").array().notNull().default([]),

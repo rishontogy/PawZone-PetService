@@ -30,6 +30,8 @@ export function EditListingPage() {
     price: "",
     maleQuantity: "0",
     femaleQuantity: "0",
+    pairCount: "0",
+    age: "",
     vaccinated: false,
     vaccinationDetails: "",
     description: "",
@@ -55,6 +57,8 @@ export function EditListingPage() {
         price: String(l.price || ""),
         maleQuantity: String(l.maleQuantity ?? Math.floor((l.quantity || 0) / 2)),
         femaleQuantity: String(l.femaleQuantity ?? Math.ceil((l.quantity || 0) / 2)),
+        pairCount: String(l.pairCount ?? 0),
+        age: l.age != null ? String(l.age) : "",
         vaccinated: Boolean(l.vaccinated),
         vaccinationDetails: l.vaccinationDetails || "",
         description: l.description || "",
@@ -224,6 +228,8 @@ export function EditListingPage() {
           quantity: male + female,
           maleQuantity: male,
           femaleQuantity: female,
+          pairCount: parseInt(form.pairCount) || 0,
+          age: form.age !== "" ? parseInt(form.age) || undefined : undefined,
           vaccinated: form.vaccinated,
           vaccinationDetails: form.vaccinationDetails || undefined,
           description: form.description || undefined,
@@ -303,24 +309,37 @@ export function EditListingPage() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="font-semibold text-gray-700">Price per pet (₹) *</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  className="rounded-xl border-gray-200"
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="font-semibold text-gray-700">Price per pet (₹) *</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    className="rounded-xl border-gray-200"
+                    value={form.price}
+                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="font-semibold text-gray-700">Age (months)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    className="rounded-xl border-gray-200"
+                    value={form.age}
+                    onChange={(e) => setForm({ ...form, age: e.target.value })}
+                    placeholder="e.g. 3"
+                  />
+                </div>
               </div>
 
               <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
                 <Label className="font-semibold text-gray-700 block">Gender-based Inventory *</Label>
                 <p className="text-xs text-gray-500">Update male and female counts. At least one must be &gt; 0.</p>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-sm font-medium text-blue-700">♂ Male Count</Label>
+                    <Label className="text-sm font-medium text-blue-700">♂ Male</Label>
                     <Input
                       type="number"
                       min="0"
@@ -330,7 +349,7 @@ export function EditListingPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-sm font-medium text-pink-600">♀ Female Count</Label>
+                    <Label className="text-sm font-medium text-pink-600">♀ Female</Label>
                     <Input
                       type="number"
                       min="0"
@@ -339,10 +358,22 @@ export function EditListingPage() {
                       onChange={(e) => setForm({ ...form, femaleQuantity: e.target.value })}
                     />
                   </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium text-purple-600">♥ Pairs</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      className="rounded-xl border-purple-200 bg-white"
+                      value={form.pairCount}
+                      onChange={(e) => setForm({ ...form, pairCount: e.target.value })}
+                    />
+                  </div>
                 </div>
+                <p className="text-xs text-gray-400">Bonded pairs = 1 male + 1 female sold together.</p>
                 {(parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0) > 0 && (
                   <p className="text-xs text-blue-600 font-medium">
                     Total: {(parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0)} pet(s)
+                    {(parseInt(form.pairCount) || 0) > 0 && ` · ${parseInt(form.pairCount)} bonded pair(s)`}
                   </p>
                 )}
               </div>

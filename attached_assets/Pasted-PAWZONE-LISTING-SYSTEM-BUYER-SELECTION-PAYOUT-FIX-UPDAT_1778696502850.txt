@@ -1,0 +1,347 @@
+PAWZONE – LISTING SYSTEM + BUYER SELECTION + PAYOUT FIX UPDATE
+
+IMPORTANT:
+This update modifies:
+✔ Add Listing flow
+✔ Buyer quantity selection logic
+✔ Admin approval view
+✔ Payout system visibility & functionality
+
+Do NOT break:
+✔ Existing orders
+✔ Existing listings
+✔ Existing database records
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐾 1. ADD PAIR COUNT OPTION IN LISTING PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Currently seller can only enter:
+✔ Male count
+✔ Female count
+
+Need new feature:
+✔ Pair Count
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In Add Listing page:
+
+Add new optional field:
+✔ Pair Count
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IF Pair Count is entered:
+
+✔ Male count NOT required
+✔ Female count NOT required
+
+System should treat stock as:
+✔ Pair stock
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Example 1:
+
+Pair Count = 3
+
+Means:
+✔ 3 pairs available
+
+Buyer sees:
+✔ Pair quantity selection ONLY
+
+NOT:
+❌ Male/Female selection
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Example 2:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Male = 4
+Female = 2
+
+Then:
+✔ Normal male/female selection flow
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧠 LOGIC RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Listing type:
+
+IF:
+```js
+pairCount > 0
+
+Then:
+
+listingMode = "PAIR"
+
+Else:
+
+listingMode = "INDIVIDUAL"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 2. ADD AGE FIELD IN LISTING PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add field:
+✔ Age
+
+Input type:
+✔ Text input
+
+Examples:
+✔ 2 Months
+✔ 1 Year
+✔ 45 Days
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Age must save properly
+✔ Show in:
+• Buyer page
+• Admin approval page
+• Seller listing page
+• Order details
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠 3. ADMIN APPROVAL PAGE UPDATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Currently admin page incorrectly shows:
+❌ Gender option
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In Admin → Review Listing:
+
+Remove:
+❌ Single gender field
+
+Replace with:
+✔ Male Count
+✔ Female Count
+✔ Pair Count (if applicable)
+✔ Age
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 ADMIN CARD MUST SHOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Pet code
+✔ Pet images/videos
+✔ Father/Mother photos
+✔ Age
+✔ Male count
+✔ Female count
+✔ Pair count
+✔ Vaccination status
+✔ Seller details
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛒 4. BUYER PURCHASE FLOW UPDATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Currently buyer can only select:
+✔ Male
+OR
+✔ Female
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Allow buyer to purchase BOTH genders
+from SAME listing card.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Available:
+✔ Male = 4
+✔ Female = 3
+
+Buyer can select:
+✔ Male = 2
+✔ Female = 1
+
+in SAME order flow.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧠 STOCK RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After order:
+
+Update stock separately.
+
+Example:
+
+Before:
+Male = 4
+Female = 3
+
+Buyer buys:
+Male = 2
+Female = 1
+
+After:
+Male = 2
+Female = 2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 FOR PAIR LISTINGS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If listingMode = "PAIR":
+
+Buyer sees:
+✔ Pair quantity selector ONLY
+
+Do NOT show:
+❌ Male selector
+❌ Female selector
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 5. PAYOUT SYSTEM NOT SHOWING / NOT WORKING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CRITICAL ISSUE:
+Payout system currently:
+❌ Not visible
+❌ Not loading
+❌ Not functioning properly
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure payout page exists and works in:
+
+✔ Seller account
+✔ Transporter account
+✔ Admin account
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 SELLER/TRANSPORTER PAYOUT PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Must show:
+
+✔ UPI ID input
+✔ QR upload
+✔ Total earnings
+✔ Total paid
+✔ Remaining amount
+✔ Transaction history
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 ADMIN PAYOUT PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Must show:
+
+✔ Seller list
+✔ Transporter list
+✔ Pending payout amounts
+✔ Popup with QR
+✔ Payment update form
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 PAYMENT UPDATE FLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Admin enters:
+✔ Amount paid
+✔ Reference number
+✔ Screenshot
+
+Then:
+✔ Ledger updates
+✔ Remaining amount updates
+✔ Seller/Transporter transaction updates
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧾 TRANSACTION HISTORY MUST SHOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Amount
+✔ Reference number
+✔ Screenshot
+✔ Date
+✔ Status
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 LEDGER INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Update correctly:
+
+✔ Seller ledger
+✔ Transporter ledger
+✔ Accounting page
+✔ Remaining balances
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 6. MOBILE/TABLET UI REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure all new fields/pages are:
+
+✔ Responsive
+✔ Properly aligned
+✔ Premium UI
+✔ No overflow
+✔ Mobile optimized
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 7. REQUIRED TEST CASES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TEST:
+✔ Pair count listing works
+✔ Male/female listing works
+✔ Buyer can buy both genders
+✔ Pair listing hides gender selection
+✔ Age saves correctly
+✔ Admin approval shows age/counts
+✔ Payout page visible
+✔ QR upload works
+✔ Ledger updates correctly
+✔ Transaction history updates
+✔ Mobile view works
+✔ Tablet view works
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The listing system must support:
+
+✔ Individual pets
+✔ Male/female stock
+✔ Pair-based stock
+✔ Flexible buyer selection
+
+AND
+
+Payout system must be:
+✔ Fully visible
+✔ Fully working
+✔ Ledger integrated
+✔ Production-ready
+✔ Mobile optimized

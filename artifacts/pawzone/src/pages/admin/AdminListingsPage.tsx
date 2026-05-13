@@ -200,15 +200,21 @@ export function AdminListingsPage() {
                         </div>
                         <div className="bg-gray-50 rounded-xl p-3">
                           <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Age</p>
-                          <p className="font-medium text-gray-900">{listing.age ? `${listing.age} months` : "—"}</p>
-                        </div>
-                        <div className="bg-gray-50 rounded-xl p-3">
-                          <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Gender</p>
-                          <p className="font-medium text-gray-900 capitalize">{listing.gender ?? "—"}</p>
+                          <p className="font-medium text-gray-900">{(listing as any).age != null ? `${(listing as any).age} month${(listing as any).age === 1 ? "" : "s"}` : "—"}</p>
                         </div>
                         <div className="bg-gray-50 rounded-xl p-3">
                           <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Price</p>
                           <p className="font-bold text-teal-700">{formatPrice(listing.price)}</p>
+                        </div>
+                        <div className="bg-blue-50 rounded-xl p-3">
+                          <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Inventory</p>
+                          <div className="flex flex-wrap gap-2 text-xs font-medium">
+                            <span className="text-blue-700">♂ {(listing as any).maleQuantity ?? 0} male</span>
+                            <span className="text-pink-600">♀ {(listing as any).femaleQuantity ?? 0} female</span>
+                            {((listing as any).pairCount ?? 0) > 0 && (
+                              <span className="text-purple-600">♥ {(listing as any).pairCount} pair{(listing as any).pairCount > 1 ? "s" : ""}</span>
+                            )}
+                          </div>
                         </div>
                         <div className="bg-gray-50 rounded-xl p-3">
                           <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Location</p>

@@ -87,9 +87,10 @@ router.post("/listings", authMiddleware, async (req, res): Promise<void> => {
     return;
   }
 
-  const { maleQuantity, femaleQuantity } = req.body as any;
+  const { maleQuantity, femaleQuantity, pairCount, age } = req.body as any;
   const male = parseInt(String(maleQuantity ?? 0), 10) || 0;
   const female = parseInt(String(femaleQuantity ?? 0), 10) || 0;
+  const pairs = parseInt(String(pairCount ?? 0), 10) || 0;
   const total = male + female;
   if (total <= 0) {
     res.status(400).json({ error: "Add valid quantity: male + female must be > 0" });
@@ -104,12 +105,14 @@ router.post("/listings", authMiddleware, async (req, res): Promise<void> => {
     availableQuantity: total,
     maleQuantity: male,
     femaleQuantity: female,
+    pairCount: pairs,
+    age: age !== undefined && age !== "" ? parseInt(String(age), 10) || null : null,
     status: "pending",
     petCode,
     photos: parsed.data.photos ?? [],
     city: user.city || parsed.data.city || "",
     address: user.address || parsed.data.address || "",
-  }).returning();
+  } as any).returning();
 
   const [seller] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, user.id));
   res.status(201).json({ ...listing, sellerName: seller.name });
@@ -182,7 +185,7 @@ router.put("/listings/:id", authMiddleware, async (req, res): Promise<void> => {
 
   const updateData: any = { ...parsed.data, status: "pending" };
 
-  const { maleQuantity, femaleQuantity } = req.body as any;
+  const { maleQuantity, femaleQuantity, pairCount, age } = req.body as any;
   if (maleQuantity !== undefined || femaleQuantity !== undefined) {
     const male = parseInt(String(maleQuantity ?? listing.maleQuantity), 10) || 0;
     const female = parseInt(String(femaleQuantity ?? listing.femaleQuantity), 10) || 0;
@@ -195,6 +198,12 @@ router.put("/listings/:id", authMiddleware, async (req, res): Promise<void> => {
     updateData.femaleQuantity = female;
     updateData.quantity = total;
     updateData.availableQuantity = total;
+  }
+  if (pairCount !== undefined) {
+    updateData.pairCount = parseInt(String(pairCount), 10) || 0;
+  }
+  if (age !== undefined) {
+    updateData.age = age !== "" ? parseInt(String(age), 10) || null : null;
   }
 
   const [updated] = await db.update(listingsTable)
