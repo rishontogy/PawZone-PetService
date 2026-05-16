@@ -1,0 +1,204 @@
+PAWZONE – FIX PAIR LISTING SAVE/SUBMIT ERROR
+
+CRITICAL ISSUE:
+When seller enters:
+✔ Pair Count
+
+The pet listing is NOT saving/submitting.
+
+This is a validation + backend logic issue.
+
+Fix the PAIR listing flow completely so pair-based listings can be created successfully.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐾 1. ROOT CAUSE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Currently system still expects:
+❌ Male count
+❌ Female count
+
+even when:
+✔ Pair Count is entered
+
+This causes:
+❌ Validation failure
+❌ Save failure
+❌ Submit blocked
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IF:
+```js id="dwyudl"
+pairCount > 0
+
+THEN:
+
+Automatically:
+
+listingMode = "PAIR"
+maleCount = 0
+femaleCount = 0
+
+AND:
+✔ Skip male/female validation completely
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠 2. FRONTEND VALIDATION FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Update Add Listing form validation.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IF Pair Count exists:
+
+✔ Male count NOT required
+✔ Female count NOT required
+
+Allow submit immediately.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ REMOVE THIS BEHAVIOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Do NOT show errors like:
+❌ “Male count required”
+❌ “Female count required”
+❌ “Invalid quantity”
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 3. BACKEND SAVE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure backend accepts:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VALID PAIR PAYLOAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Example:
+
+{
+  "listingMode": "PAIR",
+  "pairCount": 2,
+  "maleCount": 0,
+  "femaleCount": 0,
+  "price": 150
+}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 DATABASE STORAGE RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Store:
+✔ Pair count separately
+
+Do NOT require:
+❌ Male count
+❌ Female count
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛒 4. BUYER DISPLAY FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After successful save:
+
+Buyer page must show:
+✔ Pair quantity
+✔ Pair price
+
+NOT:
+❌ Male/Female selectors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLE DISPLAY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Fish Pair
+Available: 2 Pairs
+Price: ₹150 / Pair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 5. ADMIN APPROVAL FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Admin review listing must correctly show:
+
+✔ Pair Count
+✔ Pair Price
+✔ Age
+✔ Vaccination
+✔ Parent photos
+
+NOT:
+❌ Male/Female counts for pair listings
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 6. TRANSPORTER DISPLAY FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter order details should show:
+
+✔ Pair quantity only
+
+Example:
+✔ 2 Pair Fish
+
+NOT:
+❌ Male/Female split
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 7. PRICE & PLATFORM LOGIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Maintain pair calculation:
+
+Example:
+
+Seller pair price:
+₹150
+
+Buyer pays:
+₹180
+
+Seller receives:
+₹120
+
+Platform revenue:
+₹60
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 8. REQUIRED TEST CASES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TEST:
+✔ Pair listing submits successfully
+✔ No validation errors
+✔ Listing stored correctly
+✔ Buyer page displays correctly
+✔ Admin page displays correctly
+✔ Transport page displays correctly
+✔ Pair pricing correct
+✔ Pair stock correct
+✔ Mobile view works
+✔ Tablet view works
+✔ Refresh persists data
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pair listings must now behave as FULLY VALID listings.
+
+Seller should be able to:
+✔ Enter pair count
+✔ Submit listing successfully
+✔ Get approval flow
+✔ Sell pair inventory normally
+
+without ANY male/female validation errors.

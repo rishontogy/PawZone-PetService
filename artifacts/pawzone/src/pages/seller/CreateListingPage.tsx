@@ -640,7 +640,7 @@ export function CreateListingPage() {
               <Button
                 type="submit"
                 className="w-full h-12 rounded-xl text-base font-bold"
-                disabled={submitting || !form.category || !form.breed || !form.price || ((parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0) <= 0)}
+                disabled={submitting || !form.category || !form.breed || !form.price || ((parseInt(form.pairCount) || 0) <= 0 && (parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0) <= 0)}
               >
                 {submitting ? "Submitting..." : "Submit for Approval"}
               </Button>
