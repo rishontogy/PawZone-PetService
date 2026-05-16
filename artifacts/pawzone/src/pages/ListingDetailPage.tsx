@@ -219,11 +219,13 @@ export function ListingDetailPage() {
 
   const handleAddToCart = async () => {
     if (!listing) return;
-    const l = listing as any;
-    const hasMale = (l.maleQuantity ?? 0) > 0;
-    const hasFemale = (l.femaleQuantity ?? 0) > 0;
-    const needsGender = hasMale || hasFemale;
-    if (needsGender && !gender) {
+    const listingData = listing as any;
+    const pairOnlyCheck = (listingData.pairCount ?? 0) > 0 && listing.availableQuantity === (listingData.pairCount ?? 0) * 2;
+    const effectiveGender = pairOnlyCheck ? "pair" : gender;
+    const hasMale = (listingData.maleQuantity ?? 0) > 0;
+    const hasFemale = (listingData.femaleQuantity ?? 0) > 0;
+    const needsGender = !pairOnlyCheck && (hasMale || hasFemale);
+    if (needsGender && !effectiveGender) {
       toast({ variant: "destructive", title: "Select option", description: "Please choose how you'd like to buy." });
       return;
     }
@@ -262,7 +264,7 @@ export function ListingDetailPage() {
         const res = await fetch(`${getApiBase()}/cart`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ listingId: listing.id, quantity: qty, ...(gender ? { gender } : {}) }),
+          body: JSON.stringify({ listingId: listing.id, quantity: qty, ...(effectiveGender ? { gender: effectiveGender } : {}) }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -305,7 +307,9 @@ export function ListingDetailPage() {
     );
   }
 
-  const fee = platformFee(listing.price);
+  const l = listing as any;
+  const isPairOnly = (l.pairCount ?? 0) > 0 && l.availableQuantity === (l.pairCount ?? 0) * 2;
+  const fee = platformFee(listing.price, isPairOnly);
   const total = (listing.price + fee) * qty;
 
   const media: MediaItem[] = [
@@ -379,9 +383,9 @@ export function ListingDetailPage() {
             </div>
 
             <div className="bg-teal-50 border border-teal-100 rounded-xl p-4">
-              <p className="text-sm text-teal-700">Price per pet</p>
+              <p className="text-sm text-teal-700">{isPairOnly ? "Price per pair" : "Price per pet"}</p>
               <p className="text-3xl font-bold text-teal-700">{formatPrice(listing.price)}</p>
-              <p className="text-xs text-teal-600/70 mt-1">+ ₹{fee} platform fee</p>
+              <p className="text-xs text-teal-600/70 mt-1">+ ₹{fee} platform fee{isPairOnly ? " (pair listing)" : ""}</p>
             </div>
 
             {listing.petCode && (
@@ -407,7 +411,11 @@ export function ListingDetailPage() {
             )}
 
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>{listing.availableQuantity} of {listing.quantity} available</span>
+              {isPairOnly ? (
+                <span>{l.pairCount} pair{l.pairCount !== 1 ? "s" : ""} available</span>
+              ) : (
+                <span>{listing.availableQuantity} of {listing.quantity} available</span>
+              )}
             </div>
 
             {/* Seller info */}
@@ -433,11 +441,19 @@ export function ListingDetailPage() {
               <div className="space-y-3">
                 {/* Purchase mode selection */}
                 {(() => {
-                  const l = listing as any;
                   const maleQty = l.maleQuantity ?? 0;
                   const femaleQty = l.femaleQuantity ?? 0;
                   const pairQty = l.pairCount ?? 0;
                   const hasBoth = maleQty > 0 && femaleQty > 0;
+
+                  if (isPairOnly) {
+                    return (
+                      <div className="p-3 bg-purple-50 border border-purple-100 rounded-xl">
+                        <p className="text-sm font-semibold text-purple-700 mb-1">♥ Pair listing — sold as pairs only</p>
+                        <p className="text-xs text-purple-600">{pairQty} pair{pairQty !== 1 ? "s" : ""} available · ₹{listing.price} per pair</p>
+                      </div>
+                    );
+                  }
 
                   if (maleQty > 0 || femaleQty > 0) {
                     return (
@@ -558,7 +574,7 @@ export function ListingDetailPage() {
                     </span>
                   ) : (
                     <span>
-                      Total: <span className="font-semibold text-foreground">{formatPrice((listing.price + platformFee(listing.price)) * (gender === "pair" ? qty * 2 : qty))}</span>
+                      Total: <span className="font-semibold text-foreground">{formatPrice((listing.price + platformFee(listing.price, isPairOnly || gender === "pair")) * qty)}</span>
                       <span className="text-xs ml-1">(incl. platform fee)</span>
                     </span>
                   )}

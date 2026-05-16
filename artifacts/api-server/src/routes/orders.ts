@@ -16,7 +16,8 @@ import { nightRuleStart } from "../lib/nightRule";
 
 const router = Router();
 
-function calcPlatformFee(price: number): number {
+function calcPlatformFee(price: number, isPair = false): number {
+  if (isPair) return 30;
   return price > 100 ? 20 : 5;
 }
 
@@ -163,8 +164,9 @@ router.post("/orders", authMiddleware, async (req, res): Promise<void> => {
   let subtotal = 0;
   let platformFee = 0;
   for (const { cart, listing } of cartItems) {
+    const isPair = (cart.gender as string) === "pair";
     subtotal += listing.price * cart.quantity;
-    platformFee += calcPlatformFee(listing.price) * cart.quantity;
+    platformFee += calcPlatformFee(listing.price, isPair) * cart.quantity;
   }
 
   const orderNumber = generateOrderNumber();
@@ -209,7 +211,7 @@ router.post("/orders", authMiddleware, async (req, res): Promise<void> => {
       subtotal: listing.price * cart.quantity,
       gender: cart.gender ?? undefined,
     });
-    const actualAvailDeduct = cart.gender === "pair" ? cart.quantity * 2 : cart.quantity;
+    const actualAvailDeduct = (cart.gender as string) === "pair" ? cart.quantity * 2 : cart.quantity;
     const adjustedAvailable = listing.availableQuantity - actualAvailDeduct;
     const genderUpdates: any = {
       availableQuantity: Math.max(0, adjustedAvailable),

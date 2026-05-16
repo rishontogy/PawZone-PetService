@@ -1,0 +1,126 @@
+PAWZONE – PAIR LISTING LOGIC + PAYOUT FIXES + UI CORRECTIONS
+
+IMPORTANT:
+This update modifies:
+✔ Pair listing calculation logic
+✔ Buyer/seller pricing logic
+✔ Transport quantity display
+✔ Payout page UI
+✔ Earnings calculations
+
+Do NOT break:
+✔ Existing listings
+✔ Existing orders
+✔ Existing accounting logic
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐾 1. PAIR COUNT LOGIC FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If seller enters:
+✔ Pair Count
+
+Then:
+❌ Male Count NOT required
+❌ Female Count NOT required
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED BEHAVIOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For pair listings:
+
+System should automatically assume:
+✔ 1 pair = 1 male + 1 female
+
+NO need to store/display separate:
+❌ Male count
+❌ Female count
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller enters:
+✔ Pair Count = 2
+✔ Price = ₹150
+
+Means:
+✔ 2 pairs available
+✔ EACH pair costs ₹150
+
+NOT:
+❌ ₹150 per fish
+❌ ₹300 per pair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛒 2. BUYER PURCHASE FLOW FOR PAIRS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Buyer should see:
+
+✔ Pair Quantity selector ONLY
+
+Do NOT show:
+❌ Male selection
+❌ Female selection
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 PET DETAIL PAGE UPDATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For pair listings show:
+
+✔ Available Pairs: 2
+
+Do NOT show:
+❌ Male Available
+❌ Female Available
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 3. PAIR PLATFORM FEE LOGIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SPECIAL RULE FOR PAIRS:
+
+Buyer Platform Fee:
+✔ ₹30
+
+Seller Platform Fee:
+✔ ₹30
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLE CALCULATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller listing:
+✔ 2 Pair Fish
+✔ ₹150 per pair
+
+Buyer buys:
+✔ 1 pair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAYMENT FLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Buyer pays:
+₹150 + ₹30
+= ₹180
+
+Seller receives:
+₹150 - ₹30
+= ₹120
+
+Platform revenue:
+₹30 (buyer)
++ ₹30 (seller)
+= ₹60
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 IMPLEMENTATION RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IF:
+```js
+listingMode === "PAIR"

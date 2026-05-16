@@ -45,9 +45,9 @@ export function AdminDashboard() {
     { href: "/admin/orders", icon: <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />, label: "All Orders", desc: "Monitor all platform orders", bg: "bg-purple-50", badge: null },
     { href: "/admin/accounting", icon: <BarChart2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />, label: "Accounting", desc: "Revenue, ledger & transactions", bg: "bg-green-50", badge: null },
     { href: "/admin/disputes", icon: <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />, label: "Disputes", desc: "Resolve buyer/seller disputes", bg: "bg-red-50", badge: stats.openDisputes > 0 ? stats.openDisputes : null },
-    { href: "/admin/alerts", icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />, label: "Alerts", desc: "System alerts & operations log", bg: "bg-yellow-50", badge: null },
-    { href: "/admin/payments", icon: <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />, label: "Payments", desc: "Verify UPI payment proofs", bg: "bg-indigo-50", badge: null },
-    { href: "/admin/password-resets", icon: <KeyRound className="w-5 h-5 sm:w-6 sm:h-6 text-teal-600" />, label: "Password Resets", desc: "Verify & generate reset codes", bg: "bg-teal-50", badge: null },
+    { href: "/admin/alerts", icon: <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />, label: "Alerts", desc: "System alerts & operations log", bg: "bg-yellow-50", badge: stats.pendingAlerts > 0 ? stats.pendingAlerts : null },
+    { href: "/admin/payments", icon: <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />, label: "Payments", desc: "Verify UPI payment proofs", bg: "bg-indigo-50", badge: stats.pendingPayments > 0 ? stats.pendingPayments : null },
+    { href: "/admin/password-resets", icon: <KeyRound className="w-5 h-5 sm:w-6 sm:h-6 text-teal-600" />, label: "Password Resets", desc: "Verify & generate reset codes", bg: "bg-teal-50", badge: stats.pendingPasswordResets > 0 ? stats.pendingPasswordResets : null },
     { href: "/admin/payouts", icon: <Wallet className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />, label: "Payouts", desc: "Pay sellers & transporters", bg: "bg-emerald-50", badge: null },
   ];
 

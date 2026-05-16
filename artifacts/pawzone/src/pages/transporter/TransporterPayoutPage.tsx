@@ -3,8 +3,8 @@ import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  Wallet, Upload, CheckCircle, Clock, IndianRupee, TrendingUp,
-  QrCode, Edit2, Eye, Download, X, RefreshCw, CreditCard, Truck,
+  Wallet, CheckCircle, Clock, IndianRupee, TrendingUp,
+  CreditCard, Edit2, Eye, Download, X, RefreshCw, Truck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -20,20 +20,6 @@ function apiFetch(path: string, opts?: RequestInit) {
   });
 }
 
-async function uploadFile(file: File): Promise<string> {
-  const token = localStorage.getItem("pawzone_token");
-  const fd = new FormData();
-  fd.append("file", file);
-  const res = await fetch("/api/upload", {
-    method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    body: fd,
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Upload failed");
-  return data.url;
-}
-
 export function TransporterPayoutPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -42,8 +28,6 @@ export function TransporterPayoutPage() {
   const [loading, setLoading] = useState(true);
   const [editingDetails, setEditingDetails] = useState(false);
   const [upiId, setUpiId] = useState("");
-  const [qrFile, setQrFile] = useState<File | null>(null);
-  const [qrPreview, setQrPreview] = useState<string | null>(null);
   const [savingDetails, setSavingDetails] = useState(false);
   const [viewImage, setViewImage] = useState<string | null>(null);
 
@@ -68,30 +52,17 @@ export function TransporterPayoutPage() {
 
   useEffect(() => { load(); }, []);
 
-  const handleQrChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setQrFile(file);
-    setQrPreview(URL.createObjectURL(file));
-  };
-
   const saveDetails = async () => {
     setSavingDetails(true);
     try {
-      let qrCodeUrl = summary?.details?.qrCodeUrl ?? null;
-      if (qrFile) {
-        qrCodeUrl = await uploadFile(qrFile);
-      }
       const res = await apiFetch("/payout/details", {
         method: "PUT",
-        body: JSON.stringify({ upiId: upiId.trim() || null, qrCodeUrl }),
+        body: JSON.stringify({ upiId: upiId.trim() || null }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       toast({ title: "Payment details saved!" });
       setEditingDetails(false);
-      setQrFile(null);
-      setQrPreview(null);
       await load();
     } catch (e: any) {
       toast({ variant: "destructive", title: "Save failed", description: e.message });
@@ -104,7 +75,6 @@ export function TransporterPayoutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 md:pb-8">
-      {/* Header */}
       <div className="bg-gradient-to-r from-indigo-700 to-blue-600 px-4 sm:px-6 py-8">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-between">
@@ -122,10 +92,9 @@ export function TransporterPayoutPage() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 -mt-4 space-y-5">
-        {/* Summary Cards */}
         {loading ? (
           <div className="grid grid-cols-2 gap-3 pt-4">
-            {[...Array(4)].map((_, i) => (
+            {[...Array(3)].map((_, i) => (
               <div key={i} className="bg-white rounded-2xl p-4 shadow-sm animate-pulse h-24" />
             ))}
           </div>
@@ -166,7 +135,7 @@ export function TransporterPayoutPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <QrCode className="w-4 h-4 text-indigo-600" />
+              <CreditCard className="w-4 h-4 text-indigo-600" />
               <h2 className="font-semibold text-gray-900 text-sm">Payment Receiving Details</h2>
             </div>
             {!editingDetails && (
@@ -192,68 +161,25 @@ export function TransporterPayoutPage() {
                     className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">QR Code Image</label>
-                  <label className="flex items-center gap-2 cursor-pointer border-2 border-dashed border-gray-200 rounded-xl p-4 hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors">
-                    <Upload className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">
-                      {qrFile ? qrFile.name : "Upload QR code image"}
-                    </span>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleQrChange} />
-                  </label>
-                  {(qrPreview || details?.qrCodeUrl) && (
-                    <div className="mt-3 relative inline-block">
-                      <img
-                        src={qrPreview ?? details.qrCodeUrl}
-                        alt="QR Preview"
-                        className="w-32 h-32 object-contain border border-gray-200 rounded-xl"
-                      />
-                    </div>
-                  )}
-                </div>
                 <div className="flex gap-2 pt-1">
                   <Button onClick={saveDetails} disabled={savingDetails} size="sm" className="bg-indigo-600 hover:bg-indigo-700 rounded-xl">
                     {savingDetails ? "Saving..." : "Save Details"}
                   </Button>
-                  <Button onClick={() => { setEditingDetails(false); setQrFile(null); setQrPreview(null); }} variant="ghost" size="sm" className="rounded-xl">
+                  <Button onClick={() => setEditingDetails(false)} variant="ghost" size="sm" className="rounded-xl">
                     Cancel
                   </Button>
                 </div>
               </>
             ) : (
-              <>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
-                    <CreditCard className="w-5 h-5 text-indigo-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">UPI ID</p>
-                    <p className="font-semibold text-gray-900 text-sm">{details?.upiId || <span className="text-gray-400 font-normal">Not set</span>}</p>
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-indigo-600" />
                 </div>
-
-                {details?.qrCodeUrl ? (
-                  <div>
-                    <p className="text-xs text-gray-500 mb-2">QR Code</p>
-                    <div className="relative inline-block">
-                      <img
-                        src={details.qrCodeUrl}
-                        alt="Payment QR"
-                        className="w-36 h-36 object-contain border border-gray-200 rounded-xl cursor-pointer"
-                        onClick={() => setViewImage(details.qrCodeUrl)}
-                      />
-                      <button
-                        onClick={() => setViewImage(details.qrCodeUrl)}
-                        className="absolute bottom-1 right-1 bg-white/90 rounded-lg p-1 shadow"
-                      >
-                        <Eye className="w-3 h-3 text-gray-600" />
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-400">No QR code uploaded. Click Edit to add one.</p>
-                )}
-              </>
+                <div>
+                  <p className="text-xs text-gray-500">UPI ID</p>
+                  <p className="font-semibold text-gray-900 text-sm">{details?.upiId || <span className="text-gray-400 font-normal">Not set — click Edit to add</span>}</p>
+                </div>
+              </div>
             )}
           </div>
         </div>
@@ -320,7 +246,6 @@ export function TransporterPayoutPage() {
         </div>
       </div>
 
-      {/* Image Lightbox */}
       {viewImage && (
         <div
           className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"

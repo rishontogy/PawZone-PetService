@@ -8,16 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { getStatusColor } from "@/lib/api";
-import { Users, Search, CheckCircle, XCircle, MessageSquare, Phone, MapPin, Shield, ShoppingBag, Truck, ArrowLeft, FileText, ExternalLink } from "lucide-react";
+import { Users, Search, CheckCircle, XCircle, Phone, MapPin, Shield, ShoppingBag, Truck, ArrowLeft, FileText, ExternalLink } from "lucide-react";
 import { Link } from "wouter";
-
-function mockWhatsApp(name: string, phone: string, role: string) {
-  const msg = encodeURIComponent(`Hi ${name}! 🎉 Your PawZone ${role} account has been approved. You can now access your dashboard and start using all features. Welcome to PawZone! 🐾`);
-  const number = phone?.replace(/\D/g, "") || "";
-  if (number) {
-    window.open(`https://wa.me/91${number}?text=${msg}`, "_blank");
-  }
-}
 
 const roleIcon = (role: string) => {
   if (role === "seller") return <ShoppingBag className="w-4 h-4" />;
@@ -50,16 +42,8 @@ export function AdminUsersPage() {
     mutation: {
       onSuccess: (_res, variables) => {
         const approvedUser = users.find((u: any) => u.id === variables.id);
-        toast({ title: "✅ User approved", description: `${approvedUser?.name} can now access their dashboard.` });
+        toast({ title: "User approved", description: `${approvedUser?.name} can now access their dashboard.` });
         refetch();
-        if (approvedUser && (approvedUser.role === "seller" || approvedUser.role === "transporter")) {
-          setTimeout(() => {
-            toast({
-              title: "📱 WhatsApp Notification",
-              description: `Sending approval notification to ${approvedUser.name} (${approvedUser.phone || "no phone"})`,
-            });
-          }, 500);
-        }
       },
       onError: (err: any) => { toast({ variant: "destructive", title: "Error", description: err?.data?.error }); },
     },
@@ -239,32 +223,10 @@ export function AdminUsersPage() {
                           >
                             <CheckCircle className="w-3.5 h-3.5" /> Approve
                           </Button>
-                          {u.phone && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1 rounded-lg h-8 text-xs border-green-300 text-green-700 hover:bg-green-50"
-                              onClick={() => mockWhatsApp(u.name, u.phone, u.role)}
-                            >
-                              <MessageSquare className="w-3.5 h-3.5" />
-                              WhatsApp
-                            </Button>
-                          )}
                         </div>
                       )}
                       {u.status === "approved" && u.role !== "admin" && (
                         <div className="flex gap-1.5">
-                          {u.phone && (u.role === "seller" || u.role === "transporter") && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="gap-1 rounded-lg h-8 text-xs border-green-300 text-green-700 hover:bg-green-50"
-                              onClick={() => mockWhatsApp(u.name, u.phone, u.role)}
-                            >
-                              <MessageSquare className="w-3.5 h-3.5" />
-                              Notify
-                            </Button>
-                          )}
                           <Button
                             size="sm"
                             variant="outline"

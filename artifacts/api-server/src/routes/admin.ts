@@ -18,7 +18,7 @@ router.use("/admin", authMiddleware, adminMiddleware);
 function calculateOrder(order: any) {
   const subtotal = Number(order.subtotal ?? 0);
   const transport = Number(order.transportFee ?? 0);
-  const buyerFee = subtotal > 100 ? 20 : 5;
+  const buyerFee = Number(order.platformFee ?? (subtotal > 100 ? 20 : 5));
   const sellerFee = buyerFee;
   const platformTransportFee = transport > 200 ? 40 : (transport > 0 ? 20 : 0);
   const platformRevenue = buyerFee + sellerFee + platformTransportFee;
@@ -312,21 +312,28 @@ router.post("/admin/refunds/:orderId/approve", async (req, res): Promise<void> =
 });
 
 router.get("/admin/dashboard", async (req, res): Promise<void> => {
-  const allUsers = await db.select().from(usersTable);
+  const [allUsers, allOrders, allDisputes, allListings, allAlerts, allPaymentProofs, allPasswordResets, waitlist] = await Promise.all([
+    db.select().from(usersTable),
+    db.select().from(ordersTable),
+    db.select().from(disputesTable),
+    db.select().from(listingsTable),
+    db.select().from(alertsTable),
+    db.select().from(paymentProofsTable),
+    db.select().from(passwordResetRequestsTable),
+    db.select().from(waitlistTable),
+  ]);
+
   const totalUsers = allUsers.filter(u => u.role !== "admin").length;
   const pendingApprovals = allUsers.filter(u => u.status === "pending").length;
-
-  const allOrders = await db.select().from(ordersTable);
   const totalOrders = allOrders.length;
   const platformRevenue = allOrders
     .filter(isValidOrder)
     .reduce((s, o) => s + calculateOrder(o).platformRevenue, 0);
-
-  const allDisputes = await db.select().from(disputesTable);
   const activeDisputes = allDisputes.filter(d => d.status === "open" || d.status === "in_review").length;
-
-  const allListings = await db.select().from(listingsTable);
   const pendingListings = allListings.filter(l => l.status === "pending").length;
+  const pendingAlerts = allAlerts.filter(a => a.status === "ACTIVE").length;
+  const pendingPayments = allPaymentProofs.filter((p: any) => p.status === "pending").length;
+  const pendingPasswordResets = allPasswordResets.filter((r: any) => r.status === "pending").length;
 
   const recentOrders = await db.select().from(ordersTable)
     .orderBy(desc(ordersTable.createdAt)).limit(10);
@@ -356,8 +363,6 @@ router.get("/admin/dashboard", async (req, res): Promise<void> => {
     return { month, revenue: rev };
   });
 
-  const waitlist = await db.select().from(waitlistTable);
-
   res.json({
     stats: {
       totalUsers,
@@ -369,6 +374,9 @@ router.get("/admin/dashboard", async (req, res): Promise<void> => {
       totalListings: allListings.length,
       fraudAlerts: 0,
       waitlistCount: waitlist.length,
+      pendingAlerts,
+      pendingPayments,
+      pendingPasswordResets,
     },
     recentOrders: recentWithNames,
     revenueByMonth,

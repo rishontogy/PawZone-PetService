@@ -1,0 +1,355 @@
+PAWZONE – PAIR LISTING LOGIC + PAYOUT FIX + ADMIN COUNTS UPDATE
+
+IMPORTANT:
+This update modifies:
+✔ Pair-based pet listing logic
+✔ Pair pricing calculations
+✔ Pair platform fee logic
+✔ Transport display logic
+✔ Payout UI
+✔ Earnings calculations
+✔ Admin dashboard counters
+✔ WhatsApp notification removal
+
+Do NOT break:
+✔ Existing individual listings
+✔ Existing orders
+✔ Existing ledgers
+✔ Existing payout records
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐟 1. PAIR LISTING LOGIC FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If seller enters:
+✔ Pair Count
+
+Then:
+❌ Male count NOT required
+❌ Female count NOT required
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED SYSTEM BEHAVIOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pair listings represent:
+✔ Equal male + female quantity internally
+
+Example:
+
+Pair Count = 2
+
+Means:
+✔ 2 male
+✔ 2 female
+
+But system should ONLY display:
+✔ 2 Pairs
+
+NOT:
+❌ Male = 2
+❌ Female = 2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 BUYER VIEW REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For pair listings:
+
+Show:
+✔ Pair quantity selector
+
+Do NOT show:
+❌ Male selector
+❌ Female selector
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧾 PET DETAIL PAGE REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For pair listings:
+
+Display:
+✔ Available Pairs: X
+
+NOT:
+❌ Male count
+❌ Female count
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 2. PAIR PRICING LOGIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CRITICAL RULE:
+
+If seller enters:
+
+✔ Pair price = ₹150
+
+That means:
+✔ ONE COMPLETE PAIR costs ₹150
+
+NOT:
+❌ ₹150 per fish
+❌ ₹300 for pair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller adds:
+✔ Pair Count = 2
+✔ Price = ₹150
+
+Buyer buys:
+✔ 1 Pair
+
+Then:
+Buyer item cost = ₹150
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💳 3. PAIR PLATFORM FEE RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For pair listings ONLY:
+
+Buyer platform fee:
+✔ ₹30
+
+Seller platform fee:
+✔ ₹30
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLE CALCULATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller adds:
+✔ 1 pair fish
+✔ Pair price = ₹150
+
+Buyer buys:
+✔ 1 pair
+
+Then:
+
+Buyer pays:
+₹150 + ₹30
+= ₹180
+
+Seller receives:
+₹150 − ₹30
+= ₹120
+
+Platform revenue:
+₹60 total
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 IMPORTANT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This special ₹30 rule applies ONLY for:
+✔ Pair listings
+
+Normal listings still use:
+✔ ₹20 / ₹5 logic
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 4. TRANSPORTER ORDER VIEW FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In transporter pages:
+
+If listing type = PAIR
+
+Show:
+✔ Pair quantity
+
+Example:
+✔ 2 Pair Fish
+
+Do NOT show:
+❌ Male/Female counts
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 5. PAYOUT PAGE UI FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Currently payout page still has:
+❌ QR upload option
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Remove completely:
+❌ QR upload section
+
+Keep ONLY:
+✔ UPI ID field
+
+For:
+✔ Seller payout page
+✔ Transporter payout page
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 6. TRANSPORTER PAYOUT BADGE COLOR FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current issue:
+❌ Blue badge color in payout page
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Change transporter payout badge color to:
+✔ SAME color used in transporter dashboard badges/cards
+
+Maintain:
+✔ Consistent theme
+✔ Professional UI
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 7. TOTAL EARNINGS NOT UPDATING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CRITICAL ISSUE:
+Total earnings are not updating properly in:
+
+✔ Seller payout page
+✔ Transporter payout page
+✔ Admin payout page
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Recalculate earnings using ONLY:
+
+✔ Completed orders
+✔ Paid orders
+
+Do NOT include:
+❌ Cancelled
+❌ Pending payment
+❌ Rejected
+❌ Failed orders
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 SELLER EARNINGS FORMULA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller earnings:
+
+(Item Amount)
+− Seller Platform Fee
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 TRANSPORTER EARNINGS FORMULA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transport earnings:
+
+(Transport Fee)
+− Transport Platform Fee
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 PAIR EARNINGS FORMULA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pair listing seller payout:
+
+(Pair Price)
+− ₹30 seller fee
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚫 8. REMOVE WHATSAPP NOTIFICATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Disable/remove ALL WhatsApp notification logic.
+
+Remove:
+✔ WhatsApp alerts
+✔ WhatsApp messages
+✔ WhatsApp API calls
+✔ WhatsApp triggers
+
+For now:
+✔ Use only in-app notifications
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔔 9. ADMIN DASHBOARD COUNTS FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Counts are not updating correctly in admin dashboard.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Correctly update counts for:
+
+✔ Alerts
+✔ Payments
+✔ Password Reset Requests
+✔ Payout Requests
+✔ Disputes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 COUNTER RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Counts must update:
+✔ Real-time
+✔ After refresh
+✔ After action completed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If:
+3 pending payout requests
+
+Then:
+Payout badge shows:
+✔ 3
+
+After admin clears one:
+✔ 2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 10. REQUIRED TESTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TEST:
+✔ Pair listing works
+✔ Pair quantity displays correctly
+✔ Pair pricing correct
+✔ Pair platform fee correct
+✔ Seller payout correct
+✔ Buyer total correct
+✔ Transport pair display works
+✔ QR removed from payout pages
+✔ UPI ID saves correctly
+✔ Earnings update correctly
+✔ Admin counters update correctly
+✔ WhatsApp completely removed
+✔ Mobile UI works
+✔ Tablet UI works
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The pair system must behave as a REAL pair-sale workflow.
+
+AND
+
+The payout/accounting system must:
+✔ Calculate correctly
+✔ Update live
+✔ Sync with ledgers
+✔ Show proper earnings
+✔ Be production-ready
+✔ Work smoothly on all devices

@@ -12,7 +12,8 @@ export function formatPrice(price: number): string {
   }).format(price);
 }
 
-export function platformFee(price: number): number {
+export function platformFee(price: number, isPair = false): number {
+  if (isPair) return 30;
   return price > 100 ? 20 : 5;
 }
 

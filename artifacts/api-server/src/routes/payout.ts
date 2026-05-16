@@ -10,8 +10,8 @@ const router = Router();
 function calcSellerEarnings(orders: any[]): number {
   return orders.reduce((acc, o) => {
     const subtotal = Number(o.subtotal ?? 0);
-    const platformFee = subtotal > 100 ? 20 : 5;
-    return acc + Math.max(0, subtotal - platformFee);
+    const sellerFee = Number(o.platformFee ?? (subtotal > 100 ? 20 : 5));
+    return acc + Math.max(0, subtotal - sellerFee);
   }, 0);
 }
 
