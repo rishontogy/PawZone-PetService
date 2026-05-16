@@ -91,20 +91,28 @@ router.post("/listings", authMiddleware, async (req, res): Promise<void> => {
   const male = parseInt(String(maleQuantity ?? 0), 10) || 0;
   const female = parseInt(String(femaleQuantity ?? 0), 10) || 0;
   const pairs = parseInt(String(pairCount ?? 0), 10) || 0;
+  const isPairMode = pairs > 0 && male === 0 && female === 0;
   const total = male + female;
-  if (total <= 0) {
-    res.status(400).json({ error: "Add valid quantity: male + female must be > 0" });
+  if (!isPairMode && total <= 0) {
+    res.status(400).json({ error: "Add valid quantity: male + female must be > 0, or enter a pair count." });
     return;
   }
+  if (isPairMode && pairs <= 0) {
+    res.status(400).json({ error: "Pair count must be at least 1." });
+    return;
+  }
+  const finalQuantity = isPairMode ? pairs : total;
+  const finalMale = isPairMode ? 0 : male;
+  const finalFemale = isPairMode ? 0 : female;
 
   const petCode = generatePetCode();
   const [listing] = await db.insert(listingsTable).values({
     ...parsed.data,
     sellerId: user.id,
-    quantity: total,
-    availableQuantity: total,
-    maleQuantity: male,
-    femaleQuantity: female,
+    quantity: finalQuantity,
+    availableQuantity: finalQuantity,
+    maleQuantity: finalMale,
+    femaleQuantity: finalFemale,
     pairCount: pairs,
     age: age !== undefined && age !== "" ? parseInt(String(age), 10) || null : null,
     status: "pending",
@@ -186,22 +194,23 @@ router.put("/listings/:id", authMiddleware, async (req, res): Promise<void> => {
   const updateData: any = { ...parsed.data, status: "pending" };
 
   const { maleQuantity, femaleQuantity, pairCount, age } = req.body as any;
-  if (maleQuantity !== undefined || femaleQuantity !== undefined) {
-    const male = parseInt(String(maleQuantity ?? listing.maleQuantity), 10) || 0;
-    const female = parseInt(String(femaleQuantity ?? listing.femaleQuantity), 10) || 0;
-    const total = male + female;
-    if (total <= 0) {
-      res.status(400).json({ error: "Add valid quantity: male + female must be > 0" });
-      return;
-    }
-    updateData.maleQuantity = male;
-    updateData.femaleQuantity = female;
-    updateData.quantity = total;
-    updateData.availableQuantity = total;
+  const newPairs = pairCount !== undefined ? parseInt(String(pairCount), 10) || 0 : (listing as any).pairCount ?? 0;
+  const newMale = maleQuantity !== undefined ? parseInt(String(maleQuantity), 10) || 0 : listing.maleQuantity;
+  const newFemale = femaleQuantity !== undefined ? parseInt(String(femaleQuantity), 10) || 0 : listing.femaleQuantity;
+  const isPairMode = newPairs > 0 && newMale === 0 && newFemale === 0;
+  const newTotal = newMale + newFemale;
+  if (!isPairMode && newTotal <= 0) {
+    res.status(400).json({ error: "Add valid quantity: male + female must be > 0, or enter a pair count." });
+    return;
   }
-  if (pairCount !== undefined) {
-    updateData.pairCount = parseInt(String(pairCount), 10) || 0;
-  }
+  const finalQuantity = isPairMode ? newPairs : newTotal;
+  const finalMale = isPairMode ? 0 : newMale;
+  const finalFemale = isPairMode ? 0 : newFemale;
+  updateData.maleQuantity = finalMale;
+  updateData.femaleQuantity = finalFemale;
+  updateData.pairCount = newPairs;
+  updateData.quantity = finalQuantity;
+  updateData.availableQuantity = finalQuantity;
   if (age !== undefined) {
     updateData.age = age !== "" ? parseInt(String(age), 10) || null : null;
   }

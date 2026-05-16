@@ -1,0 +1,412 @@
+PAWZONE – COMPLETE PAIR LISTING SYSTEM REBUILD
+
+CRITICAL:
+The pair listing logic is still broken/incomplete.
+
+Completely rebuild the PAIR listing workflow properly across:
+✔ Seller
+✔ Buyer
+✔ Transporter
+✔ Admin
+✔ Cart
+✔ Orders
+✔ Accounting
+✔ Payouts
+✔ Stock management
+
+The pair system must behave as a TRUE pair-based inventory system.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐾 1. CORE PAIR LOGIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When seller enables:
+✔ Pair Count
+
+System must switch listing into:
+✔ PAIR MODE
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ PAIR MODE RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In Pair Mode:
+
+✔ Male count NOT required
+✔ Female count NOT required
+✔ Gender selector NOT required
+
+Internally system understands:
+1 Pair =
+✔ 1 Male
+✔ 1 Female
+
+BUT this should NEVER be shown separately.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller enters:
+
+Pair Count = 3
+Price = ₹150
+
+This means:
+
+✔ 3 sellable pairs available
+✔ Each pair costs ₹150
+
+NOT:
+❌ ₹150 per fish
+❌ ₹300 for one pair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠 2. ADD LISTING PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED UI LOGIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When seller enters Pair Count:
+
+AUTO:
+✔ Hide Male Count field
+✔ Hide Female Count field
+
+OR
+
+Disable them automatically.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 VALIDATION RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IF:
+```js id="x07m1k"
+pairCount > 0
+
+THEN:
+
+maleCount = null
+femaleCount = null
+listingMode = "PAIR"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ INVALID STATES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Prevent:
+❌ Pair count + male/female together
+❌ Negative pair values
+❌ Decimal pair values
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛒 3. BUYER PAGE PAIR FLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For pair listings:
+
+Buyer MUST ONLY see:
+
+✔ Pair quantity selector
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ REMOVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Do NOT show:
+❌ Male selector
+❌ Female selector
+❌ Gender options
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Available:
+✔ 3 Pairs
+
+Buyer UI shows:
+✔ Quantity: [ 1 ] Pair
+
+NOT:
+❌ Male quantity
+❌ Female quantity
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 4. PAIR PRICE CALCULATION FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CRITICAL:
+Pair price logic currently incorrect.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ CORRECT RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller-entered price =
+✔ FULL pair price
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller:
+✔ Pair Count = 2
+✔ Price = ₹150
+
+Buyer buys:
+✔ 1 Pair
+
+Then:
+
+Base cost:
+₹150
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💳 PLATFORM FEES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pair listing fees:
+
+Buyer fee:
+✔ ₹30
+
+Seller fee:
+✔ ₹30
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 FINAL CALCULATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Buyer pays:
+₹150 + ₹30
+= ₹180
+
+Seller receives:
+₹150 − ₹30
+= ₹120
+
+Platform earns:
+₹60
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 APPLY THIS EVERYWHERE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Must correctly update in:
+
+✔ Cart
+✔ Checkout
+✔ Payment summary
+✔ Admin accounting
+✔ Seller payout
+✔ Order details
+✔ Transaction history
+✔ Revenue calculations
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📉 5. PAIR STOCK MANAGEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ STOCK REDUCTION RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Example:
+
+Available:
+✔ 3 Pairs
+
+Buyer buys:
+✔ 1 Pair
+
+Remaining:
+✔ 2 Pairs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚫 AUTO REMOVE RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When:
+
+pairCount === 0
+
+Then:
+✔ Remove product from buyer browse page
+✔ Remove from search
+✔ Remove from cart options
+
+BUT:
+✔ Keep visible in admin records
+✔ Keep visible in seller completed listings
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 6. PET DETAIL PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For pair listings show:
+
+✔ Available Pairs
+✔ Pair Price
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ DO NOT SHOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ Male count
+❌ Female count
+❌ Gender selection
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLE UI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Fish Pair
+Available: 2 Pairs
+Price: ₹150 / Pair
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 7. TRANSPORTER PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For pair listings:
+
+Transporter sees:
+
+✔ 2 Pair Fish
+
+NOT:
+❌ Male/Female counts
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 ORDER DETAILS SHOULD SHOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Pair quantity
+✔ Pair price
+✔ Total pair amount
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠 8. ADMIN PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In Admin Review Listing:
+
+Show:
+✔ Pair Count
+✔ Pair Price
+✔ Age
+✔ Vaccination
+✔ Parent photos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ REMOVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For pair listings:
+❌ Male count display
+❌ Female count display
+❌ Gender field
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 9. ACCOUNTING & PAYOUT FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pair orders must correctly update:
+
+✔ Platform revenue
+✔ Seller payout
+✔ Ledgers
+✔ Admin accounting
+✔ Payout totals
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 SELLER PAYOUT FORMULA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For pair listings:
+
+Seller payout:
+
+pairPrice - 30
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 BUYER TOTAL FORMULA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Buyer total:
+
+pairPrice + 30
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 PLATFORM REVENUE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Platform revenue:
+
+30 + 30
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📱 10. MOBILE/TABLET UI FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure pair listings display properly on:
+✔ Mobile
+✔ Tablet
+✔ Desktop
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 UI REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✔ Pair badge
+✔ Clean quantity selector
+✔ Proper spacing
+✔ Responsive cards
+✔ No overflow
+✔ Premium design
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 11. REQUIRED TEST CASES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TEST:
+✔ Pair mode activates correctly
+✔ Male/female hidden in pair mode
+✔ Pair pricing correct
+✔ Pair quantity reduces correctly
+✔ Pair totals correct
+✔ Buyer payment correct
+✔ Seller payout correct
+✔ Platform revenue correct
+✔ Pair display correct everywhere
+✔ Transport page correct
+✔ Admin page correct
+✔ Mobile view correct
+✔ Tablet view correct
+✔ Auto-remove when sold out works
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The PAIR system must behave like a REAL inventory/order/accounting flow.
+
+No mixed logic.
+No male/female confusion.
+No wrong pricing.
+No wrong stock updates.
+
+Everything must consistently work across:
+✔ Listing
+✔ Cart
+✔ Orders
+✔ Transport
+✔ Admin
+✔ Accounting
+✔ Payouts
+✔ Mobile UI
+✔ Desktop UI

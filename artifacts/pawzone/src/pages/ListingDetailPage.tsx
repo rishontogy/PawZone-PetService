@@ -308,7 +308,8 @@ export function ListingDetailPage() {
   }
 
   const l = listing as any;
-  const isPairOnly = (l.pairCount ?? 0) > 0 && l.availableQuantity === (l.pairCount ?? 0) * 2;
+  const isPairOnly = (l.pairCount ?? 0) > 0 && l.maleQuantity === 0 && l.femaleQuantity === 0;
+  const availablePairs = isPairOnly ? (l.pairCount ?? 0) : 0;
   const fee = platformFee(listing.price, isPairOnly);
   const total = (listing.price + fee) * qty;
 
@@ -412,7 +413,7 @@ export function ListingDetailPage() {
 
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {isPairOnly ? (
-                <span>{l.pairCount} pair{l.pairCount !== 1 ? "s" : ""} available</span>
+                <span className="font-medium text-purple-700">{availablePairs} pair{availablePairs !== 1 ? "s" : ""} available</span>
               ) : (
                 <span>{listing.availableQuantity} of {listing.quantity} available</span>
               )}
@@ -448,9 +449,17 @@ export function ListingDetailPage() {
 
                   if (isPairOnly) {
                     return (
-                      <div className="p-3 bg-purple-50 border border-purple-100 rounded-xl">
-                        <p className="text-sm font-semibold text-purple-700 mb-1">♥ Pair listing — sold as pairs only</p>
-                        <p className="text-xs text-purple-600">{pairQty} pair{pairQty !== 1 ? "s" : ""} available · ₹{listing.price} per pair</p>
+                      <div className="p-4 bg-purple-50 border-2 border-purple-200 rounded-xl space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">♥</span>
+                          <div>
+                            <p className="text-sm font-bold text-purple-800">Pair Listing — Sold as Pairs Only</p>
+                            <p className="text-xs text-purple-600">{availablePairs} pair{availablePairs !== 1 ? "s" : ""} available · ₹{listing.price} per pair</p>
+                          </div>
+                        </div>
+                        <div className="text-xs text-purple-600 bg-white border border-purple-100 rounded-lg px-3 py-2">
+                          Each pair = 1 male + 1 female · Platform fee ₹30 per pair · Seller receives ₹{listing.price - 30}
+                        </div>
                       </div>
                     );
                   }
@@ -547,13 +556,14 @@ export function ListingDetailPage() {
                 {/* Single qty (male/female/pair modes) */}
                 {gender !== "both" && (
                   <div className="flex items-center gap-3">
-                    <label className="text-sm font-medium">Quantity:</label>
+                    <label className="text-sm font-medium">{isPairOnly ? "Pairs:" : "Quantity:"}</label>
                     <div className="flex items-center gap-2">
                       <Button variant="outline" size="sm" onClick={() => setQty(q => Math.max(1, q - 1))}>-</Button>
                       <span className="w-8 text-center font-medium">{qty}</span>
                       <Button variant="outline" size="sm" onClick={() => {
                         const l = listing as any;
-                        const maxQty = gender === "male" ? (l.maleQuantity ?? listing.availableQuantity) :
+                        const maxQty = isPairOnly ? availablePairs :
+                                       gender === "male" ? (l.maleQuantity ?? listing.availableQuantity) :
                                        gender === "female" ? (l.femaleQuantity ?? listing.availableQuantity) :
                                        gender === "pair" ? (l.pairCount ?? 1) :
                                        listing.availableQuantity;

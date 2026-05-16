@@ -300,12 +300,25 @@ export function CartPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h3 className="font-bold text-gray-900">{listing.breed || "Unknown Pet"}</h3>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-bold text-gray-900">{listing.breed || "Unknown Pet"}</h3>
+                            {item.gender === "pair" && (
+                              <span className="text-xs bg-purple-100 text-purple-700 font-semibold px-2 py-0.5 rounded-full">♥ Pair</span>
+                            )}
+                            {item.gender === "male" && (
+                              <span className="text-xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">♂ Male</span>
+                            )}
+                            {item.gender === "female" && (
+                              <span className="text-xs bg-pink-100 text-pink-700 font-semibold px-2 py-0.5 rounded-full">♀ Female</span>
+                            )}
+                          </div>
                           <p className="text-sm text-gray-400 capitalize">{listing.category || ""}</p>
                           {listing.sellerName && <p className="text-xs text-gray-400 mt-0.5">Sold by {listing.sellerName}</p>}
                           <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
                             <Tag className="w-3 h-3" />
-                            {formatPrice(price)} + ₹{platformFee(price)} fee
+                            {item.gender === "pair"
+                              ? `${formatPrice(price)}/pair + ₹30 fee`
+                              : `${formatPrice(price)} + ₹${platformFee(price)} fee`}
                           </div>
                         </div>
                         <button
@@ -336,7 +349,7 @@ export function CartPage() {
                         </div>
                         <div className="text-right">
                           <p className="font-extrabold text-teal-600 text-lg">{formatPrice(itemTotal)}</p>
-                          <p className="text-xs text-gray-400">incl. ₹{platformFee(price) * qty} fee</p>
+                          <p className="text-xs text-gray-400">incl. ₹{itemFee} fee</p>
                         </div>
                       </div>
                     </div>

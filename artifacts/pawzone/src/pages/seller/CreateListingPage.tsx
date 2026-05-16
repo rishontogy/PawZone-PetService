@@ -182,8 +182,13 @@ export function CreateListingPage() {
     const male = parseInt(form.maleQuantity) || 0;
     const female = parseInt(form.femaleQuantity) || 0;
     const pairs = parseInt(form.pairCount) || 0;
-    if (male + female <= 0 && pairs <= 0) {
-      toast({ variant: "destructive", title: "Invalid quantity", description: "Add at least 1 male, female, or pair." });
+    const isPairMode = pairs > 0 && male === 0 && female === 0;
+    if (!isPairMode && male + female <= 0) {
+      toast({ variant: "destructive", title: "Invalid quantity", description: "Enter pair count, or at least 1 male or female." });
+      return;
+    }
+    if (isPairMode && pairs <= 0) {
+      toast({ variant: "destructive", title: "Invalid pair count", description: "Pair count must be at least 1." });
       return;
     }
     if (parentPhotoRequired && !fatherPhoto && !motherPhoto) {
@@ -191,10 +196,9 @@ export function CreateListingPage() {
       return;
     }
     setSubmitting(true);
-    const isPairOnly = pairs > 0 && male === 0 && female === 0;
-    const finalMale = isPairOnly ? pairs : male;
-    const finalFemale = isPairOnly ? pairs : female;
-    const finalQuantity = isPairOnly ? pairs * 2 : male + female;
+    const finalMale = isPairMode ? 0 : male;
+    const finalFemale = isPairMode ? 0 : female;
+    const finalQuantity = isPairMode ? pairs : male + female;
     try {
       const res = await fetch(`${getApiBase()}/listings`, {
         method: "POST",
@@ -269,7 +273,9 @@ export function CreateListingPage() {
               {/* Price + Age */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="font-semibold text-gray-700">Price per pet (₹) *</Label>
+                  <Label className="font-semibold text-gray-700">
+                    {(parseInt(form.pairCount) || 0) > 0 ? "Price per pair (₹) *" : "Price per pet (₹) *"}
+                  </Label>
                   <Input
                     type="number"
                     min="1"
@@ -294,66 +300,83 @@ export function CreateListingPage() {
               </div>
 
               {/* Inventory */}
-              <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                <Label className="font-semibold text-gray-700 block">Inventory *</Label>
-                <p className="text-xs text-gray-500">Enter pair count only, or individual male/female counts. At least one field must be &gt; 0.</p>
-                <div className="space-y-3">
-                  {/* Pair Count — highlighted */}
-                  <div className="p-3 bg-purple-50 border border-purple-200 rounded-xl space-y-1.5">
-                    <Label className="text-sm font-medium text-purple-700">♥ Pair Count (sells as pairs)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      className="rounded-xl border-purple-200 bg-white"
-                      value={form.pairCount}
-                      onChange={(e) => setForm({ ...form, pairCount: e.target.value })}
-                      placeholder="0"
-                    />
-                    <p className="text-xs text-purple-600">If you only sell pairs, enter pair count here and leave male/female as 0.</p>
-                  </div>
-                  {/* Individual counts — only if not pair-only */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-medium text-blue-700">♂ Male (individual)</Label>
+              {(() => {
+                const pairs = parseInt(form.pairCount) || 0;
+                const isPairMode = pairs > 0;
+                return (
+                  <div className="space-y-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <Label className="font-semibold text-gray-700 block">Inventory *</Label>
+                    <p className="text-xs text-gray-500">
+                      {isPairMode
+                        ? "Pair mode active — male/female fields are not needed."
+                        : "Enter individual male/female counts, OR enter a pair count to sell as pairs."}
+                    </p>
+
+                    {/* Pair Count */}
+                    <div className={`p-3 rounded-xl space-y-1.5 ${isPairMode ? "bg-purple-100 border-2 border-purple-400" : "bg-purple-50 border border-purple-200"}`}>
+                      <Label className="text-sm font-semibold text-purple-700">♥ Pair Count (sells as male+female pairs)</Label>
                       <Input
                         type="number"
                         min="0"
-                        className="rounded-xl border-blue-200 bg-white"
-                        value={form.maleQuantity}
-                        onChange={(e) => setForm({ ...form, maleQuantity: e.target.value })}
+                        className="rounded-xl border-purple-300 bg-white"
+                        value={form.pairCount}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setForm({ ...form, pairCount: v, ...(parseInt(v) > 0 ? { maleQuantity: "0", femaleQuantity: "0" } : {}) });
+                        }}
                         placeholder="0"
                       />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-sm font-medium text-pink-600">♀ Female (individual)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        className="rounded-xl border-pink-200 bg-white"
-                        value={form.femaleQuantity}
-                        onChange={(e) => setForm({ ...form, femaleQuantity: e.target.value })}
-                        placeholder="0"
-                      />
-                    </div>
-                  </div>
-                </div>
-                {(() => {
-                  const pairs = parseInt(form.pairCount) || 0;
-                  const male = parseInt(form.maleQuantity) || 0;
-                  const female = parseInt(form.femaleQuantity) || 0;
-                  if (pairs > 0 && male === 0 && female === 0) {
-                    return <p className="text-xs text-purple-700 font-medium">Pair-only listing: {pairs} pair(s) available</p>;
-                  }
-                  if (male + female > 0) {
-                    return (
-                      <p className="text-xs text-blue-600 font-medium">
-                        Total: {male + female} pet(s){pairs > 0 ? ` · ${pairs} bonded pair(s)` : ""}
+                      <p className="text-xs text-purple-600">
+                        {isPairMode
+                          ? `${pairs} pair${pairs !== 1 ? "s" : ""} available · ₹ price is per pair · platform fee ₹30`
+                          : "Enter pair count here to sell in pairs. Male/female fields will be disabled."}
                       </p>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
+                    </div>
+
+                    {/* Individual counts — disabled when pair mode is active */}
+                    <div className={`grid grid-cols-2 gap-3 ${isPairMode ? "opacity-40 pointer-events-none select-none" : ""}`}>
+                      <div className="space-y-1.5">
+                        <Label className="text-sm font-medium text-blue-700">♂ Male (individual)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          className="rounded-xl border-blue-200 bg-white"
+                          value={form.maleQuantity}
+                          onChange={(e) => setForm({ ...form, maleQuantity: e.target.value })}
+                          placeholder="0"
+                          disabled={isPairMode}
+                          tabIndex={isPairMode ? -1 : undefined}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-sm font-medium text-pink-600">♀ Female (individual)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          className="rounded-xl border-pink-200 bg-white"
+                          value={form.femaleQuantity}
+                          onChange={(e) => setForm({ ...form, femaleQuantity: e.target.value })}
+                          placeholder="0"
+                          disabled={isPairMode}
+                          tabIndex={isPairMode ? -1 : undefined}
+                        />
+                      </div>
+                    </div>
+
+                    {isPairMode && (
+                      <div className="flex items-center gap-2 text-xs text-purple-700 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2">
+                        <span className="font-bold">♥</span>
+                        <span>Pair mode: selling {pairs} pair{pairs !== 1 ? "s" : ""} at ₹{form.price || "—"} each. Buyer fee +₹30, Seller fee −₹30.</span>
+                      </div>
+                    )}
+                    {!isPairMode && (parseInt(form.maleQuantity) + parseInt(form.femaleQuantity) > 0) && (
+                      <p className="text-xs text-blue-600 font-medium">
+                        Total: {(parseInt(form.maleQuantity) || 0) + (parseInt(form.femaleQuantity) || 0)} pet(s)
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Description */}
               <div className="space-y-1.5">

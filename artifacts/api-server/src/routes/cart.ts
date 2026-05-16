@@ -10,6 +10,10 @@ function calcPlatformFee(price: number): number {
   return price > 100 ? 20 : 5;
 }
 
+function calcItemFee(price: number, gender: string | null): number {
+  return gender === "pair" ? 30 : calcPlatformFee(price);
+}
+
 async function getCartForUser(userId: number) {
   const items = await db
     .select({ cart: cartTable, listing: listingsTable, sellerName: usersTable.name })
@@ -23,7 +27,7 @@ async function getCartForUser(userId: number) {
 
   const cartItems = items.map(({ cart, listing, sellerName }) => {
     const sub = listing.price * cart.quantity;
-    const fee = calcPlatformFee(listing.price) * cart.quantity;
+    const fee = calcItemFee(listing.price, cart.gender) * cart.quantity;
     subtotal += sub;
     platformFee += fee;
     return {
@@ -68,31 +72,30 @@ router.post("/cart", authMiddleware, async (req, res): Promise<void> => {
     return;
   }
 
-  if (gender === "male" && quantity > listing.maleQuantity) {
-    res.status(400).json({ error: `Only ${listing.maleQuantity} male(s) available` });
-    return;
-  }
-  if (gender === "female" && quantity > listing.femaleQuantity) {
-    res.status(400).json({ error: `Only ${listing.femaleQuantity} female(s) available` });
-    return;
-  }
-  if (gender === "pair") {
-    if (quantity > (listing as any).pairCount) {
-      res.status(400).json({ error: `Only ${(listing as any).pairCount} bonded pair(s) available` });
+  const pairCount = (listing as any).pairCount ?? 0;
+  const isPairListing = pairCount > 0 && listing.maleQuantity === 0 && listing.femaleQuantity === 0;
+
+  if (gender === "pair" || isPairListing) {
+    const availPairs = isPairListing ? listing.availableQuantity : pairCount;
+    if (quantity > availPairs) {
+      res.status(400).json({ error: `Only ${availPairs} pair(s) available` });
       return;
     }
+  } else if (gender === "male") {
     if (quantity > listing.maleQuantity) {
-      res.status(400).json({ error: `Not enough males for ${quantity} pair(s)` });
+      res.status(400).json({ error: `Only ${listing.maleQuantity} male(s) available` });
       return;
     }
+  } else if (gender === "female") {
     if (quantity > listing.femaleQuantity) {
-      res.status(400).json({ error: `Not enough females for ${quantity} pair(s)` });
+      res.status(400).json({ error: `Only ${listing.femaleQuantity} female(s) available` });
       return;
     }
-  }
-  if (!gender && quantity > listing.availableQuantity) {
-    res.status(400).json({ error: "Requested quantity exceeds available stock" });
-    return;
+  } else if (!gender) {
+    if (quantity > listing.availableQuantity) {
+      res.status(400).json({ error: "Requested quantity exceeds available stock" });
+      return;
+    }
   }
 
   const genderVal = gender ?? null;
