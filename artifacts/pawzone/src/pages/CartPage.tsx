@@ -317,7 +317,7 @@ export function CartPage() {
                           <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
                             <Tag className="w-3 h-3" />
                             {item.gender === "pair"
-                              ? `${formatPrice(price)}/pair + ₹30 fee`
+                              ? `${formatPrice(price)}/pair + ₹${platformFee(price, true)} fee`
                               : `${formatPrice(price)} + ₹${platformFee(price)} fee`}
                           </div>
                         </div>

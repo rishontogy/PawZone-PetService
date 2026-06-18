@@ -17,7 +17,7 @@ import { nightRuleStart } from "../lib/nightRule";
 const router = Router();
 
 function calcPlatformFee(price: number, isPair = false): number {
-  if (isPair) return 30;
+  if (isPair) return price >= 200 ? 30 : 15;
   return price > 100 ? 20 : 5;
 }
 

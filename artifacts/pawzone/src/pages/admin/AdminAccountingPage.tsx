@@ -152,7 +152,7 @@ export function AdminAccountingPage() {
               <div className="space-y-3">
                 {[
                   { label: "Buyer Pays", desc: "Full order amount", amount: summary.totalRevenue ?? 0, color: "bg-gray-100 text-gray-700" },
-                  { label: "Platform Keeps", desc: "Service fee (₹5/₹20 per item, ₹30+₹30 for pairs)", amount: summary.totalPlatformFees ?? 0, color: "bg-teal-100 text-teal-700" },
+                  { label: "Platform Keeps", desc: "Service fee (₹5/₹20 per item; pairs: ₹15+₹15 under ₹200, ₹30+₹30 above)", amount: summary.totalPlatformFees ?? 0, color: "bg-teal-100 text-teal-700" },
                   { label: "Seller Receives", desc: "Price minus platform fee & delivery", amount: summary.totalSellerPayouts ?? 0, color: "bg-blue-100 text-blue-700" },
                   { label: "Transporter Receives", desc: "Transport fee minus ₹20/₹40 platform deduction", amount: summary.totalTransporterPayouts ?? 0, color: "bg-purple-100 text-purple-700" },
                 ].map(row => (

@@ -1,0 +1,206 @@
+PAWZONE – FINAL PAIR FEE LOGIC CORRECTION
+
+CRITICAL BUG:
+
+Pair listings are still using the normal pet platform fee calculation.
+
+The Pair Fee Rule is NOT being applied in:
+
+❌ Cart Page
+❌ Checkout Page
+❌ Payment Summary
+❌ Buyer Orders
+❌ Buyer Order Details
+❌ Seller Orders
+❌ Seller Dashboard
+❌ Seller Earnings
+❌ Seller Ledger
+❌ Seller Payout
+❌ Admin Orders
+❌ Admin Accounting
+❌ Admin Revenue
+❌ Admin Ledgers
+❌ Admin Payout
+
+This must be corrected immediately.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAIR FEE RULE (UPDATED)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When:
+
+listingMode = PAIR
+
+Apply the following fee structure:
+
+IF Pair Price < ₹200
+
+Buyer Platform Fee = ₹15
+Seller Platform Fee = ₹15
+
+Total Platform Revenue = ₹30
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+IF Pair Price ≥ ₹200
+
+Buyer Platform Fee = ₹30
+Seller Platform Fee = ₹30
+
+Total Platform Revenue = ₹60
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXAMPLE 1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pair Price = ₹150
+
+Buyer Fee = ₹15
+Seller Fee = ₹15
+
+Buyer Pays:
+₹165
+
+Seller Receives:
+₹135
+
+Platform Revenue:
+₹30
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXAMPLE 2
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pair Price = ₹300
+
+Buyer Fee = ₹30
+Seller Fee = ₹30
+
+Buyer Pays:
+₹330
+
+Seller Receives:
+₹270
+
+Platform Revenue:
+₹60
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CART PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Cart must calculate using pair fee rules.
+
+Example:
+
+Pair Price: ₹150
+Buyer Fee: ₹15
+Transport Fee: ₹400
+
+Total:
+₹565
+
+NOT using normal pet fee logic.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ORDER PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Order Summary must show:
+
+Pair Price
+Buyer Platform Fee
+Transport Fee
+Grand Total
+
+using the pair fee rule.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SELLER SIDE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller earnings must be:
+
+Pair Price − Seller Fee
+
+Example:
+
+Pair Price = ₹150
+
+Seller Fee = ₹15
+
+Seller Receivable = ₹135
+
+NOT ₹150
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADMIN SIDE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every admin calculation must use:
+
+IF pair < ₹200
+
+Platform Revenue = ₹30
+
+IF pair ≥ ₹200
+
+Platform Revenue = ₹60
+
+Affected:
+
+✔ Dashboard
+✔ Revenue Cards
+✔ Recent Orders
+✔ All Orders
+✔ Accounting
+✔ Transactions
+✔ Seller Ledger
+✔ Transporter Ledger
+✔ Payout Calculations
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRANSPORTER CALCULATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+No change to transporter logic.
+
+Transport Fee ≥ ₹200
+
+Platform keeps ₹40
+
+Transporter gets:
+Transport Fee − ₹40
+
+Transport Fee < ₹200
+
+Platform keeps ₹20
+
+Transporter gets:
+Transport Fee − ₹20
+
+These values must still be shown correctly in:
+
+✔ Transporter Orders
+✔ Earnings
+✔ Ledger
+✔ Payout
+✔ Admin Orders
+✔ Admin Accounting
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For ALL Pair Listings:
+
+Price < ₹200:
+Buyer Fee ₹15
+Seller Fee ₹15
+
+Price ≥ ₹200:
+Buyer Fee ₹30
+Seller Fee ₹30
+
+This calculation must automatically update across every page, every ledger, every revenue report, every order summary, every payout calculation, and every admin accounting screen.

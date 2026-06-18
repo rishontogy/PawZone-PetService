@@ -458,7 +458,7 @@ export function ListingDetailPage() {
                           </div>
                         </div>
                         <div className="text-xs text-purple-600 bg-white border border-purple-100 rounded-lg px-3 py-2">
-                          Each pair = 1 male + 1 female · Platform fee ₹30 per pair · Seller receives ₹{listing.price - 30}
+                          Each pair = 1 male + 1 female · Platform fee ₹{platformFee(listing.price, true)} per pair · Seller receives ₹{listing.price - platformFee(listing.price, true)}
                         </div>
                       </div>
                     );

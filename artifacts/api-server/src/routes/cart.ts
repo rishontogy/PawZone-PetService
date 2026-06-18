@@ -11,7 +11,7 @@ function calcPlatformFee(price: number): number {
 }
 
 function calcItemFee(price: number, gender: string | null): number {
-  return gender === "pair" ? 30 : calcPlatformFee(price);
+  return gender === "pair" ? (price >= 200 ? 30 : 15) : calcPlatformFee(price);
 }
 
 async function getCartForUser(userId: number) {

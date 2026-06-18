@@ -13,7 +13,7 @@ export function formatPrice(price: number): string {
 }
 
 export function platformFee(price: number, isPair = false): number {
-  if (isPair) return 30;
+  if (isPair) return price >= 200 ? 30 : 15;
   return price > 100 ? 20 : 5;
 }
 
