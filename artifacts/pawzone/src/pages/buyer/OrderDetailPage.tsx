@@ -461,6 +461,16 @@ export function OrderDetailPage() {
                     <Phone className="w-3 h-3" /> {o.transporterPhone}
                   </a>
                 )}
+                {o.pickupTime && (
+                  <p className="text-xs text-blue-600 flex items-center gap-1 mt-1">
+                    <Clock className="w-3 h-3" /> Pickup: {new Date(o.pickupTime).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
+                  </p>
+                )}
+                {o.deliveryTime && (
+                  <p className="text-xs text-blue-600 flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> Drop: {new Date(o.deliveryTime).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -507,8 +517,8 @@ export function OrderDetailPage() {
                     {formatPrice(Number(item.unitPrice ?? item.price ?? 0))} × {item.quantity ?? 1}
                   </p>
                   {item.gender && (
-                    <span className={`text-xs font-medium ${item.gender === "male" ? "text-blue-600" : "text-pink-600"}`}>
-                      {item.gender === "male" ? "♂ Male" : "♀ Female"}
+                    <span className={`text-xs font-medium ${item.gender === "male" ? "text-blue-600" : item.gender === "pair" ? "text-purple-600" : "text-pink-600"}`}>
+                      {item.gender === "male" ? "♂ Male" : item.gender === "pair" ? "♥ Pair" : "♀ Female"}
                     </span>
                   )}
                   {item.petCode && (

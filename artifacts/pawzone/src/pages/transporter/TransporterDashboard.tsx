@@ -16,11 +16,22 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 
+function nextDateForDay(dayName: string): string {
+  const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  const targetDay = days.indexOf(dayName.toLowerCase());
+  if (targetDay === -1) return new Date().toISOString().slice(0, 10);
+  const today = new Date();
+  const daysUntil = (targetDay - today.getDay() + 7) % 7;
+  const next = new Date(today);
+  next.setDate(today.getDate() + daysUntil);
+  return next.toISOString().slice(0, 10);
+}
+
 export function TransporterDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [acceptingId, setAcceptingId] = useState<number | null>(null);
-  const [acceptForm, setAcceptForm] = useState({ pickupTime: "", deliveryTime: "", transportFee: "" });
+  const [acceptForm, setAcceptForm] = useState({ pickupDate: "", dropDate: "", transportFee: "" });
   const [deleteRouteId, setDeleteRouteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -50,19 +61,29 @@ export function TransporterDashboard() {
   });
 
   const handleOpenAccept = (orderId: number) => {
-    const now = new Date();
-    const fmt = (d: Date) => d.toISOString().slice(0, 16);
-    setAcceptForm({
-      pickupTime: fmt(new Date(now.getTime() + 2 * 3600000)),
-      deliveryTime: fmt(new Date(now.getTime() + 6 * 3600000)),
-      transportFee: "",
-    });
+    const order = orders.find((o: any) => o.id === orderId) as any;
+    let routeDate = new Date().toISOString().slice(0, 10);
+    if (order) {
+      const matchingRoute = routes.find((r: any) => {
+        const cities = [r.startCity, ...(Array.isArray(r.stops) ? r.stops : []), r.endCity]
+          .filter(Boolean)
+          .map((c: string) => c.toLowerCase());
+        return (
+          cities.includes(((order.pickupCity as string) || "").toLowerCase()) &&
+          cities.includes(((order.deliveryCity as string) || "").toLowerCase())
+        );
+      });
+      if (matchingRoute?.dayOfWeek) {
+        routeDate = nextDateForDay(matchingRoute.dayOfWeek);
+      }
+    }
+    setAcceptForm({ pickupDate: routeDate, dropDate: routeDate, transportFee: "" });
     setAcceptingId(orderId);
   };
 
   const handleAcceptSubmit = (orderId: number) => {
-    if (!acceptForm.pickupTime || !acceptForm.deliveryTime) {
-      toast({ variant: "destructive", title: "Required", description: "Please set both pickup and delivery times." });
+    if (!acceptForm.pickupDate || !acceptForm.dropDate) {
+      toast({ variant: "destructive", title: "Required", description: "Please set both pickup and drop dates." });
       return;
     }
     const fee = Number(acceptForm.transportFee);
@@ -73,8 +94,8 @@ export function TransporterDashboard() {
     acceptDelivery.mutate({
       id: orderId,
       data: {
-        pickupTime: new Date(acceptForm.pickupTime) as any,
-        deliveryTime: new Date(acceptForm.deliveryTime) as any,
+        pickupTime: new Date(acceptForm.pickupDate) as any,
+        deliveryTime: new Date(acceptForm.dropDate) as any,
         transportFee: fee,
       } as any,
     });
@@ -348,25 +369,25 @@ export function TransporterDashboard() {
                     {/* Accept form */}
                     {canAccept && acceptingId === order.id && (
                       <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 space-y-3 mb-3">
-                        <p className="text-sm font-semibold text-teal-800">Set Pickup & Delivery Schedule</p>
+                        <p className="text-sm font-semibold text-teal-800">Set Pickup & Drop Schedule</p>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="text-xs text-teal-700 font-medium block mb-1">Pickup Time</label>
+                            <label className="text-xs text-teal-700 font-medium block mb-1">Pickup Date</label>
                             <input
-                              type="datetime-local"
+                              type="date"
                               className="w-full text-sm border border-teal-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
-                              value={acceptForm.pickupTime}
-                              onChange={(e) => setAcceptForm({ ...acceptForm, pickupTime: e.target.value })}
+                              value={acceptForm.pickupDate}
+                              onChange={(e) => setAcceptForm({ ...acceptForm, pickupDate: e.target.value })}
                               data-testid={`input-pickup-time-${order.id}`}
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-teal-700 font-medium block mb-1">Delivery Time</label>
+                            <label className="text-xs text-teal-700 font-medium block mb-1">Drop Date</label>
                             <input
-                              type="datetime-local"
+                              type="date"
                               className="w-full text-sm border border-teal-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
-                              value={acceptForm.deliveryTime}
-                              onChange={(e) => setAcceptForm({ ...acceptForm, deliveryTime: e.target.value })}
+                              value={acceptForm.dropDate}
+                              onChange={(e) => setAcceptForm({ ...acceptForm, dropDate: e.target.value })}
                               data-testid={`input-delivery-time-${order.id}`}
                             />
                           </div>

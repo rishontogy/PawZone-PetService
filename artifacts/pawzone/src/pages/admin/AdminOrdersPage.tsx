@@ -110,7 +110,7 @@ export function AdminOrdersPage() {
             const total = Number(order.totalAmount ?? order.total ?? 0);
             const subtotal = Number(order.subtotal ?? 0);
             const transportFee = Number(order.transportFee ?? 0);
-            const buyerFee = Number(order.buyerFee ?? (subtotal > 100 ? 20 : 5));
+            const buyerFee = Number(order.buyerFee ?? order.platformFee ?? (subtotal > 100 ? 20 : 5));
             const sellerFee = Number(order.sellerFee ?? buyerFee);
             const salePlatformFee = Number(order.salePlatformFee ?? (buyerFee + sellerFee));
             const transportPlatformFee = Number(order.transportPlatformFee ?? order.platformTransportFee ?? 0);
@@ -189,10 +189,10 @@ export function AdminOrdersPage() {
                           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Timeline</p>
                           <p className="text-xs text-gray-600">Placed: {new Date(order.createdAt).toLocaleString("en-IN")}</p>
                           {order.pickupTime && (
-                            <p className="text-xs text-gray-600">Pickup: {new Date(order.pickupTime).toLocaleString("en-IN")}</p>
+                            <p className="text-xs text-gray-600">Pickup Date: {new Date(order.pickupTime).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
                           )}
                           {order.deliveryTime && (
-                            <p className="text-xs text-gray-600">Delivered: {new Date(order.deliveryTime).toLocaleString("en-IN")}</p>
+                            <p className="text-xs text-gray-600">Drop Date: {new Date(order.deliveryTime).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
                           )}
                         </div>
                       </div>

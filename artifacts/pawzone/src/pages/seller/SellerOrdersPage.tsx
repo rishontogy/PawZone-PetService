@@ -191,7 +191,7 @@ export function SellerOrdersPage() {
                                       <p className="text-sm font-semibold text-gray-900 truncate">{item.breed ?? item.name ?? "Pet"}</p>
                                       <p className="text-xs text-gray-500">
                                         {formatPrice(Number(item.unitPrice ?? 0))} × {item.quantity}
-                                        {item.gender && <span className={`ml-1 ${item.gender === "male" ? "text-blue-600" : "text-pink-600"}`}>{item.gender === "male" ? "♂" : "♀"}</span>}
+                                        {item.gender && <span className={`ml-1 ${item.gender === "male" ? "text-blue-600" : item.gender === "pair" ? "text-purple-600" : "text-pink-600"}`}>{item.gender === "male" ? "♂" : item.gender === "pair" ? "♥ Pair" : "♀"}</span>}
                                       </p>
                                       {item.petCode && (
                                         <div className="flex items-center gap-1 mt-0.5">
@@ -254,13 +254,13 @@ export function SellerOrdersPage() {
                               {order.pickupTime && (
                                 <p className="text-xs text-gray-600 flex items-center gap-2 mt-1">
                                   <Clock className="w-3.5 h-3.5 text-blue-400" />
-                                  Pickup: {new Date(order.pickupTime).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                  Pickup Date: {new Date(order.pickupTime).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                                 </p>
                               )}
                               {order.deliveryTime && (
                                 <p className="text-xs text-gray-600 flex items-center gap-2">
                                   <CheckCircle className="w-3.5 h-3.5 text-blue-400" />
-                                  Est. delivery: {new Date(order.deliveryTime).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                  Drop Date: {new Date(order.deliveryTime).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                                 </p>
                               )}
                             </div>

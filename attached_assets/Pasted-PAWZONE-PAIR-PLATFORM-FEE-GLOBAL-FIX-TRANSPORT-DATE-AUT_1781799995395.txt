@@ -1,0 +1,367 @@
+PAWZONE – PAIR PLATFORM FEE GLOBAL FIX + TRANSPORT DATE AUTO UPDATE
+
+CRITICAL ISSUE 1:
+Pair platform fee logic is only showing correctly on the pet/product page.
+
+It is NOT being applied consistently across:
+❌ Cart
+❌ Checkout
+❌ Order Details
+❌ Seller Orders
+❌ Seller Dashboard
+❌ Transporter Orders
+❌ Admin Orders
+❌ Accounting
+❌ Ledger
+❌ Revenue
+❌ Payout
+
+This must be fixed globally.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐾 1. PAIR PLATFORM FEE MASTER RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For PAIR listings ONLY:
+
+Buyer Platform Fee:
+✔ ₹30
+
+Seller Platform Fee:
+✔ ₹30
+
+Total Platform Revenue:
+✔ ₹60
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pair Price:
+₹150
+
+Buyer pays:
+₹150 + ₹30
+= ₹180
+
+Seller receives:
+₹150 - ₹30
+= ₹120
+
+Platform earns:
+₹60
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠ CURRENT ISSUE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+System is still using normal pet fee calculations in many places.
+
+Remove all old fee calculations for pair listings.
+
+Whenever:
+
+listingMode = PAIR
+
+Use ONLY pair fee rules.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛒 2. CART PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For pair listings show:
+
+Pair Price:
+₹150
+
+Buyer Platform Fee:
+₹30
+
+Subtotal:
+₹180
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ DO NOT SHOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Wrong calculations based on:
+❌ Normal pet fee
+❌ Male/Female count
+❌ Quantity multipliers unrelated to pair logic
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 3. CHECKOUT / PAYMENT PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Payment Summary must show:
+
+Pair Amount
+Buyer Platform Fee
+Transport Fee
+Grand Total
+
+Example:
+
+Pair Amount: ₹150
+Buyer Platform Fee: ₹30
+Transport Fee: ₹400
+
+Total:
+₹580
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 4. BUYER ORDER DETAILS FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Order details must show:
+
+Pair Price
+Pair Quantity
+Buyer Platform Fee
+Transport Fee
+Amount Paid
+
+Correct pair calculations everywhere.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏪 5. SELLER SIDE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller Orders
+Seller Dashboard
+Seller Recent Orders
+Seller Revenue
+Seller Ledger
+
+Must show:
+
+Gross Sale:
+₹150
+
+Seller Platform Fee:
+₹30
+
+Seller Receivable:
+₹120
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ DO NOT SHOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Wrong values:
+❌ ₹150 payout
+❌ Normal fee deductions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 6. TRANSPORTER SIDE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transport fee calculations must remain independent.
+
+Example:
+
+Transport Fee:
+₹400
+
+Platform Transport Fee:
+₹40
+
+Transporter Receives:
+₹360
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 PAIR FEE MUST NOT BREAK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transport calculations.
+
+Both calculations must exist simultaneously:
+
+Pair Revenue:
+₹60
+
+Transport Revenue:
+₹40
+
+Platform Total:
+₹100
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👨‍💼 7. ADMIN PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Update ALL admin calculations.
+
+Affected pages:
+
+✔ Dashboard
+✔ Recent Orders
+✔ All Orders
+✔ Accounting
+✔ Overview
+✔ Transaction History
+✔ Seller Ledger
+✔ Transport Ledger
+✔ Revenue Reports
+✔ Payouts
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pair Price:
+₹150
+
+Transport:
+₹400
+
+Buyer pays:
+₹580
+
+Seller gets:
+₹120
+
+Transporter gets:
+₹360
+
+Platform gets:
+₹100
+
+Admin pages must display exactly these values.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 8. TRANSPORTER ACCEPT ORDER PAGE UPDATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current fields:
+
+❌ Pickup Time
+❌ Drop Time
+
+Remove completely.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REPLACE WITH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pickup Date
+
+Drop Date
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📅 AUTO DATE LOGIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter already chooses route/day.
+
+Use that selected route day automatically.
+
+Example:
+
+Today:
+18/06/2026 (Thursday)
+
+Transporter's selected route:
+20/06/2026 (Saturday)
+
+Automatically populate:
+
+Pickup Date:
+20/06/2026
+
+Drop Date:
+20/06/2026
+
+No manual entry required.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 ANOTHER EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Route saved for:
+
+22/06/2026
+
+Order accepted.
+
+System auto-fills:
+
+Pickup Date:
+22/06/2026
+
+Drop Date:
+22/06/2026
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ REMOVE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+No time fields.
+
+Do not request:
+
+❌ 10:00 AM
+❌ 2:00 PM
+
+Only dates.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔔 9. ORDER DETAILS UPDATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After transporter accepts:
+
+Buyer sees:
+
+Transporter Name
+Phone Number
+Pickup Date
+Drop Date
+
+Seller sees:
+
+Transporter Name
+Phone Number
+Pickup Date
+Drop Date
+
+Admin sees:
+
+Transporter Name
+Phone Number
+Pickup Date
+Drop Date
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 10. REQUIRED TESTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TEST:
+
+✔ Pair fee applied everywhere
+✔ Cart correct
+✔ Checkout correct
+✔ Buyer order correct
+✔ Seller revenue correct
+✔ Seller ledger correct
+✔ Admin revenue correct
+✔ Accounting correct
+✔ Payout correct
+✔ Transport fee correct
+✔ Platform fee correct
+✔ Pickup date auto-fills
+✔ Drop date auto-fills
+✔ No time fields remain
+✔ Mobile view correct
+✔ Tablet view correct
+✔ Desktop view correct
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PAIR listings must use the ₹30 buyer + ₹30 seller fee model globally across the entire application.
+
+AND
+
+Transporter acceptance must be date-based only, automatically using the route date, with no manual time entry anywhere in the system.
