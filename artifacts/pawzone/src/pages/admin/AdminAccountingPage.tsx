@@ -152,9 +152,9 @@ export function AdminAccountingPage() {
               <div className="space-y-3">
                 {[
                   { label: "Buyer Pays", desc: "Full order amount", amount: summary.totalRevenue ?? 0, color: "bg-gray-100 text-gray-700" },
-                  { label: "Platform Keeps", desc: "Service fee (₹5 or ₹20 per item)", amount: summary.totalPlatformFees ?? 0, color: "bg-teal-100 text-teal-700" },
+                  { label: "Platform Keeps", desc: "Service fee (₹5/₹20 per item, ₹30+₹30 for pairs)", amount: summary.totalPlatformFees ?? 0, color: "bg-teal-100 text-teal-700" },
                   { label: "Seller Receives", desc: "Price minus platform fee & delivery", amount: summary.totalSellerPayouts ?? 0, color: "bg-blue-100 text-blue-700" },
-                  { label: "Transporter Receives", desc: "85% of delivery fee", amount: summary.totalTransporterPayouts ?? 0, color: "bg-purple-100 text-purple-700" },
+                  { label: "Transporter Receives", desc: "Transport fee minus ₹20/₹40 platform deduction", amount: summary.totalTransporterPayouts ?? 0, color: "bg-purple-100 text-purple-700" },
                 ].map(row => (
                   <div key={row.label} className="flex items-center gap-4">
                     <div className="flex-1">
@@ -269,7 +269,7 @@ export function AdminAccountingPage() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-50">
               <h2 className="font-bold text-gray-900">Transporter Ledger</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Delivery earnings per transporter (85% of delivery fee)</p>
+              <p className="text-xs text-gray-500 mt-0.5">Delivery earnings per transporter (transport fee minus ₹20/₹40 platform deduction)</p>
             </div>
             <div className="divide-y divide-gray-50">
               {transporterLedger.length === 0 && (

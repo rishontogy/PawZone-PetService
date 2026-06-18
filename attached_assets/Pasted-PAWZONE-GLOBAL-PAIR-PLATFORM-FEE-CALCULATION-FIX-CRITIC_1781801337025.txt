@@ -1,0 +1,318 @@
+PAWZONE – GLOBAL PAIR PLATFORM FEE CALCULATION FIX
+
+CRITICAL ISSUE:
+
+Pair platform fee is currently only showing correctly on the Pet Detail/Product page.
+
+The pair fee logic is NOT propagating to the rest of the system.
+
+This must be fixed globally and consistently across ALL modules.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐾 PAIR FEE MASTER RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For listings in PAIR MODE:
+
+Buyer Platform Fee:
+₹30
+
+Seller Platform Fee:
+₹30
+
+Total Platform Revenue:
+₹60 per pair sold
+
+This rule must override normal pet fee calculations.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller Listing:
+
+Pair Count = 2
+Price Per Pair = ₹150
+
+Buyer Purchases:
+
+1 Pair
+
+Calculations:
+
+Pet Amount:
+₹150
+
+Buyer Platform Fee:
+₹30
+
+Buyer Pays:
+₹180
+
+Seller Platform Fee:
+₹30
+
+Seller Receives:
+₹120
+
+Platform Revenue:
+₹60
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛒 CART PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For pair listings show:
+
+Pet Amount
+Buyer Platform Fee
+Transport Fee
+Grand Total
+
+Example:
+
+Pet Amount:
+₹150
+
+Buyer Platform Fee:
+₹30
+
+Transport Fee:
+₹400
+
+Total:
+₹580
+
+Currently the cart is still using standard fee logic.
+Replace it with pair fee logic whenever listingMode = PAIR.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 CHECKOUT PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Payment Summary must display:
+
+Pair Amount
+Buyer Platform Fee
+Transport Fee
+Total
+
+All calculations must use pair rules.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 BUYER ORDER PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Order Details must show:
+
+Pair Quantity
+Pair Price
+Buyer Platform Fee
+Transport Fee
+Total Paid
+
+Currently showing incorrect fee values.
+Recalculate from stored order data.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏪 SELLER PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Affected Sections:
+
+✔ Dashboard
+✔ Recent Orders
+✔ Orders Page
+✔ Earnings
+✔ Transaction History
+✔ Ledger
+✔ Payout Page
+
+For pair orders:
+
+Gross Sale:
+₹150
+
+Seller Fee:
+₹30
+
+Seller Earnings:
+₹120
+
+Do not show full ₹150 as earnings.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 TRANSPORTER PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transport calculations must remain independent.
+
+Example:
+
+Transport Fee:
+₹400
+
+Platform Deduction:
+₹40
+
+Transporter Receives:
+₹360
+
+Show these values correctly in:
+
+✔ Delivery Requests
+✔ Active Orders
+✔ Order Details
+✔ Earnings
+✔ Ledger
+✔ Payout
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👨‍💼 ADMIN PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Update calculations everywhere:
+
+✔ Dashboard
+✔ Alerts
+✔ Recent Orders
+✔ All Orders
+✔ Accounting
+✔ Overview
+✔ Revenue Reports
+✔ Transaction History
+✔ Seller Ledger
+✔ Transporter Ledger
+✔ Payout Section
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 ADMIN ORDER EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pair Price:
+₹150
+
+Transport:
+₹400
+
+Buyer Fee:
+₹30
+
+Seller Fee:
+₹30
+
+Transport Fee Deduction:
+₹40
+
+Buyer Paid:
+₹580
+
+Seller Receives:
+₹120
+
+Transporter Receives:
+₹360
+
+Platform Revenue:
+₹100
+
+(Admin must see these exact values.)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 REVENUE CALCULATION FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Platform Revenue Formula:
+
+Pair Listing:
+
+Buyer Fee + Seller Fee
+
+₹30 + ₹30
+= ₹60
+
+Add Transport Revenue:
+
+If transport fee ≥ ₹200
+
+₹60 + ₹40
+= ₹100
+
+If transport fee < ₹200
+
+₹60 + ₹20
+= ₹80
+
+Only PAID orders should affect revenue.
+
+Never include:
+
+❌ Unpaid
+❌ Pending Payment
+❌ Cancelled
+
+orders in revenue totals.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 PAYOUT PAGE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller payout balance must use:
+
+Pair Price − Seller Fee
+
+Transporter payout balance must use:
+
+Transport Fee − Platform Deduction
+
+Update:
+
+✔ Seller payout card
+✔ Transport payout card
+✔ Admin payout page
+✔ Ledgers
+✔ Transaction records
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 REQUIRED VERIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Verify pair fee updates correctly in:
+
+✔ Product Page
+✔ Cart
+✔ Checkout
+✔ Buyer Orders
+✔ Buyer Order Details
+✔ Seller Dashboard
+✔ Seller Orders
+✔ Seller Earnings
+✔ Seller Ledger
+✔ Seller Payout
+✔ Transporter Orders
+✔ Transporter Earnings
+✔ Transporter Ledger
+✔ Transporter Payout
+✔ Admin Dashboard
+✔ Admin Orders
+✔ Admin Accounting
+✔ Admin Revenue
+✔ Admin Transaction History
+✔ Admin Payout
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The Pair Fee System must be centralized.
+
+Whenever:
+
+listingMode = "PAIR"
+
+Use:
+
+Buyer Fee = ₹30
+Seller Fee = ₹30
+
+and automatically update every amount, revenue, payout, ledger, transaction, dashboard card, order summary, accounting record, and admin calculation throughout the entire application.
