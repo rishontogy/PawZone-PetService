@@ -1,0 +1,250 @@
+PAWZONE – PAIR CALCULATION CONSISTENCY FIX (HIGH PRIORITY)
+
+CRITICAL ISSUE:
+
+The system is still not consistently identifying PAIR listings.
+
+Current behavior:
+
+Product Page:
+₹4000 Pair
+Buyer Fee = ₹30
+Shown Total = ₹4030 ✅
+
+Cart Page:
+₹4000 Pair
+Buyer Fee becomes ₹20 ❌
+
+Seller Side:
+Seller Fee becomes ₹20 ❌
+
+Admin Side:
+Platform Revenue calculated using normal pet rules ❌
+
+This means different pages are using different fee engines.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ROOT CAUSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Some pages are checking:
+
+petType
+
+instead of:
+
+listingMode = PAIR
+
+or
+
+pairCount > 0
+
+As a result:
+
+Product Page identifies correctly.
+
+Cart / Orders / Seller / Admin do not.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MASTER PAIR DETECTION RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+A listing is a PAIR listing if:
+
+pairCount > 0
+
+OR
+
+listingMode = "PAIR"
+
+This must be the ONLY condition used throughout the entire application.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAIR PLATFORM RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For every PAIR listing:
+
+Price ≥ ₹200
+
+Buyer Fee = ₹30
+Seller Fee = ₹30
+
+Platform Revenue = ₹60
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Price < ₹200
+
+Buyer Fee = ₹15
+Seller Fee = ₹15
+
+Platform Revenue = ₹30
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pair Price:
+₹4000
+
+Buyer Pays:
+₹4030
+
+Seller Receives:
+₹3970
+
+Platform Revenue:
+₹60
+
+These exact values must appear everywhere.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX ALL MODULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BUYER
+
+✔ Product Page
+✔ Cart
+✔ Checkout
+✔ Payment Summary
+✔ Orders
+✔ Order Details
+✔ Notifications
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SELLER
+
+✔ Dashboard
+✔ Recent Orders
+✔ Orders
+✔ Earnings
+✔ Revenue Cards
+✔ Ledger
+✔ Payout Page
+✔ Transaction History
+
+Example:
+
+Sale Amount:
+₹4000
+
+Seller Fee:
+₹30
+
+Seller Receivable:
+₹3970
+
+NOT ₹3980
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TRANSPORTER
+
+No change to pair fee.
+
+Transport fee logic remains:
+
+Transport < ₹200
+Platform = ₹20
+
+Transport ≥ ₹200
+Platform = ₹40
+
+But order details must still correctly display pair pricing.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ADMIN
+
+✔ Dashboard
+✔ Recent Orders
+✔ All Orders
+✔ Accounting
+✔ Revenue
+✔ Transactions
+✔ Alerts
+✔ Seller Ledger
+✔ Transport Ledger
+✔ Payout Calculations
+
+Example:
+
+Pair Price:
+₹4000
+
+Buyer Fee:
+₹30
+
+Seller Fee:
+₹30
+
+Platform Revenue:
+₹60
+
+Must NOT show ₹40 revenue.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATABASE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When order is created save:
+
+orderType = "PAIR"
+
+buyerPlatformFee = 30
+sellerPlatformFee = 30
+
+(or 15/15 if price below ₹200)
+
+Then ALL pages must read from the saved order values.
+
+Do not recalculate differently on each page.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VALIDATION TEST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Create:
+
+Pair Count = 2
+Price = ₹4000
+
+Verify:
+
+Product Page:
+Buyer pays ₹4030
+
+Cart:
+Buyer pays ₹4030
+
+Order:
+Buyer pays ₹4030
+
+Seller Receives:
+₹3970
+
+Admin Revenue:
+₹60
+
+Ledger:
+₹3970 seller payout
+
+Transaction:
+₹60 platform revenue
+
+All values must match exactly.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If a listing has Pair Count / Pair Mode:
+
+The entire application must treat it as a PAIR ORDER.
+
+No page may fall back to normal pet fee logic.
+
+The pair fee (₹30 buyer + ₹30 seller for price ≥ ₹200, ₹15 + ₹15 for price < ₹200) must be reflected consistently across Buyer, Seller, Transporter, Admin, Orders, Ledgers, Revenue, Transactions, Payouts, and Alerts.

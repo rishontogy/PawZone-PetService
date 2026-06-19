@@ -10,8 +10,8 @@ function calcPlatformFee(price: number): number {
   return price > 100 ? 20 : 5;
 }
 
-function calcItemFee(price: number, gender: string | null): number {
-  return gender === "pair" ? (price >= 200 ? 30 : 15) : calcPlatformFee(price);
+function calcItemFee(price: number, gender: string | null, isPairListing = false): number {
+  return (gender === "pair" || isPairListing) ? (price >= 200 ? 30 : 15) : calcPlatformFee(price);
 }
 
 async function getCartForUser(userId: number) {
@@ -27,7 +27,8 @@ async function getCartForUser(userId: number) {
 
   const cartItems = items.map(({ cart, listing, sellerName }) => {
     const sub = listing.price * cart.quantity;
-    const fee = calcItemFee(listing.price, cart.gender) * cart.quantity;
+    const isPairListing = (listing.pairCount ?? 0) > 0 && listing.maleQuantity === 0 && listing.femaleQuantity === 0;
+    const fee = calcItemFee(listing.price, cart.gender, isPairListing) * cart.quantity;
     subtotal += sub;
     platformFee += fee;
     return {

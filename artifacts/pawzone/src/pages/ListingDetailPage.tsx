@@ -220,7 +220,7 @@ export function ListingDetailPage() {
   const handleAddToCart = async () => {
     if (!listing) return;
     const listingData = listing as any;
-    const pairOnlyCheck = (listingData.pairCount ?? 0) > 0 && listing.availableQuantity === (listingData.pairCount ?? 0) * 2;
+    const pairOnlyCheck = (listingData.pairCount ?? 0) > 0 && (listingData.maleQuantity ?? 0) === 0 && (listingData.femaleQuantity ?? 0) === 0;
     const effectiveGender = pairOnlyCheck ? "pair" : gender;
     const hasMale = (listingData.maleQuantity ?? 0) > 0;
     const hasFemale = (listingData.femaleQuantity ?? 0) > 0;

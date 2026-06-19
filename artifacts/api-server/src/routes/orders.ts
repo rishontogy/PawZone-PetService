@@ -164,7 +164,8 @@ router.post("/orders", authMiddleware, async (req, res): Promise<void> => {
   let subtotal = 0;
   let platformFee = 0;
   for (const { cart, listing } of cartItems) {
-    const isPair = (cart.gender as string) === "pair";
+    const isPairListing = (listing.pairCount ?? 0) > 0 && listing.maleQuantity === 0 && listing.femaleQuantity === 0;
+    const isPair = (cart.gender as string) === "pair" || isPairListing;
     subtotal += listing.price * cart.quantity;
     platformFee += calcPlatformFee(listing.price, isPair) * cart.quantity;
   }
