@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor, statusLabel } from "@/lib/api";
 import {
   Package, Clock, User, CheckCircle, ChevronDown, ChevronUp,
-  AlertCircle, X, Check, Video, Upload, Phone, Truck, IndianRupee, Shield
+  AlertCircle, X, Check, Video, Upload, Phone, Truck, IndianRupee, Shield, MapPin
 } from "lucide-react";
 
 export function SellerOrdersPage() {
