@@ -37,13 +37,13 @@ export interface SignupBody {
   role: SignupBodyRole;
   name: string;
   email: string;
-  phone: string;
+  phone?: string;
   password: string;
-  address: string;
-  city: string;
-  state: string;
-  pincode: string;
-  country: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  country?: string;
   latitude?: number;
   longitude?: number;
 }

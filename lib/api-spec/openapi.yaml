@@ -1220,13 +1220,7 @@ components:
         - role
         - name
         - email
-        - phone
         - password
-        - address
-        - city
-        - state
-        - pincode
-        - country
 
     AuthResponse:
       type: object

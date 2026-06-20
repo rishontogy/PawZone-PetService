@@ -1,0 +1,235 @@
+PAWZONE – REGISTRATION FAILED ERROR (CRITICAL FIX)
+
+ISSUE:
+
+During signup the system shows:
+
+"Registration Failed. Please try again."
+
+Users cannot create accounts.
+
+This must be investigated and fixed immediately.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 – CHECK ACTUAL ERROR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Do not show generic:
+
+❌ Registration Failed
+
+Instead capture and display the real error.
+
+Examples:
+
+✔ Email already exists
+✔ Phone number already exists
+✔ Invalid image upload
+✔ Missing required field
+✔ Database insert failed
+✔ Storage upload failed
+✔ Permission denied
+✔ Row Level Security blocked request
+
+Log the actual error in browser console and server logs.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 – VERIFY DATABASE INSERT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Check whether signup data is reaching database.
+
+Verify:
+
+✔ buyers table
+✔ sellers table
+✔ transporters table
+✔ profiles table
+
+Confirm:
+
+INSERT permissions exist.
+
+Check if RLS policies are blocking inserts.
+
+Common cause:
+
+INSERT policy missing
+
+Result:
+
+auth user created
+but profile insert fails
+
+leading to:
+
+Registration Failed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 – CHECK IMAGE/DOCUMENT UPLOAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller Signup:
+
+Gov ID upload
+
+Transporter Signup:
+
+Gov ID upload
+RC Book upload
+
+If storage upload fails:
+
+Signup should NOT crash.
+
+Display:
+
+"Document upload failed."
+
+instead of:
+
+"Registration Failed."
+
+Verify:
+
+✔ Storage bucket exists
+✔ Public/private permissions correct
+✔ Upload API working
+✔ File size limit reasonable
+✔ Accepted file types correct
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 – CHECK UNIQUE CONSTRAINTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Verify:
+
+Email uniqueness
+
+Phone uniqueness
+
+Example:
+
+If same phone exists:
+
+Show:
+
+"This phone number is already registered."
+
+instead of generic failure.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 – FIELD VALIDATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Verify:
+
+Full Name:
+Only alphabets and spaces
+
+Phone:
+Numbers only
+
+Email:
+Valid format
+
+Pincode:
+Numbers only
+
+District:
+Required
+
+Town:
+Required
+
+Role:
+Required
+
+Do not submit invalid payload.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 – ROLE CREATION FLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Buyer Signup:
+
+Create Auth User
+Create Profile
+Login Success
+
+Seller Signup:
+
+Create Auth User
+Create Profile
+Save Gov ID
+Status = Pending Approval
+
+Transporter Signup:
+
+Create Auth User
+Create Profile
+Save Gov ID
+Save RC Book
+Status = Pending Approval
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 – ADMIN APPROVAL FLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After successful signup:
+
+Seller:
+Visible in Admin Approval
+
+Transporter:
+Visible in Admin Approval
+
+Buyer:
+Direct access
+
+No approval required.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 8 – DEBUG LOGGING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Temporarily add:
+
+console.error()
+
+for:
+
+Auth creation
+
+Database insert
+
+Storage upload
+
+Document upload
+
+Profile creation
+
+Role creation
+
+This will reveal the exact failing step.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Signup must successfully create:
+
+✔ Buyer accounts
+✔ Seller accounts
+✔ Transporter accounts
+
+with:
+
+✔ Profile saved
+✔ Documents uploaded
+✔ Correct role assigned
+✔ Admin approval workflow working
+
+and show the REAL error message instead of the generic:
+
+"Registration Failed. Please try again."
