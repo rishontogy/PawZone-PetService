@@ -471,6 +471,16 @@ export function OrderDetailPage() {
                     <Clock className="w-3 h-3" /> Drop: {new Date(o.deliveryTime).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
                   </p>
                 )}
+                {paymentStatusVal === "paid" && o.liveLocationUrl && (
+                  <a
+                    href={o.liveLocationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1.5 bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <MapPin className="w-3 h-3" /> Track Transporter
+                  </a>
+                )}
               </div>
             </div>
           </div>

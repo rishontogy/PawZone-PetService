@@ -588,4 +588,36 @@ router.post("/transporter/orders/:id/deliver", authMiddleware, async (req, res):
   res.json({ ...updated, buyerName: buyer?.name ?? "", sellerName: seller?.name ?? "" });
 });
 
+router.get("/transporter/location", authMiddleware, async (req, res): Promise<void> => {
+  const user = (req as any).user;
+  if (user.role !== "transporter") {
+    res.status(403).json({ error: "Only transporters can view their live location" });
+    return;
+  }
+  const [u] = await db.select({ liveLocationUrl: usersTable.liveLocationUrl })
+    .from(usersTable).where(eq(usersTable.id, user.id));
+  res.json({ liveLocationUrl: u?.liveLocationUrl ?? null });
+});
+
+router.put("/transporter/location", authMiddleware, async (req, res): Promise<void> => {
+  const user = (req as any).user;
+  if (user.role !== "transporter") {
+    res.status(403).json({ error: "Only transporters can update live location" });
+    return;
+  }
+  const raw = (req.body as any)?.liveLocationUrl;
+  const url = typeof raw === "string" ? raw.trim() || null : null;
+  if (url) {
+    try { new URL(url); } catch {
+      res.status(400).json({ error: "Invalid URL format. Please enter a valid Google Maps or tracking link." });
+      return;
+    }
+  }
+  const [updated] = await db.update(usersTable)
+    .set({ liveLocationUrl: url })
+    .where(eq(usersTable.id, user.id))
+    .returning({ liveLocationUrl: usersTable.liveLocationUrl });
+  res.json({ liveLocationUrl: updated?.liveLocationUrl ?? null });
+});
+
 export default router;

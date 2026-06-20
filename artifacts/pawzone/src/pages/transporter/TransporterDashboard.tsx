@@ -12,16 +12,20 @@ import {
 import {
   Truck, MapPin, Package, PlusCircle, ArrowRight, Clock, CheckCircle,
   AlertCircle, Pencil, Trash2, Upload, IndianRupee,
-  ChevronDown, ChevronUp, User, Phone, Wallet,
+  ChevronDown, ChevronUp, User, Phone, Wallet, Navigation, XCircle,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 function nextDateForDay(dayName: string): string {
   const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
   const targetDay = days.indexOf(dayName.toLowerCase());
   if (targetDay === -1) return new Date().toISOString().slice(0, 10);
   const today = new Date();
-  const daysUntil = (targetDay - today.getDay() + 7) % 7;
+  let daysUntil = (targetDay - today.getDay() + 7) % 7;
+  // 7 AM cutoff: if today is the route day but it's already past 7 AM, skip to next week
+  if (daysUntil === 0 && today.getHours() >= 7) {
+    daysUntil = 7;
+  }
   const next = new Date(today);
   next.setDate(today.getDate() + daysUntil);
   return next.toISOString().slice(0, 10);
@@ -35,6 +39,10 @@ export function TransporterDashboard() {
   const [deleteRouteId, setDeleteRouteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [liveLocationUrl, setLiveLocationUrl] = useState<string | null>(null);
+  const [locationInput, setLocationInput] = useState("");
+  const [savingLocation, setSavingLocation] = useState(false);
+  const [locationLoaded, setLocationLoaded] = useState(false);
 
   const { data: dash } = useGetTransporterDashboard({ query: { enabled: !!user, refetchInterval: 30000 } });
   const { data: routesData, refetch: refetchRoutes } = useGetTransporterRoutes({ query: { enabled: !!user, refetchInterval: 30000 } });
@@ -99,6 +107,67 @@ export function TransporterDashboard() {
         transportFee: fee,
       } as any,
     });
+  };
+
+  useEffect(() => {
+    if (!user || locationLoaded) return;
+    const token = localStorage.getItem("pawzone_token");
+    fetch("/api/transporter/location", { headers: { Authorization: `Bearer ${token ?? ""}` } })
+      .then((r) => r.json())
+      .then((d) => {
+        setLiveLocationUrl(d.liveLocationUrl ?? null);
+        setLocationInput(d.liveLocationUrl ?? "");
+        setLocationLoaded(true);
+      })
+      .catch(() => setLocationLoaded(true));
+  }, [user, locationLoaded]);
+
+  const handleSaveLocation = async () => {
+    const url = locationInput.trim();
+    setSavingLocation(true);
+    try {
+      const token = localStorage.getItem("pawzone_token");
+      const res = await fetch("/api/transporter/location", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+        body: JSON.stringify({ liveLocationUrl: url || null }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast({ variant: "destructive", title: "Error", description: data?.error || "Failed to update location" });
+        return;
+      }
+      setLiveLocationUrl(data.liveLocationUrl ?? null);
+      setLocationInput(data.liveLocationUrl ?? "");
+      toast({ title: data.liveLocationUrl ? "Live location updated" : "Live location cleared", description: data.liveLocationUrl ? "Buyers and sellers can now track you." : "Your location link has been removed." });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Error", description: err?.message || "Failed to update location" });
+    } finally {
+      setSavingLocation(false);
+    }
+  };
+
+  const handleClearLocation = async () => {
+    setLocationInput("");
+    setSavingLocation(true);
+    try {
+      const token = localStorage.getItem("pawzone_token");
+      const res = await fetch("/api/transporter/location", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+        body: JSON.stringify({ liveLocationUrl: null }),
+      });
+      if (!res.ok) {
+        toast({ variant: "destructive", title: "Error", description: "Failed to clear location" });
+        return;
+      }
+      setLiveLocationUrl(null);
+      toast({ title: "Live location cleared" });
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "Failed to clear location" });
+    } finally {
+      setSavingLocation(false);
+    }
   };
 
   const handleDeleteRoute = async () => {
@@ -272,6 +341,53 @@ export function TransporterDashboard() {
               })}
             </div>
           )}
+        </div>
+
+        {/* Live Location Sharing */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+          <div className="px-5 py-4 border-b border-gray-50">
+            <h2 className="font-bold text-gray-900 flex items-center gap-2">
+              <Navigation className="w-5 h-5 text-blue-600" /> Live Location Sharing
+            </h2>
+            <p className="text-xs text-gray-400 mt-0.5">Share your Google Maps live location — visible to buyers &amp; sellers after payment</p>
+          </div>
+          <div className="p-5 space-y-3">
+            {liveLocationUrl && (
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-center gap-3">
+                <Navigation className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-blue-700 mb-0.5">Active tracking link</p>
+                  <a href={liveLocationUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline break-all">{liveLocationUrl}</a>
+                </div>
+                <button
+                  onClick={handleClearLocation}
+                  disabled={savingLocation}
+                  className="text-red-400 hover:text-red-600 flex-shrink-0 p-1 rounded-lg hover:bg-red-50 transition-colors"
+                  title="Remove live location"
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input
+                type="url"
+                className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 min-w-0"
+                placeholder="https://maps.google.com/... or any live tracking URL"
+                value={locationInput}
+                onChange={(e) => setLocationInput(e.target.value)}
+              />
+              <Button
+                size="sm"
+                onClick={handleSaveLocation}
+                disabled={savingLocation}
+                className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex-shrink-0 whitespace-nowrap"
+              >
+                {savingLocation ? "Saving…" : liveLocationUrl ? "Update" : "Set Link"}
+              </Button>
+            </div>
+            <p className="text-[11px] text-gray-400">Paste your Google Maps live location link or any tracking URL. Buyers and sellers can see this only after their payment is completed.</p>
+          </div>
         </div>
 
         {/* Delivery Requests & Active Orders */}

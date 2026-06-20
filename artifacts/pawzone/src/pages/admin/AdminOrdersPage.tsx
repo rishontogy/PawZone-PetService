@@ -168,6 +168,16 @@ export function AdminOrdersPage() {
                               <Phone className="w-3 h-3" />{p.phone}
                             </p>
                           )}
+                          {p.label === "Transporter" && (order as any).liveLocationUrl && (
+                            <a
+                              href={(order as any).liveLocationUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1.5 inline-flex items-center gap-1 bg-teal-600 text-white text-[11px] font-semibold px-2 py-0.5 rounded-lg hover:bg-teal-700 transition-colors"
+                            >
+                              <MapPin className="w-2.5 h-2.5" /> Live Location
+                            </a>
+                          )}
                         </div>
                       ))}
                     </div>

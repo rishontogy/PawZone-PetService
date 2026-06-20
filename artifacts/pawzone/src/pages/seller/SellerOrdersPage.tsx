@@ -263,6 +263,16 @@ export function SellerOrdersPage() {
                                   Drop Date: {new Date(order.deliveryTime).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                                 </p>
                               )}
+                              {order.paymentStatus === "paid" && (order as any).liveLocationUrl && (
+                                <a
+                                  href={(order as any).liveLocationUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="mt-1.5 inline-flex items-center gap-1 bg-blue-600 text-white text-xs font-semibold px-2.5 py-1 rounded-lg hover:bg-blue-700 transition-colors"
+                                >
+                                  <MapPin className="w-3 h-3" /> Track Transporter
+                                </a>
+                              )}
                             </div>
                           </div>
                         ) : (

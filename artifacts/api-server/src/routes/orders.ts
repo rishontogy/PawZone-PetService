@@ -30,6 +30,7 @@ function formatOrder(
   buyerPhone?: string | null,
   orderItems?: any[] | null,
   sellerPhone?: string | null,
+  liveLocationUrl?: string | null,
 ) {
   return {
     ...order,
@@ -43,6 +44,7 @@ function formatOrder(
     transporterPhone: transporterPhone ?? null,
     orderItems: orderItems ?? [],
     itemCount: orderItems?.length ?? order.itemCount ?? 0,
+    liveLocationUrl: liveLocationUrl ?? null,
   };
 }
 
@@ -83,12 +85,15 @@ router.get("/orders", authMiddleware, async (req, res): Promise<void> => {
     const buyerPhone = buyer?.phone ?? null;
     const [seller] = await db.select({ name: usersTable.name, phone: usersTable.phone })
       .from(usersTable).where(eq(usersTable.id, order.sellerId));
-    let transporterName = null, transporterPhone = null;
+    let transporterName = null, transporterPhone = null, transporterLiveLocation = null;
     if (order.transporterId) {
-      const [t] = await db.select({ name: usersTable.name, phone: usersTable.phone })
+      const [t] = await db.select({ name: usersTable.name, phone: usersTable.phone, liveLocationUrl: usersTable.liveLocationUrl })
         .from(usersTable).where(eq(usersTable.id, order.transporterId));
       transporterName = t?.name;
       transporterPhone = t?.phone;
+      if (order.paymentStatus === "paid") {
+        transporterLiveLocation = t?.liveLocationUrl ?? null;
+      }
     }
     const rawItems = await db
       .select({
@@ -116,7 +121,7 @@ router.get("/orders", authMiddleware, async (req, res): Promise<void> => {
         petCode: listing?.petCode ?? null,
       };
     }));
-    const formatted = formatOrder(order, buyerName, seller?.name ?? "", transporterName, transporterPhone, buyerPhone, orderItems, seller?.phone ?? null);
+    const formatted = formatOrder(order, buyerName, seller?.name ?? "", transporterName, transporterPhone, buyerPhone, orderItems, seller?.phone ?? null, transporterLiveLocation);
     // Sellers must not see buyer personal details — strip before returning
     if (user.role === "seller") {
       formatted.buyerName = null;
@@ -274,11 +279,14 @@ router.get("/orders/:id", authMiddleware, async (req, res): Promise<void> => {
 
   const [buyer] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, orderRow.buyerId));
   const [seller] = await db.select({ name: usersTable.name, phone: usersTable.phone }).from(usersTable).where(eq(usersTable.id, orderRow.sellerId));
-  let transporterName = null, transporterPhone = null;
+  let transporterName = null, transporterPhone = null, transporterLiveLocation = null;
   if (orderRow.transporterId) {
-    const [t] = await db.select({ name: usersTable.name, phone: usersTable.phone }).from(usersTable).where(eq(usersTable.id, orderRow.transporterId));
+    const [t] = await db.select({ name: usersTable.name, phone: usersTable.phone, liveLocationUrl: usersTable.liveLocationUrl }).from(usersTable).where(eq(usersTable.id, orderRow.transporterId));
     transporterName = t?.name;
     transporterPhone = t?.phone;
+    if (orderRow.paymentStatus === "paid" || user.role === "admin") {
+      transporterLiveLocation = t?.liveLocationUrl ?? null;
+    }
   }
 
   const orderItems = await db
@@ -310,7 +318,7 @@ router.get("/orders/:id", authMiddleware, async (req, res): Promise<void> => {
   const showSellerContact = selfPickup && orderRow.paymentStatus === "paid" && orderRow.buyerId === user.id;
   const sellerPhone = showSellerContact ? (seller?.phone ?? null) : null;
   res.json({
-    ...formatOrder(orderRow, buyer?.name ?? "", seller?.name ?? "", transporterName, transporterPhone, null, null, sellerPhone),
+    ...formatOrder(orderRow, buyer?.name ?? "", seller?.name ?? "", transporterName, transporterPhone, null, null, sellerPhone, transporterLiveLocation),
     items,
     timeline,
     needsTransporter: orderRow.needsTransporter ?? true,

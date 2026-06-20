@@ -1,0 +1,327 @@
+PAWZONE – TRANSPORTER ROUTE DATE AUTO-CALCULATION + LIVE LOCATION SHARING
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 1. AUTO PICKUP & DROP DATE LOGIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current transporter acceptance flow is incomplete.
+
+The system must automatically determine the Pickup Date and Drop Date from the transporter's route schedule.
+
+No manual date entry required.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ REQUIRED LOGIC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When a transporter accepts an order:
+
+Step 1:
+Check today's date.
+
+Step 2:
+Check the route day selected by the transporter.
+
+Step 3:
+Calculate the next occurrence of that route day.
+
+Step 4:
+Automatically assign:
+
+Pickup Date = Route Date
+Drop Date = Route Date
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📅 EXAMPLE 1
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Today:
+18/06/2026 (Thursday)
+
+Transporter's route:
+Saturday
+
+System calculates:
+
+Next Saturday:
+20/06/2026
+
+Auto-fill:
+
+Pickup Date:
+20/06/2026
+
+Drop Date:
+20/06/2026
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📅 EXAMPLE 2
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Today:
+21/06/2026 (Sunday)
+
+Route:
+Wednesday
+
+Next Wednesday:
+24/06/2026
+
+Auto-fill:
+
+Pickup Date:
+24/06/2026
+
+Drop Date:
+24/06/2026
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⏰ 2. 7:00 AM ROUTE CUTOFF RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For same-day routes:
+
+If current time is BEFORE 7:00 AM:
+
+✔ Transporter can Accept
+✔ Transporter can Reject
+
+If current time is AFTER 7:00 AM:
+
+❌ Same-day route cannot be accepted
+
+System must automatically move to the next occurrence of that route day.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📅 EXAMPLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Today:
+Saturday
+
+Current Time:
+8:30 AM
+
+Route:
+Saturday
+
+Result:
+
+Cannot assign today's route.
+
+System automatically uses:
+
+Next Saturday
+
+Pickup Date:
+Next Saturday
+
+Drop Date:
+Next Saturday
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 3. ROUTE ORDER VALIDATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Maintain existing logic:
+
+Pickup point must appear BEFORE drop point in route sequence.
+
+Example:
+
+Route:
+
+Kadavanthara
+Tripunithura
+Thalayolaparambu
+Ettumanoor
+Pala
+
+Valid:
+
+Pickup:
+Kadavanthara
+
+Drop:
+Pala
+
+✔ Allow
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Invalid:
+
+Pickup:
+Pala
+
+Drop:
+Kadavanthara
+
+❌ Reject
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 4. LIVE LOCATION SHARING FEATURE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add a new section in:
+
+Transporter Dashboard
+
+Name:
+
+"Live Location Sharing"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ TRANSPORTER OPTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter can upload:
+
+Google Maps Live Location Link
+
+or
+
+Any supported live tracking URL
+
+Example:
+
+https://maps.google.com/....
+
+Store this link in database.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 5. WHEN LOCATION BECOMES VISIBLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Live location should become visible ONLY when:
+
+✔ Order accepted
+✔ Buyer payment completed
+
+Before payment:
+
+❌ Hidden
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 6. BUYER SIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Inside:
+
+Order Details
+
+Show:
+
+Transporter Name
+Phone Number
+Pickup Date
+Drop Date
+Live Location Button
+
+Button:
+
+"Track Transporter"
+
+Click:
+
+Open live tracking URL.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏪 7. SELLER SIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Inside:
+
+Order Details
+
+Show:
+
+Transporter Name
+Phone Number
+Pickup Date
+Drop Date
+Live Location Button
+
+Button:
+
+"Track Transporter"
+
+Click:
+
+Open live tracking URL.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👨‍💼 8. ADMIN SIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Admin can view:
+
+Live Location URL
+Transporter Name
+Assigned Orders
+
+for monitoring.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔄 9. LOCATION UPDATE RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter can:
+
+✔ Replace location link
+✔ Update location link
+
+Latest link always visible to:
+
+Buyer
+Seller
+Admin
+
+for active orders.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔒 10. SECURITY RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Live location link should be visible ONLY for:
+
+✔ Assigned transporter
+✔ Related buyer
+✔ Related seller
+✔ Admin
+
+Never visible to:
+
+❌ Other buyers
+❌ Other sellers
+❌ Other transporters
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 REQUIRED TESTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Verify:
+
+✔ Route day auto-calculated
+✔ Pickup date auto-filled
+✔ Drop date auto-filled
+✔ 7:00 AM cutoff works
+✔ Same-day restriction works
+✔ Next route date calculated correctly
+✔ Live location link uploads correctly
+✔ Link stored in database
+✔ Buyer can track transporter
+✔ Seller can track transporter
+✔ Admin can monitor location
+✔ Unauthorized users cannot access location
+✔ Mobile view works
+✔ Tablet view works
+✔ Desktop view works
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter acceptance must automatically determine pickup/drop dates from the next valid route day, respecting the 7:00 AM cutoff rule.
+
+Additionally, transporters must be able to upload a live location sharing link, which becomes available to the assigned buyer and seller only after payment is completed, while remaining visible to admin for monitoring.

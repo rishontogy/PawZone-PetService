@@ -25,6 +25,7 @@ export const usersTable = pgTable("users", {
   deliveryPoints: text("delivery_points").array(),
   governmentIdUrl: text("government_id_url"),
   rcBookUrl: text("rc_book_url"),
+  liveLocationUrl: text("live_location_url"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
