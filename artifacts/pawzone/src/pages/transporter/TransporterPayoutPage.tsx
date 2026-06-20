@@ -75,14 +75,14 @@ export function TransporterPayoutPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 md:pb-8">
-      <div className="bg-gradient-to-r from-indigo-700 to-blue-600 px-4 sm:px-6 py-8">
+      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 <Truck className="w-6 h-6" /> My Payout
               </h1>
-              <p className="text-indigo-100 text-sm mt-1">Track your delivery earnings and payments</p>
+              <p className="text-teal-100 text-sm mt-1">Track your delivery earnings and payments</p>
             </div>
             <button onClick={load} className="text-white/80 hover:text-white transition-colors">
               <RefreshCw className="w-5 h-5" />
@@ -102,7 +102,7 @@ export function TransporterPayoutPage() {
           <div className="grid grid-cols-2 gap-3 pt-4">
             <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
               <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="w-4 h-4 text-indigo-600" />
+                <TrendingUp className="w-4 h-4 text-teal-600" />
                 <span className="text-xs text-gray-500 font-medium">Total Earnings</span>
               </div>
               <p className="text-2xl font-bold text-gray-900">{formatPrice(summary?.totalEarnings ?? 0)}</p>
@@ -116,14 +116,14 @@ export function TransporterPayoutPage() {
               <p className="text-2xl font-bold text-green-600">{formatPrice(summary?.totalPaid ?? 0)}</p>
               <p className="text-xs text-gray-400 mt-1">{transactions.length} payouts received</p>
             </div>
-            <div className="col-span-2 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-2xl p-4 shadow-sm border border-indigo-100">
+            <div className="col-span-2 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-2xl p-4 shadow-sm border border-teal-100">
               <div className="flex items-center gap-2 mb-1">
-                <IndianRupee className="w-4 h-4 text-indigo-700" />
-                <span className="text-xs text-indigo-700 font-semibold">Pending Payout</span>
+                <IndianRupee className="w-4 h-4 text-teal-700" />
+                <span className="text-xs text-teal-700 font-semibold">Pending Payout</span>
               </div>
-              <p className="text-3xl font-bold text-indigo-700">{formatPrice(summary?.remaining ?? 0)}</p>
+              <p className="text-3xl font-bold text-teal-700">{formatPrice(summary?.remaining ?? 0)}</p>
               {summary?.lastPayout && (
-                <p className="text-xs text-indigo-500 mt-1">
+                <p className="text-xs text-teal-600 mt-1">
                   Last paid: {new Date(summary.lastPayout).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                 </p>
               )}
@@ -135,13 +135,13 @@ export function TransporterPayoutPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-indigo-600" />
+              <CreditCard className="w-4 h-4 text-teal-600" />
               <h2 className="font-semibold text-gray-900 text-sm">Payment Receiving Details</h2>
             </div>
             {!editingDetails && (
               <button
                 onClick={() => setEditingDetails(true)}
-                className="text-xs text-indigo-600 font-medium flex items-center gap-1 hover:text-indigo-800"
+                className="text-xs text-teal-600 font-medium flex items-center gap-1 hover:text-teal-800"
               >
                 <Edit2 className="w-3 h-3" /> Edit
               </button>
@@ -158,11 +158,11 @@ export function TransporterPayoutPage() {
                     placeholder="e.g. name@okaxis"
                     value={upiId}
                     onChange={(e) => setUpiId(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
                   />
                 </div>
                 <div className="flex gap-2 pt-1">
-                  <Button onClick={saveDetails} disabled={savingDetails} size="sm" className="bg-indigo-600 hover:bg-indigo-700 rounded-xl">
+                  <Button onClick={saveDetails} disabled={savingDetails} size="sm" className="bg-teal-600 hover:bg-teal-700 rounded-xl">
                     {savingDetails ? "Saving..." : "Save Details"}
                   </Button>
                   <Button onClick={() => setEditingDetails(false)} variant="ghost" size="sm" className="rounded-xl">
@@ -172,8 +172,8 @@ export function TransporterPayoutPage() {
               </>
             ) : (
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 text-indigo-600" />
+                <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-teal-600" />
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">UPI ID</p>
@@ -187,10 +187,10 @@ export function TransporterPayoutPage() {
         {/* Transaction History */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-indigo-600" />
+            <Clock className="w-4 h-4 text-teal-600" />
             <h2 className="font-semibold text-gray-900 text-sm">Payout History</h2>
             {transactions.length > 0 && (
-              <span className="ml-auto text-xs bg-indigo-100 text-indigo-700 font-semibold px-2 py-0.5 rounded-full">
+              <span className="ml-auto text-xs bg-teal-100 text-teal-700 font-semibold px-2 py-0.5 rounded-full">
                 {transactions.length}
               </span>
             )}
@@ -232,7 +232,7 @@ export function TransporterPayoutPage() {
                         />
                         <button
                           onClick={() => setViewImage(txn.screenshotUrl)}
-                          className="text-xs text-indigo-600 flex items-center gap-1"
+                          className="text-xs text-teal-600 flex items-center gap-1"
                         >
                           <Eye className="w-3 h-3" /> View
                         </button>
