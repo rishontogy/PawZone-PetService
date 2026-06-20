@@ -16,6 +16,20 @@ import {
 } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
 
+function toISTDateStr(d: Date): string {
+  const ist = new Date(d.getTime() + 330 * 60 * 1000);
+  return ist.toISOString().slice(0, 10);
+}
+
+function transportDateStatus(dateStr: string | null | undefined): "before" | "today" | "after" | "unknown" {
+  if (!dateStr) return "unknown";
+  const today = toISTDateStr(new Date());
+  const target = toISTDateStr(new Date(dateStr));
+  if (today === target) return "today";
+  if (today < target) return "before";
+  return "after";
+}
+
 function nextDateForDay(dayName: string): string {
   const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
   const targetDay = days.indexOf(dayName.toLowerCase());
@@ -719,15 +733,25 @@ export function TransporterDashboard() {
                       </div>
                     )}
 
-                    {/* Video action blocks — simplified 2-step flow */}
+                    {/* Video action blocks — date-restricted 2-step flow */}
                     {order.transporterId === user?.id && order.status === "ready" && (
                       <div className="mt-3">
-                        <PickupVideoBlock orderId={order.id} existingUrl={order.pickupVideoUrl} onDone={refetch} />
+                        <PickupVideoBlock
+                          orderId={order.id}
+                          existingUrl={order.pickupVideoUrl}
+                          pickupTime={order.pickupTime}
+                          onDone={refetch}
+                        />
                       </div>
                     )}
                     {order.transporterId === user?.id && order.status === "in_transit" && (
                       <div className="mt-3">
-                        <DeliveryVideoBlock orderId={order.id} existingUrl={order.deliveryVideoUrl} onDone={refetch} />
+                        <DeliveryVideoBlock
+                          orderId={order.id}
+                          existingUrl={order.deliveryVideoUrl}
+                          deliveryTime={order.deliveryTime}
+                          onDone={refetch}
+                        />
                       </div>
                     )}
                   </div>
@@ -790,11 +814,42 @@ async function postJson(path: string, body: any) {
   return data;
 }
 
-function PickupVideoBlock({ orderId, existingUrl, onDone }: { orderId: number; existingUrl?: string | null; onDone: () => void }) {
+function PickupVideoBlock({ orderId, existingUrl, pickupTime, onDone }: { orderId: number; existingUrl?: string | null; pickupTime?: string | null; onDone: () => void }) {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState<string | null>(existingUrl ?? null);
+
+  const dateStatus = transportDateStatus(pickupTime);
+  const pickupDateLabel = pickupTime ? toISTDateStr(new Date(pickupTime)) : null;
+
+  if (dateStatus === "before") {
+    return (
+      <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
+        <p className="text-sm font-semibold text-orange-800 mb-1 flex items-center gap-1.5">
+          <Clock className="w-4 h-4" /> Pickup Video — Not Yet Available
+        </p>
+        <p className="text-xs text-orange-700">
+          Pickup video upload will be enabled on your assigned pickup date
+          {pickupDateLabel ? `: ${pickupDateLabel}` : ""}.
+        </p>
+      </div>
+    );
+  }
+
+  if (dateStatus === "after") {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+        <p className="text-sm font-semibold text-red-800 mb-1 flex items-center gap-1.5">
+          <AlertCircle className="w-4 h-4" /> Pickup Date Missed
+        </p>
+        <p className="text-xs text-red-700">
+          The assigned pickup date{pickupDateLabel ? ` (${pickupDateLabel})` : ""} has passed.
+          Please contact admin to extend the date or reassign this delivery.
+        </p>
+      </div>
+    );
+  }
 
   const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -870,11 +925,42 @@ function StartInTransitBlock({ orderId, onDone }: { orderId: number; onDone: () 
   );
 }
 
-function DeliveryVideoBlock({ orderId, existingUrl, onDone }: { orderId: number; existingUrl?: string | null; onDone: () => void }) {
+function DeliveryVideoBlock({ orderId, existingUrl, deliveryTime, onDone }: { orderId: number; existingUrl?: string | null; deliveryTime?: string | null; onDone: () => void }) {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState<string | null>(existingUrl ?? null);
+
+  const dateStatus = transportDateStatus(deliveryTime);
+  const dropDateLabel = deliveryTime ? toISTDateStr(new Date(deliveryTime)) : null;
+
+  if (dateStatus === "before") {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+        <p className="text-sm font-semibold text-green-800 mb-1 flex items-center gap-1.5">
+          <Clock className="w-4 h-4" /> Delivery Video — Not Yet Available
+        </p>
+        <p className="text-xs text-green-700">
+          Delivery video upload will be enabled on your assigned drop date
+          {dropDateLabel ? `: ${dropDateLabel}` : ""}.
+        </p>
+      </div>
+    );
+  }
+
+  if (dateStatus === "after") {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+        <p className="text-sm font-semibold text-red-800 mb-1 flex items-center gap-1.5">
+          <AlertCircle className="w-4 h-4" /> Delivery Date Missed
+        </p>
+        <p className="text-xs text-red-700">
+          The assigned drop date{dropDateLabel ? ` (${dropDateLabel})` : ""} has passed.
+          Please contact admin to extend the date or reassign this delivery.
+        </p>
+      </div>
+    );
+  }
 
   const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];

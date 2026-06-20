@@ -1,0 +1,260 @@
+PAWZONE – LIVE LOCATION & VIDEO UPLOAD DATE RESTRICTIONS
+
+CRITICAL REQUIREMENT:
+
+The transporter's Live Location, Pickup Video, and Delivery Video must ONLY be available on the actual transport day.
+
+They must not be accessible before or after the assigned transport date.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📅 1. DATE CALCULATION VALIDATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+First ensure automatic route date calculation is working correctly.
+
+When transporter accepts an order:
+
+System must calculate:
+
+Assigned Route Date
+
+based on:
+
+✔ Transporter's selected route day
+✔ Current date
+✔ 7:00 AM cutoff rule
+
+Then automatically save:
+
+pickupDate
+dropDate
+
+to the order.
+
+These dates become the master transport dates.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📍 2. LIVE LOCATION VISIBILITY RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Live Location must ONLY be visible when:
+
+Current Date = Pickup Date
+
+AND
+
+Order Status = Picked Up / In Transit
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BEFORE PICKUP DATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Buyer:
+❌ Cannot view live location
+
+Seller:
+❌ Cannot view live location
+
+Show:
+
+"Live tracking will be available on the pickup date."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ON PICKUP DATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Buyer:
+✔ Can view tracking
+
+Seller:
+✔ Can view tracking
+
+Admin:
+✔ Can always view tracking
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AFTER DELIVERY COMPLETED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Buyer:
+❌ Tracking hidden
+
+Seller:
+❌ Tracking hidden
+
+Show:
+
+"Tracking session completed."
+
+Admin:
+✔ Historical record remains available
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎥 3. PICKUP VIDEO RESTRICTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter Pickup Video upload must ONLY be enabled when:
+
+Current Date = Pickup Date
+
+Before Pickup Date:
+
+❌ Upload disabled
+
+After Pickup Date:
+
+❌ Upload disabled
+
+Only on Pickup Date:
+
+✔ Upload enabled
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚚 4. PICKUP VIDEO WORKFLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+On Pickup Date:
+
+Transporter uploads Pickup Video
+
+System automatically:
+
+✔ Marks order as Picked Up
+✔ Changes status to In Transit
+✔ Creates timeline entry
+✔ Sends notifications
+
+Buyer:
+"Pet has been picked up."
+
+Seller:
+"Pet has been picked up."
+
+Admin:
+Alert generated.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎥 5. DELIVERY VIDEO RESTRICTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Delivery Video upload must ONLY be enabled when:
+
+Current Date = Drop Date
+
+Before Drop Date:
+
+❌ Upload disabled
+
+After Drop Date:
+
+❌ Upload disabled
+
+Only on Drop Date:
+
+✔ Upload enabled
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 6. DELIVERY VIDEO WORKFLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter uploads Delivery Video
+
+System automatically:
+
+✔ Marks order as Delivered
+✔ Creates delivery record
+✔ Sends notification
+
+Buyer:
+"Delivery completed. Please confirm delivery."
+
+Seller:
+"Delivery completed."
+
+Admin:
+Alert generated.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⏳ 7. MISSED DATE PROTECTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If transporter misses upload date:
+
+Show:
+
+"Pickup date missed."
+
+or
+
+"Delivery date missed."
+
+Create Admin Alert:
+
+Transporter failed to upload required transport proof.
+
+Admin can:
+
+✔ Extend date
+✔ Reassign transporter
+✔ Contact transporter
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👨‍💼 8. ADMIN OVERRIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Admin may override restrictions.
+
+Admin can:
+
+✔ View all videos
+✔ View tracking
+✔ Reopen upload window
+✔ Extend transport dates
+
+This is for dispute resolution.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔒 9. SECURITY RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Live Location visible ONLY to:
+
+✔ Assigned Buyer
+✔ Assigned Seller
+✔ Assigned Transporter
+✔ Admin
+
+Never visible to:
+
+❌ Other Buyers
+❌ Other Sellers
+❌ Other Transporters
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 REQUIRED TESTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Verify:
+
+✔ Route date calculated correctly
+✔ Pickup date auto-assigned
+✔ Drop date auto-assigned
+✔ Live location hidden before pickup day
+✔ Live location visible on pickup day
+✔ Live location hidden after delivery
+✔ Pickup video only uploadable on pickup date
+✔ Delivery video only uploadable on drop date
+✔ Notifications sent correctly
+✔ Alerts created correctly
+✔ Admin override works
+✔ Mobile UI works
+✔ Tablet UI works
+✔ Desktop UI works
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Live tracking and transport proof uploads must be controlled entirely by the automatically calculated pickup/drop dates.
+
+Buyers and sellers should only see tracking on the actual transport day, and transporters should only be able to upload pickup or delivery videos on their respective assigned dates.

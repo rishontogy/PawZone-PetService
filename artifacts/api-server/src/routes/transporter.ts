@@ -22,6 +22,12 @@ import { triggerAlert } from "../lib/alertEngine";
 
 const router = Router();
 
+// Convert UTC timestamp to IST date string (YYYY-MM-DD)
+function toISTDateStr(d: Date): string {
+  const ist = new Date(d.getTime() + 330 * 60 * 1000); // +5:30
+  return ist.toISOString().slice(0, 10);
+}
+
 function extractCity(text: string | null | undefined, knownCities: string[]): string | null {
   if (!text) return null;
   const lower = text.toLowerCase();
@@ -451,6 +457,32 @@ router.post("/transporter/orders/:id/pickup", authMiddleware, async (req, res): 
     return;
   }
 
+  // Date restriction: pickup video only allowed on the assigned pickup date (admin bypasses)
+  if (user.role !== "admin") {
+    if (!order.pickupTime) {
+      res.status(400).json({ error: "No pickup date assigned for this order. Please contact admin." });
+      return;
+    }
+    const todayIST = toISTDateStr(new Date());
+    const pickupDateIST = toISTDateStr(new Date(order.pickupTime));
+    if (todayIST !== pickupDateIST) {
+      const isPast = todayIST > pickupDateIST;
+      if (isPast) {
+        await triggerAlert(
+          "TRANSPORT_DELAY",
+          `Transporter (ID ${user.id}) failed to upload pickup proof for order #${order.orderNumber} by the assigned date (${pickupDateIST}).`,
+          order.id,
+          user.id,
+          "HIGH"
+        );
+        res.status(400).json({ error: `Pickup date (${pickupDateIST}) has passed. This has been flagged to admin. Please contact admin to extend or reassign.` });
+      } else {
+        res.status(400).json({ error: `Pickup video can only be uploaded on the assigned pickup date: ${pickupDateIST}.` });
+      }
+      return;
+    }
+  }
+
   const now = new Date();
   // Simplified flow: pickup video auto-advances status to in_transit
   const [updated] = await db.update(ordersTable)
@@ -553,6 +585,32 @@ router.post("/transporter/orders/:id/deliver", authMiddleware, async (req, res):
   if (order.transporterId !== user.id && user.role !== "admin") {
     res.status(403).json({ error: "Not your delivery" });
     return;
+  }
+
+  // Date restriction: delivery video only allowed on the assigned drop date (admin bypasses)
+  if (user.role !== "admin") {
+    if (!order.deliveryTime) {
+      res.status(400).json({ error: "No drop date assigned for this order. Please contact admin." });
+      return;
+    }
+    const todayIST = toISTDateStr(new Date());
+    const dropDateIST = toISTDateStr(new Date(order.deliveryTime));
+    if (todayIST !== dropDateIST) {
+      const isPast = todayIST > dropDateIST;
+      if (isPast) {
+        await triggerAlert(
+          "DELIVERY_DELAY",
+          `Transporter (ID ${user.id}) failed to upload delivery proof for order #${order.orderNumber} by the assigned drop date (${dropDateIST}).`,
+          order.id,
+          user.id,
+          "HIGH"
+        );
+        res.status(400).json({ error: `Delivery date (${dropDateIST}) has passed. This has been flagged to admin. Please contact admin to extend or reassign.` });
+      } else {
+        res.status(400).json({ error: `Delivery video can only be uploaded on the assigned drop date: ${dropDateIST}.` });
+      }
+      return;
+    }
   }
 
   const now = new Date();
