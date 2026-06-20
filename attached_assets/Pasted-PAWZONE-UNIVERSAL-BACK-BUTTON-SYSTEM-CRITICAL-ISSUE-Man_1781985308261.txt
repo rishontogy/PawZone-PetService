@@ -1,0 +1,214 @@
+PAWZONE – UNIVERSAL BACK BUTTON SYSTEM
+
+CRITICAL ISSUE:
+
+Many pages across Buyer, Seller, Transporter, and Admin accounts either:
+
+❌ Have no Back button
+❌ Have inconsistent Back buttons
+❌ Navigate incorrectly
+❌ Break page state
+
+Implement one consistent navigation system across the entire application.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GLOBAL BACK BUTTON RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every page except the main dashboard pages must have:
+
+◀ Back
+
+Position:
+Top-left of page header
+
+Style:
+✔ Modern rounded button
+✔ Same design system across app
+✔ Icon + Text
+✔ Mobile friendly
+✔ Tablet friendly
+✔ Desktop friendly
+
+Function:
+
+Use browser/app history navigation.
+
+Example:
+
+navigate(-1)
+
+or equivalent router history back function.
+
+Do NOT redirect to fixed pages.
+
+This ensures:
+
+✔ Previous page restored
+✔ Filters preserved
+✔ Search preserved
+✔ Scroll position preserved
+✔ Form state preserved
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BUYER ACCOUNT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add Back button to:
+
+✔ Browse Pets
+✔ Pet Details
+✔ Cart
+✔ Checkout
+✔ Orders
+✔ Order Details
+✔ Notifications
+✔ Profile
+✔ Edit Profile
+✔ Settings
+✔ Change Password
+✔ Disputes
+✔ Alerts
+✔ Payment Page
+✔ Payment Upload Page
+✔ Payment Verification Page
+✔ Any popup converted to page view
+
+Only Dashboard should not need a Back button.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SELLER ACCOUNT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add Back button to:
+
+✔ Add Listing
+✔ Edit Listing
+✔ Listing Details
+✔ My Listings
+✔ Orders
+✔ Order Details
+✔ Notifications
+✔ Profile
+✔ Edit Profile
+✔ Settings
+✔ Payout
+✔ Transaction History
+✔ Parent Photo View
+✔ Verification Pages
+✔ Any nested page
+
+Only Dashboard should not need a Back button.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRANSPORTER ACCOUNT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add Back button to:
+
+✔ Add Route
+✔ My Routes
+✔ Route Details
+✔ Delivery Requests
+✔ Active Orders
+✔ Order Details
+✔ Notifications
+✔ Profile
+✔ Settings
+✔ Payout
+✔ Earnings
+✔ Live Location Page
+✔ Any nested page
+
+Only Dashboard should not need a Back button.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADMIN ACCOUNT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add Back button to:
+
+✔ User Management
+✔ Seller Approval
+✔ Transporter Approval
+✔ Listing Review
+✔ Listing Details
+✔ All Orders
+✔ Order Details
+✔ Accounting
+✔ Transactions
+✔ Seller Ledger
+✔ Transporter Ledger
+✔ Payout
+✔ Payout Details
+✔ Alerts
+✔ Disputes
+✔ Password Reset Requests
+✔ Reports
+✔ Any detail page
+
+Dashboard remains the root page.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MOBILE/TABLET REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Back button must:
+
+✔ Always stay visible
+✔ Never overlap title
+✔ Never overlap cards
+✔ Scale correctly on mobile
+✔ Scale correctly on tablet
+✔ Maintain touch-friendly size
+
+Minimum touch area:
+
+44px × 44px
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ICON REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use:
+
+← Back
+
+or
+
+Chevron Left Icon + Back
+
+Example:
+
+◀ Back
+
+Must be identical across:
+
+✔ Buyer
+✔ Seller
+✔ Transporter
+✔ Admin
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STATE PRESERVATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Back navigation must preserve:
+
+✔ Search results
+✔ Filters
+✔ Cart state
+✔ Scroll position
+✔ Open tabs
+✔ Pagination
+✔ Selected category
+
+No page refresh.
+
+No data loss.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every non-dashboard page in Buyer, Seller, Transporter, and Admin modules must have a consistent, professional Back button that returns to the previous page while preserving application state and providing a smooth mobile, tablet, and desktop experience.

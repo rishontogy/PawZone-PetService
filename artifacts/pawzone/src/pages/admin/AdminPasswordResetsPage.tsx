@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Link } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { KeyRound, ArrowLeft, RefreshCw, CheckCircle, XCircle, Clock, Copy, ShieldCheck } from "lucide-react";
+import { KeyRound, RefreshCw, CheckCircle, XCircle, Clock, Copy, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -99,11 +98,6 @@ export function AdminPasswordResetsPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto flex items-center gap-4">
-          <Link href="/admin">
-            <button className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-              <ArrowLeft className="w-4 h-4 text-white" />
-            </button>
-          </Link>
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
               <KeyRound className="w-6 h-6 text-teal-400" /> Password Resets

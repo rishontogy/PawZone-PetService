@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { GlobalBackBar } from "@/components/GlobalBackBar";
 import NotFound from "@/pages/not-found";
 
 import { LoginPage } from "@/pages/LoginPage";
@@ -77,6 +78,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <Navbar />
+      <GlobalBackBar />
       <div className={user ? "pb-16 md:pb-0" : ""}>
         {children}
       </div>
@@ -136,7 +138,7 @@ function Router() {
       </Route>
       <Route path="/buyer/orders/:id/pay">
         <RequireAuth allowedRoles={["buyer"]}>
-          <UPIPaymentPage />
+          <AppLayout><UPIPaymentPage /></AppLayout>
         </RequireAuth>
       </Route>
       <Route path="/buyer/orders/:id">

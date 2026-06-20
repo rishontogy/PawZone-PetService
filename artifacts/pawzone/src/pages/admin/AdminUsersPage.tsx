@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { getStatusColor } from "@/lib/api";
-import { Users, Search, CheckCircle, XCircle, Phone, MapPin, Shield, ShoppingBag, Truck, ArrowLeft, FileText, ExternalLink } from "lucide-react";
-import { Link } from "wouter";
+import { Users, Search, CheckCircle, XCircle, Phone, MapPin, Shield, ShoppingBag, Truck, FileText, ExternalLink } from "lucide-react";
 
 const roleIcon = (role: string) => {
   if (role === "seller") return <ShoppingBag className="w-4 h-4" />;
@@ -70,11 +69,6 @@ export function AdminUsersPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
         <div className="max-w-6xl mx-auto flex items-center gap-4">
-          <Link href="/admin">
-            <button className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-              <ArrowLeft className="w-4 h-4 text-white" />
-            </button>
-          </Link>
           <div className="flex-1 flex items-start justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">

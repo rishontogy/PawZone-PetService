@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/api";
-import { Package, CheckCircle, XCircle, PawPrint, ChevronDown, ChevronUp, ArrowLeft, MapPin, Syringe, ZoomIn, Play } from "lucide-react";
-import { Link } from "wouter";
+import { Package, CheckCircle, XCircle, PawPrint, ChevronDown, ChevronUp, MapPin, Syringe, ZoomIn, Play } from "lucide-react";
 import { MediaViewer } from "@/components/MediaViewer";
 import type { MediaItem } from "@/components/MediaViewer";
 
@@ -58,11 +57,6 @@ export function AdminListingsPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
         <div className="max-w-6xl mx-auto flex items-center gap-4">
-          <Link href="/admin">
-            <button className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-              <ArrowLeft className="w-4 h-4 text-white" />
-            </button>
-          </Link>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
               <Package className="w-6 h-6" /> Listing Management

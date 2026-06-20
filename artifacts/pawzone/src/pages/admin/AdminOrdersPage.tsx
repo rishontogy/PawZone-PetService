@@ -4,9 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice, getApiBase } from "@/lib/api";
 import {
   ShoppingBag, ChevronDown, ChevronUp, Phone, MapPin, Clock,
-  Truck, Users, DollarSign, ArrowLeft, XCircle, UserCheck
+  Truck, Users, DollarSign, XCircle, UserCheck
 } from "lucide-react";
-import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -84,11 +83,6 @@ export function AdminOrdersPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
         <div className="max-w-6xl mx-auto flex items-center gap-4">
-          <Link href="/admin">
-            <button className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-              <ArrowLeft className="w-4 h-4 text-white" />
-            </button>
-          </Link>
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-2">
               <ShoppingBag className="w-6 h-6" /> All Orders

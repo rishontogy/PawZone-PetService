@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Link, useParams } from "wouter";
+import { useParams } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice } from "@/lib/api";
-import { ArrowLeft, Users, TrendingDown, DollarSign, ShoppingBag } from "lucide-react";
+import { Users, TrendingDown, DollarSign, ShoppingBag } from "lucide-react";
 
 const BASE = "/api";
 
@@ -49,11 +49,6 @@ export function AdminSellerLedgerPage() {
       <div className="bg-gradient-to-r from-blue-700 to-blue-500 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center gap-4 mb-2">
-            <Link href="/admin/accounting">
-              <button className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-                <ArrowLeft className="w-4 h-4 text-white" />
-              </button>
-            </Link>
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 <Users className="w-6 h-6" />
