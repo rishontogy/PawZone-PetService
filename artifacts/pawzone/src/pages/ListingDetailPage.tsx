@@ -375,6 +375,9 @@ export function ListingDetailPage() {
                 {listing.vaccinated && (
                   <Badge className="bg-green-100 text-green-800 border-0">✓ Vaccinated</Badge>
                 )}
+                {(listing as any).kciCertified && (
+                  <Badge className="bg-yellow-100 text-yellow-800 border-0">🏅 KCI Certified</Badge>
+                )}
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{listing.breed}</h1>
               <div className="flex items-center gap-1 text-muted-foreground mt-1">
@@ -394,6 +397,24 @@ export function ListingDetailPage() {
                 <Shield className="w-4 h-4 text-primary" />
                 <span className="font-medium">PetCode:</span>
                 <code className="font-mono text-primary">{listing.petCode}</code>
+              </div>
+            )}
+
+            {(listing as any).kciCertified && (listing as any).kciCertificateUrl && (
+              <div className="flex items-center gap-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <span className="text-xl leading-none">🏅</span>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-yellow-800">KCI Registered</p>
+                  <p className="text-xs text-yellow-600">Kennel Club of India certified breeding</p>
+                </div>
+                <a
+                  href={(listing as any).kciCertificateUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-yellow-800 bg-yellow-200 hover:bg-yellow-300 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                >
+                  View Certificate ↗
+                </a>
               </div>
             )}
 

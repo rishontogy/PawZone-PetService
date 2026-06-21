@@ -1385,6 +1385,11 @@ components:
         petCode:
           type: string
           nullable: true
+        kciCertified:
+          type: boolean
+        kciCertificateUrl:
+          type: string
+          nullable: true
         address:
           type: string
         city:
@@ -1458,6 +1463,10 @@ components:
         address:
           type: string
         city:
+          type: string
+        kciCertified:
+          type: boolean
+        kciCertificateUrl:
           type: string
       required:
         - category

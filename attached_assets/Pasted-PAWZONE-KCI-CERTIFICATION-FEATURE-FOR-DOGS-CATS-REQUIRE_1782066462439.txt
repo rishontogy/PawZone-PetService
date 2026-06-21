@@ -1,0 +1,193 @@
+PAWZONE – KCI CERTIFICATION FEATURE FOR DOGS & CATS
+
+REQUIREMENT:
+
+Add a new KCI Certification section in the Seller → Add Listing page.
+
+This section should only appear for:
+
+✔ Dogs
+✔ Cats
+
+Do NOT show this section for:
+
+❌ Birds
+❌ Fish
+❌ Rabbits
+❌ Hamsters
+❌ Guinea Pigs
+❌ Turtles
+❌ Exotic Pets
+❌ Any other animal categories
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KCI CERTIFICATION SECTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Field:
+
+KCI Certified?
+
+UI:
+
+[ OFF ]  KCI Certified
+[ ON  ]  KCI Certified
+
+Use the same style as the Vaccinated toggle.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHEN TOGGLE = OFF
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Hide:
+
+✔ Certificate Upload Field
+
+Store:
+
+kciCertified = false
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHEN TOGGLE = ON
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Show:
+
+KCI Certificate Upload
+
+Accepted Files:
+
+✔ JPG
+✔ JPEG
+✔ PNG
+✔ PDF
+
+Maximum Size:
+
+10 MB
+
+Store:
+
+kciCertified = true
+kciCertificateUrl
+
+Certificate upload becomes mandatory when KCI is enabled.
+
+Seller cannot submit until certificate is uploaded.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATABASE FIELDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add:
+
+kciCertified (boolean)
+
+kciCertificateUrl (text)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADMIN APPROVAL PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When reviewing a listing:
+
+Show:
+
+KCI Certified:
+YES / NO
+
+If YES:
+
+Show:
+
+📄 View KCI Certificate
+
+Admin should be able to enlarge and inspect the certificate.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BUYER PET DETAILS PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If KCI Certified:
+
+Show badge:
+
+🏅 KCI Certified
+
+Display near:
+
+✔ Pet Code
+✔ Vaccinated Badge
+
+Also show:
+
+"View KCI Certificate"
+
+When clicked:
+
+Open full-screen certificate viewer.
+
+Mobile:
+Swipe / zoom supported
+
+Tablet:
+Swipe / zoom supported
+
+Desktop:
+Open modal preview
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECURITY RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Certificate should be visible only to:
+
+✔ Seller
+✔ Admin
+✔ Buyers viewing that listing
+
+Not visible to:
+
+❌ Other sellers
+❌ Other transporters
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VALIDATION RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dogs/Cats:
+
+If KCI toggle ON
+→ Certificate required
+
+If KCI toggle OFF
+→ Certificate not required
+
+Other Animals:
+
+Hide KCI section completely.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MOBILE & TABLET UI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ensure:
+
+✔ Toggle aligned properly
+✔ Upload card responsive
+✔ Certificate preview responsive
+✔ No overlapping text
+✔ Same styling as Vaccination section
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For Dog and Cat listings only:
+
+• Add "KCI Certified" toggle.
+• If enabled, certificate upload becomes mandatory.
+• Store certificate in database.
+• Show certificate in Admin approval page.
+• Show KCI badge and certificate viewer in Buyer pet details page.
+• Hide entire KCI section for all non-dog and non-cat animals.

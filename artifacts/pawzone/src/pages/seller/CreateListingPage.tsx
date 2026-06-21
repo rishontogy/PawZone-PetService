@@ -40,8 +40,12 @@ export function CreateListingPage() {
   const [uploading, setUploading] = useState(false);
   const [videoUploading, setVideoUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [kciCertified, setKciCertified] = useState(false);
+  const [kciCertificateUrl, setKciCertificateUrl] = useState("");
+  const [kciCertUploading, setKciCertUploading] = useState(false);
   const fatherInputRef = useRef<HTMLInputElement>(null);
   const motherInputRef = useRef<HTMLInputElement>(null);
+  const kciCertInputRef = useRef<HTMLInputElement>(null);
 
   const uploadFile = async (file: File): Promise<string | null> => {
     if (!file.type.startsWith("image/")) {
@@ -176,6 +180,42 @@ export function CreateListingPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const parentPhotoRequired = ["dogs", "cats"].includes(form.category);
+  const isKciCategory = ["dogs", "cats"].includes(form.category);
+
+  const handleKciCertFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
+    const validExt = /\.(jpg|jpeg|png|pdf)$/i.test(file.name);
+    if (!validTypes.includes(file.type) && !validExt) {
+      toast({ variant: "destructive", title: "Invalid file", description: "Please upload a JPG, PNG, or PDF file" });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "File too large", description: "Certificate must be under 10MB" });
+      return;
+    }
+    setKciCertUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`${getApiBase()}/upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      if (!res.ok) {
+        toast({ variant: "destructive", title: "Upload failed", description: "Could not upload certificate. Try again." });
+        return;
+      }
+      const data = await res.json();
+      setKciCertificateUrl(data.url);
+      toast({ title: "KCI certificate uploaded" });
+    } finally {
+      setKciCertUploading(false);
+      if (kciCertInputRef.current) kciCertInputRef.current.value = "";
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,6 +233,10 @@ export function CreateListingPage() {
     }
     if (parentPhotoRequired && !fatherPhoto && !motherPhoto) {
       toast({ variant: "destructive", title: "Parent photo required", description: "Upload at least one parent photo for dogs and cats." });
+      return;
+    }
+    if (isKciCategory && kciCertified && !kciCertificateUrl) {
+      toast({ variant: "destructive", title: "KCI certificate required", description: "Please upload the KCI certificate to continue." });
       return;
     }
     setSubmitting(true);
@@ -219,6 +263,8 @@ export function CreateListingPage() {
           videoUrl: videoUrl || undefined,
           fatherPhoto: fatherPhoto || undefined,
           motherPhoto: motherPhoto || undefined,
+          kciCertified: isKciCategory ? kciCertified : false,
+          kciCertificateUrl: isKciCategory && kciCertified ? kciCertificateUrl || undefined : undefined,
         }),
       });
       const data = await res.json();
@@ -424,6 +470,87 @@ export function CreateListingPage() {
                   />
                 )}
               </div>
+
+              {/* KCI Certification — only for dogs and cats */}
+              {isKciCategory && (
+                <div className="space-y-3 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+                  <label
+                    htmlFor="kciCertifiedToggle"
+                    className="flex items-center justify-between cursor-pointer select-none"
+                  >
+                    <span className="font-semibold text-gray-700 flex items-center gap-2">
+                      🏅 KCI Certified
+                      {kciCertified && <CheckCircle className="w-4 h-4 text-yellow-600" />}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-500">{kciCertified ? "Yes" : "No"}</span>
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          id="kciCertifiedToggle"
+                          className="sr-only"
+                          checked={kciCertified}
+                          onChange={(e) => {
+                            setKciCertified(e.target.checked);
+                            if (!e.target.checked) setKciCertificateUrl("");
+                          }}
+                        />
+                        <div className={`w-11 h-6 rounded-full transition-colors duration-200 ${kciCertified ? "bg-yellow-500" : "bg-gray-300"}`}>
+                          <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${kciCertified ? "translate-x-5" : "translate-x-0"}`} />
+                        </div>
+                      </div>
+                    </div>
+                  </label>
+                  {kciCertified && (
+                    <div className="space-y-2">
+                      <p className="text-xs text-yellow-700">Upload the KCI certificate (JPG, PNG, or PDF · max 10MB). <span className="font-semibold">Required.</span></p>
+                      {kciCertificateUrl ? (
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-white border border-yellow-200 rounded-lg px-3 py-2">
+                            <p className="text-xs text-yellow-700 font-medium">✓ Certificate uploaded</p>
+                            <a href={kciCertificateUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline truncate block">View certificate</a>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setKciCertificateUrl("")}
+                            className="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <input
+                            ref={kciCertInputRef}
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,application/pdf,.jpg,.jpeg,.png,.pdf"
+                            className="hidden"
+                            onChange={handleKciCertFile}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => kciCertInputRef.current?.click()}
+                            disabled={kciCertUploading}
+                            className={`w-full border-2 border-dashed border-yellow-300 rounded-xl p-4 flex items-center justify-center gap-2 text-sm transition-colors ${kciCertUploading ? "opacity-60 pointer-events-none" : "hover:border-yellow-400 hover:bg-yellow-100/50 cursor-pointer"}`}
+                          >
+                            {kciCertUploading ? (
+                              <span className="flex items-center gap-2 text-yellow-700">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Uploading...
+                              </span>
+                            ) : (
+                              <>
+                                <Upload className="w-4 h-4 text-yellow-600" />
+                                <span className="text-yellow-700 font-medium">Upload KCI Certificate</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Image Upload */}
               <div className="space-y-3">

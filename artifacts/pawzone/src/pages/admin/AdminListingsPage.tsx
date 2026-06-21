@@ -223,6 +223,27 @@ export function AdminListingsPage() {
                             </p>
                           </div>
                         </div>
+                        {(["dogs", "cats"] as string[]).includes(listing.category ?? "") && (
+                          <div className={`rounded-xl p-3 flex items-center gap-2 ${(listing as any).kciCertified ? "bg-yellow-50" : "bg-gray-50"}`}>
+                            <span className="text-base leading-none">🏅</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-gray-400 uppercase tracking-wide">KCI Certified</p>
+                              <p className={`font-medium text-sm ${(listing as any).kciCertified ? "text-yellow-700" : "text-gray-500"}`}>
+                                {(listing as any).kciCertified ? "Yes" : "No"}
+                              </p>
+                              {(listing as any).kciCertified && (listing as any).kciCertificateUrl && (
+                                <a
+                                  href={(listing as any).kciCertificateUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-600 hover:underline font-medium"
+                                >
+                                  View Certificate ↗
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Description */}

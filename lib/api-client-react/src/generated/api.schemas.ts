@@ -149,6 +149,8 @@ export interface Listing {
   description: string;
   status: ListingStatus;
   petCode?: string | null;
+  kciCertified?: boolean;
+  kciCertificateUrl?: string | null;
   address: string;
   city: string;
   createdAt: string;
@@ -197,6 +199,8 @@ export interface CreateListingBody {
   description: string;
   address?: string;
   city?: string;
+  kciCertified?: boolean;
+  kciCertificateUrl?: string;
 }
 
 export interface CartItem {

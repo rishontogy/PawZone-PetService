@@ -25,6 +25,8 @@ export const listingsTable = pgTable("listings", {
   status: text("status").notNull().default("pending").$type<"pending" | "approved" | "rejected" | "sold_out" | "inactive">(),
   rejectionReason: text("rejection_reason"),
   petCode: text("pet_code"),
+  kciCertified: boolean("kci_certified").notNull().default(false),
+  kciCertificateUrl: text("kci_certificate_url"),
   address: text("address").notNull(),
   city: text("city").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
