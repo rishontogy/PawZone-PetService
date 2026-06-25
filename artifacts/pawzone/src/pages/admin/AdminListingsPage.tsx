@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAdminGetListings, useAdminApproveListing, useAdminRejectListing } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
@@ -56,14 +57,17 @@ export function AdminListingsPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
-        <div className="max-w-6xl mx-auto flex items-center gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-              <Package className="w-6 h-6" /> Listing Management
-            </h1>
-            <p className="text-gray-400 text-sm mt-0.5">
-              {pendingCount > 0 ? `${pendingCount} listing${pendingCount > 1 ? "s" : ""} pending review` : "Review and approve pet listings"}
-            </p>
+        <div className="max-w-6xl mx-auto">
+          <BackButton className="mb-4" />
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                <Package className="w-6 h-6" /> Listing Management
+              </h1>
+              <p className="text-gray-400 text-sm mt-0.5">
+                {pendingCount > 0 ? `${pendingCount} listing${pendingCount > 1 ? "s" : ""} pending review` : "Review and approve pet listings"}
+              </p>
+            </div>
           </div>
         </div>
       </div>

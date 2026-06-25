@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { BackButton } from "@/components/BackButton";
 import { formatPrice } from "@/lib/api";
 import {
   Wallet, Users, IndianRupee, TrendingUp, CheckCircle, QrCode,
@@ -158,6 +159,7 @@ export function AdminPayoutsPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-violet-700 to-purple-600 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto">
+          <BackButton className="mb-4" />
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">

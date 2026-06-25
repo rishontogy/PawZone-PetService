@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useGetOrder, useReportIssue } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor, statusLabel, getApiBase } from "@/lib/api";
@@ -231,7 +232,8 @@ export function OrderDetailPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       {/* Header */}
       <div className="bg-white border-b border-gray-100 shadow-sm px-4 sm:px-6 py-4">
-        <div className="max-w-3xl mx-auto flex items-center gap-4">
+        <div className="max-w-3xl mx-auto flex items-center gap-3">
+          <BackButton className="shrink-0" />
           <div className="flex-1">
             <h1 className="font-bold text-gray-900">Order #{o.orderNumber}</h1>
             <p className="text-xs text-gray-400">

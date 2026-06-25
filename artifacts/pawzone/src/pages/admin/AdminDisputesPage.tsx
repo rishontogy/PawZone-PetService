@@ -1,5 +1,6 @@
 import { useAdminGetDisputes, useAdminResolveDispute } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { BackButton } from "@/components/BackButton";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Send, CheckCircle } from "lucide-react";
 import { useState } from "react";
@@ -40,14 +41,17 @@ export function AdminDisputesPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
-        <div className="max-w-5xl mx-auto flex items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <AlertTriangle className="w-6 h-6 text-red-400" /> Disputes
-            </h1>
-            <p className="text-gray-400 text-sm mt-0.5">
-              {openCount > 0 ? `${openCount} open dispute${openCount > 1 ? "s" : ""} need attention` : "All disputes resolved"}
-            </p>
+        <div className="max-w-5xl mx-auto">
+          <BackButton className="mb-4" />
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <AlertTriangle className="w-6 h-6 text-red-400" /> Disputes
+              </h1>
+              <p className="text-gray-400 text-sm mt-0.5">
+                {openCount > 0 ? `${openCount} open dispute${openCount > 1 ? "s" : ""} need attention` : "All disputes resolved"}
+              </p>
+            </div>
           </div>
         </div>
       </div>

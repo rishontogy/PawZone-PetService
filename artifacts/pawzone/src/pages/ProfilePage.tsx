@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGetMe, useUpdateProfile } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { BackButton } from "@/components/BackButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ export function ProfilePage() {
   return (
     <div className="min-h-screen bg-background py-6 sm:py-8 px-4 pb-24 md:pb-8">
       <div className="max-w-2xl mx-auto">
+        <BackButton className="mb-4 mt-2" />
         <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
           <User className="w-6 h-6" /> My Profile
         </h1>

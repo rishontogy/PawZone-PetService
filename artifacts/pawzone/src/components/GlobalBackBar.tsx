@@ -1,6 +1,5 @@
 import { useLocation } from "wouter";
-import { ChevronLeft, Home } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { BackButton } from "@/components/BackButton";
 
 const DASHBOARD_PATHS = new Set([
   "/",
@@ -12,60 +11,44 @@ const DASHBOARD_PATHS = new Set([
   "/admin",
 ]);
 
-function dashboardPathFor(role?: string): string {
-  switch (role) {
-    case "admin":
-      return "/admin";
-    case "seller":
-      return "/seller";
-    case "transporter":
-      return "/transporter";
-    case "buyer":
-      return "/buyer";
-    default:
-      return "/";
-  }
+const SELF_HANDLED_PATTERNS = [
+  /^\/buyer\/orders$/,
+  /^\/seller\/orders$/,
+  /^\/seller\/listings$/,
+  /^\/seller\/listings\/new$/,
+  /^\/seller\/listings\/\d+\/edit$/,
+  /^\/seller\/payout$/,
+  /^\/transporter\/payout$/,
+  /^\/transporter\/add-route$/,
+  /^\/admin\/orders$/,
+  /^\/admin\/users$/,
+  /^\/admin\/listings$/,
+  /^\/admin\/disputes$/,
+  /^\/admin\/alerts$/,
+  /^\/admin\/accounting$/,
+  /^\/admin\/payments$/,
+  /^\/admin\/ledger\/transporter/,
+  /^\/admin\/ledger\/seller/,
+  /^\/admin\/payouts$/,
+  /^\/buyer\/orders\/[^/]+$/,
+  /^\/notifications$/,
+  /^\/profile$/,
+  /^\/settings$/,
+  /^\/listings$/,
+];
+
+function isSelfHandled(path: string) {
+  return SELF_HANDLED_PATTERNS.some(p => p.test(path));
 }
 
 export function GlobalBackBar() {
-  const [location, setLocation] = useLocation();
-  const { user } = useAuth();
-
+  const [location] = useLocation();
   if (DASHBOARD_PATHS.has(location)) return null;
-
-  const dashHref = dashboardPathFor(user?.role);
-
-  const goBack = () => {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      window.history.back();
-    } else {
-      setLocation(dashHref);
-    }
-  };
-
+  if (isSelfHandled(location)) return null;
   return (
-    <div className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100">
-      <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">
-        <button
-          type="button"
-          onClick={goBack}
-          className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 px-2 py-1 rounded-lg hover:bg-gray-100"
-          data-testid="global-back-button"
-          aria-label="Go back"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          Back
-        </button>
-        <button
-          type="button"
-          onClick={() => setLocation(dashHref)}
-          className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 px-2 py-1 rounded-lg hover:bg-gray-100"
-          data-testid="global-home-button"
-          aria-label="Go to dashboard"
-        >
-          <Home className="w-4 h-4" />
-          Dashboard
-        </button>
+    <div className="fixed z-40 pointer-events-none" style={{ top: "72px", left: "16px" }}>
+      <div className="pointer-events-auto">
+        <BackButton />
       </div>
     </div>
   );

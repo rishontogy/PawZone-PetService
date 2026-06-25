@@ -1,0 +1,166 @@
+PAWZONE – REMOVE WHITE HEADER & ADD PROFESSIONAL BACK BUTTON
+
+CURRENT ISSUE:
+
+Many pages contain a separate white header/banner with:
+
+← Back
+Dashboard
+
+This white strip does not match the PawZone design and looks disconnected from the green theme.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REMOVE COMPLETELY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Delete from ALL pages:
+
+❌ White top banner
+❌ White navigation strip
+❌ Dashboard button inside white banner
+❌ Back button inside white banner
+
+Do not leave empty spacing after removal.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NEW BACK BUTTON DESIGN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Place the Back button INSIDE the existing green header/banner.
+
+Position:
+
+Top Left of Green Banner
+
+Example:
+
+┌─────────────────────────┐
+│ ← Back       My Orders  │
+│                         │
+└─────────────────────────┘
+
+No separate white section.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BUTTON STYLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use a premium Samsung-style design.
+
+Button:
+
+• Rounded pill shape
+• Semi-transparent white overlay
+• White icon
+• White text
+• Soft shadow
+• Glass effect
+
+Example:
+
+[ ← Back ]
+
+Background:
+
+rgba(255,255,255,0.15)
+
+Border:
+
+1px rgba(255,255,255,0.25)
+
+Border Radius:
+
+20px
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGES TO UPDATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BUYER
+
+✔ Browse Pets
+✔ Pet Details
+✔ Cart
+✔ Orders
+✔ Order Details
+✔ Notifications
+✔ Profile
+✔ Settings
+✔ Payment Page
+✔ Payment Details
+✔ Disputes
+
+SELLER
+
+✔ Add Listing
+✔ Edit Listing
+✔ My Listings
+✔ Orders
+✔ Order Details
+✔ Profile
+✔ Notifications
+✔ Payout
+✔ Settings
+
+TRANSPORTER
+
+✔ Add Route
+✔ My Routes
+✔ Delivery Requests
+✔ Active Orders
+✔ Order Details
+✔ Notifications
+✔ Payout
+✔ Profile
+✔ Settings
+
+ADMIN
+
+✔ User Management
+✔ Listing Review
+✔ Order Details
+✔ All Orders
+✔ Accounting
+✔ Ledgers
+✔ Alerts
+✔ Disputes
+✔ Payout
+✔ Reports
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DASHBOARD BUTTON
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Remove Dashboard button completely.
+
+❌ Dashboard button in header
+❌ Dashboard button in white strip
+
+Users already have:
+
+✔ Bottom Navigation
+✔ Side Navigation
+✔ Menu Navigation
+
+No separate dashboard button needed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MOBILE & TABLET OPTIMIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Back button must:
+
+✔ Fit inside green banner
+✔ Not overlap title
+✔ Not wrap text
+✔ Maintain touch size (44px minimum)
+✔ Look premium on mobile
+✔ Look premium on tablet
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Remove every white Back/Dashboard banner throughout the application.
+
+Use a single elegant Back button integrated directly into the existing green header/banner across Buyer, Seller, Transporter, and Admin pages while preserving the current green PawZone theme.

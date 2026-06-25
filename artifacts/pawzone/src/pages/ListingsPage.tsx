@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useSearch } from "wouter";
 import { useGetListings } from "@workspace/api-client-react";
+import { BackButton } from "@/components/BackButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -34,7 +35,10 @@ export function ListingsPage() {
       {/* Filter bar */}
       <div className="bg-muted/30 py-5 sm:py-8 px-4 border-b sticky top-0 z-20 bg-white shadow-sm">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4">Browse Pets</h1>
+          <div className="flex items-center gap-3 mb-3 sm:mb-4">
+            <BackButton />
+            <h1 className="text-lg sm:text-2xl font-bold">Browse Pets</h1>
+          </div>
           <div className="flex flex-col gap-2.5 sm:flex-row sm:gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

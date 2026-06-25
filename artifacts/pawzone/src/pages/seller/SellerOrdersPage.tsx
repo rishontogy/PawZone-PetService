@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useGetOrders, useUpdateOrderStatus } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor, statusLabel } from "@/lib/api";
@@ -63,6 +64,7 @@ export function SellerOrdersPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto">
+          <BackButton className="mb-4" />
           <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
             <Package className="w-5 h-5 sm:w-6 sm:h-6" /> Seller Orders
           </h1>

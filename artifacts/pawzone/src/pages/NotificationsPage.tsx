@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { BackButton } from "@/components/BackButton";
 import { useLocation } from "wouter";
 import { Bell, ChevronLeft, Check, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,7 @@ export function NotificationsPage() {
     <div className="min-h-screen bg-gray-50 py-6 sm:py-8 px-4 pb-24 md:pb-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
+          <BackButton className="mb-3" />
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Bell className="w-6 h-6 text-teal-600" /> Notifications
           </h1>

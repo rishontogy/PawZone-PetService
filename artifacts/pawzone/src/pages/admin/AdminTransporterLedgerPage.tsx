@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
+import { BackButton } from "@/components/BackButton";
 import { formatPrice } from "@/lib/api";
 import { Truck, TrendingDown, DollarSign, Package } from "lucide-react";
 
@@ -48,6 +49,7 @@ export function AdminTransporterLedgerPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-purple-700 to-purple-500 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto">
+          <BackButton className="mb-4" />
           <div className="flex items-center gap-4 mb-2">
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">

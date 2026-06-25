@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useAdminGetAlerts, useAdminResolveAlert } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { BackButton } from "@/components/BackButton";
 import { useToast } from "@/hooks/use-toast";
 import {
   Bell, ArrowLeft, CheckCircle, AlertTriangle, Clock,
@@ -72,23 +73,26 @@ export function AdminAlertsPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       {/* Header */}
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
-        <div className="max-w-5xl mx-auto flex items-center gap-4">
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Bell className="w-6 h-6 text-yellow-400" /> System Alerts
-            </h1>
-            <p className="text-gray-400 text-sm mt-0.5">
-              {activeCount > 0
-                ? `${activeCount} active alert${activeCount > 1 ? "s" : ""} require attention`
-                : "All systems nominal"}
-            </p>
+        <div className="max-w-5xl mx-auto">
+          <BackButton className="mb-4" />
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <Bell className="w-6 h-6 text-yellow-400" /> System Alerts
+              </h1>
+              <p className="text-gray-400 text-sm mt-0.5">
+                {activeCount > 0
+                  ? `${activeCount} active alert${activeCount > 1 ? "s" : ""} require attention`
+                  : "All systems nominal"}
+              </p>
+            </div>
+            <button
+              onClick={() => refetch()}
+              className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-sm px-3 py-2 rounded-xl transition-colors"
+            >
+              <RefreshCcw className="w-3.5 h-3.5" /> Refresh
+            </button>
           </div>
-          <button
-            onClick={() => refetch()}
-            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-sm px-3 py-2 rounded-xl transition-colors"
-          >
-            <RefreshCcw className="w-3.5 h-3.5" /> Refresh
-          </button>
         </div>
       </div>
 

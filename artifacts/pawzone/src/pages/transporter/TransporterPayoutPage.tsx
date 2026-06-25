@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { BackButton } from "@/components/BackButton";
 import {
   Wallet, CheckCircle, Clock, IndianRupee, TrendingUp,
   CreditCard, Edit2, Eye, Download, X, RefreshCw, Truck,
@@ -77,6 +78,7 @@ export function TransporterPayoutPage() {
     <div className="min-h-screen bg-gray-50 pb-24 md:pb-8">
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
         <div className="max-w-3xl mx-auto">
+          <BackButton className="mb-4" />
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">

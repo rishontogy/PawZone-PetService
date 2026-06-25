@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAdminGetOrders } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { BackButton } from "@/components/BackButton";
 import { formatPrice, getApiBase } from "@/lib/api";
 import {
   ShoppingBag, ChevronDown, ChevronUp, Phone, MapPin, Clock,
@@ -82,12 +83,15 @@ export function AdminOrdersPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
-        <div className="max-w-6xl mx-auto flex items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <ShoppingBag className="w-6 h-6" /> All Orders
-            </h1>
-            <p className="text-gray-400 text-sm mt-0.5">{orders.length} orders on the platform</p>
+        <div className="max-w-6xl mx-auto">
+          <BackButton className="mb-4" />
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <ShoppingBag className="w-6 h-6" /> All Orders
+              </h1>
+              <p className="text-gray-400 text-sm mt-0.5">{orders.length} orders on the platform</p>
+            </div>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useGetListings, useDeleteListing } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor } from "@/lib/api";
@@ -68,18 +69,21 @@ export function SellerListingsPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Package className="w-6 h-6" /> My Listings
-            </h1>
-            <p className="text-teal-100 text-sm mt-1">{myListings.length} listing{myListings.length !== 1 ? "s" : ""} in your shop</p>
+        <div className="max-w-5xl mx-auto">
+          <BackButton className="mb-4" />
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <Package className="w-6 h-6" /> My Listings
+              </h1>
+              <p className="text-teal-100 text-sm mt-1">{myListings.length} listing{myListings.length !== 1 ? "s" : ""} in your shop</p>
+            </div>
+            <Link href="/seller/listings/new">
+              <Button className="gap-2 bg-white text-teal-700 hover:bg-teal-50 font-bold rounded-xl shadow-lg">
+                <PlusCircle className="w-4 h-4" /> Add Listing
+              </Button>
+            </Link>
           </div>
-          <Link href="/seller/listings/new">
-            <Button className="gap-2 bg-white text-teal-700 hover:bg-teal-50 font-bold rounded-xl shadow-lg">
-              <PlusCircle className="w-4 h-4" /> Add Listing
-            </Button>
-          </Link>
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BackButton } from "@/components/BackButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, Upload, X, ImagePlus, CheckCircle, Loader2 } from "lucide-react";
@@ -282,6 +283,7 @@ export function CreateListingPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-2xl mx-auto">
+        <BackButton className="mb-4" />
         <Card className="shadow-lg border-0 rounded-2xl overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-teal-600 to-emerald-500 text-white p-6">
             <CardTitle className="text-xl">Create New Listing</CardTitle>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useGetOrders } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { formatPrice, getStatusColor, statusLabel } from "@/lib/api";
 import { Package, ChevronRight, ShoppingBag, Clock, CheckCircle, AlertCircle, Truck } from "lucide-react";
@@ -42,18 +43,21 @@ export function BuyerOrdersPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" /> My Orders
-            </h1>
-            <p className="text-teal-100 text-sm mt-1">{orders.length} total orders</p>
+        <div className="max-w-4xl mx-auto">
+          <BackButton className="mb-4" />
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" /> My Orders
+              </h1>
+              <p className="text-teal-100 text-sm mt-1">{orders.length} total orders</p>
+            </div>
+            <Link href="/listings">
+              <Button className="bg-white text-teal-700 hover:bg-teal-50 font-bold rounded-xl shadow-lg text-sm whitespace-nowrap">
+                Browse More Pets
+              </Button>
+            </Link>
           </div>
-          <Link href="/listings">
-            <Button className="bg-white text-teal-700 hover:bg-teal-50 font-bold rounded-xl shadow-lg text-sm whitespace-nowrap">
-              Browse More Pets
-            </Button>
-          </Link>
         </div>
       </div>
 
