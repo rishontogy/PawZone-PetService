@@ -263,16 +263,52 @@ export function SellerOrdersPage() {
                                   Drop Date: {new Date(order.deliveryTime).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                                 </p>
                               )}
-                              {order.paymentStatus === "paid" && (order as any).liveLocationUrl && (
-                                <a
-                                  href={(order as any).liveLocationUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="mt-1.5 inline-flex items-center gap-1 bg-blue-600 text-white text-xs font-semibold px-2.5 py-1 rounded-lg hover:bg-blue-700 transition-colors"
-                                >
-                                  <MapPin className="w-3 h-3" /> Track Transporter
-                                </a>
-                              )}
+                              {(() => {
+                                const toIST = (d: Date) => new Date(d.getTime() + 330 * 60 * 1000).toISOString().slice(0, 10);
+                                const todayIST = toIST(new Date());
+                                const pickupIST = order.pickupTime ? toIST(new Date(order.pickupTime)) : null;
+                                const dropIST = order.deliveryTime ? toIST(new Date(order.deliveryTime)) : null;
+                                const isTransportDay = todayIST === pickupIST || todayIST === dropIST;
+                                const hasFutureDate = [pickupIST, dropIST].some((d) => d && d > todayIST);
+                                const isExpired = !!(pickupIST || dropIST) && !isTransportDay && !hasFutureDate;
+                                const isDeliveredDone = ["delivered", "completed"].includes(order.status as string);
+                                const isPaid = order.paymentStatus === "paid";
+                                const nextDateISO = [pickupIST, dropIST].filter((d): d is string => !!d && d > todayIST).sort()[0] ?? null;
+                                const earliestDateISO = nextDateISO ?? pickupIST ?? dropIST;
+                                const fmtDate = (iso: string) => {
+                                  const [y, m, day] = iso.split("-").map(Number);
+                                  return new Date(y, m - 1, day).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+                                };
+
+                                if (isDeliveredDone) {
+                                  return <p className="text-xs text-gray-500 flex items-center gap-1 mt-1"><CheckCircle className="w-3 h-3 text-green-500" /> Delivery completed.</p>;
+                                }
+                                if (!isPaid) {
+                                  return <p className="text-xs text-gray-400 flex items-center gap-1 mt-1"><MapPin className="w-3 h-3" /> Tracking available after payment.</p>;
+                                }
+                                if (isTransportDay) {
+                                  if ((order as any).liveLocationUrl) {
+                                    return (
+                                      <a
+                                        href={(order as any).liveLocationUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="mt-1.5 inline-flex items-center gap-1 bg-blue-600 text-white text-xs font-semibold px-2.5 py-1 rounded-lg hover:bg-blue-700 transition-colors"
+                                      >
+                                        <MapPin className="w-3 h-3" /> Track Transporter
+                                      </a>
+                                    );
+                                  }
+                                  return <p className="text-xs text-orange-500 flex items-center gap-1 mt-1"><MapPin className="w-3 h-3" /> Tracking link not yet set.</p>;
+                                }
+                                if (isExpired) {
+                                  return <p className="text-xs text-gray-400 flex items-center gap-1 mt-1"><Clock className="w-3 h-3" /> Tracking session has expired.</p>;
+                                }
+                                if (earliestDateISO) {
+                                  return <p className="text-xs text-blue-600 flex items-center gap-1 mt-1"><MapPin className="w-3 h-3" /> 📍 Tracking available on: {fmtDate(earliestDateISO)}</p>;
+                                }
+                                return null;
+                              })()}
                             </div>
                           </div>
                         ) : (

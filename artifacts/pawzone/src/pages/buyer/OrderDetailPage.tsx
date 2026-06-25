@@ -471,40 +471,76 @@ export function OrderDetailPage() {
                     <Clock className="w-3 h-3" /> Drop: {new Date(o.deliveryTime).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
                   </p>
                 )}
-                {paymentStatusVal === "paid" && (() => {
-                  const st = o.status as string;
-                  const isCompleted = ["delivered", "completed"].includes(st);
-                  const isActiveTransport = ["picked_up", "in_transit"].includes(st);
-                  // IST date comparison
+                {(() => {
                   const toIST = (d: Date) => new Date(d.getTime() + 330 * 60 * 1000).toISOString().slice(0, 10);
                   const todayIST = toIST(new Date());
                   const pickupIST = o.pickupTime ? toIST(new Date(o.pickupTime)) : null;
-                  const isPickupDay = pickupIST === todayIST;
+                  const dropIST = o.deliveryTime ? toIST(new Date(o.deliveryTime)) : null;
+                  const isTransportDay = todayIST === pickupIST || todayIST === dropIST;
+                  const hasFutureDate = [pickupIST, dropIST].some((d) => d && d > todayIST);
+                  const isExpired = !!(pickupIST || dropIST) && !isTransportDay && !hasFutureDate;
+                  const isDeliveredDone = ["delivered", "completed"].includes(o.status as string);
+                  const isPaid = paymentStatusVal === "paid";
+                  const nextDateISO = [pickupIST, dropIST].filter((d): d is string => !!d && d > todayIST).sort()[0] ?? null;
+                  const earliestDateISO = nextDateISO ?? pickupIST ?? dropIST;
+                  const fmtDate = (iso: string) => {
+                    const [y, m, day] = iso.split("-").map(Number);
+                    return new Date(y, m - 1, day).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+                  };
 
-                  if (isCompleted) {
+                  if (isDeliveredDone) {
                     return (
                       <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" /> Tracking session completed.
+                        <CheckCircle className="w-3 h-3 text-green-500" /> Delivery completed. Tracking unavailable.
                       </p>
                     );
                   }
-                  if (isActiveTransport && isPickupDay && o.liveLocationUrl) {
+                  if (!isPaid) {
                     return (
-                      <a
-                        href={o.liveLocationUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-2 inline-flex items-center gap-1.5 bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        <MapPin className="w-3 h-3" /> Track Transporter
-                      </a>
+                      <p className="mt-2 text-xs text-gray-400 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" /> Live tracking will be available after payment confirmation.
+                      </p>
                     );
                   }
-                  if (pickupIST && (todayIST < pickupIST || (isActiveTransport && !o.liveLocationUrl))) {
+                  if (isTransportDay) {
+                    if (o.liveLocationUrl) {
+                      return (
+                        <a
+                          href={o.liveLocationUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex items-center gap-1.5 bg-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          <MapPin className="w-3 h-3" /> 📍 Track Transporter
+                        </a>
+                      );
+                    }
                     return (
-                      <p className="mt-2 text-xs text-blue-600 flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> Live tracking will be available on the pickup date.
+                      <p className="mt-2 text-xs text-orange-600 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" /> Tracking link not yet set by transporter.
                       </p>
+                    );
+                  }
+                  if (isExpired) {
+                    return (
+                      <p className="mt-2 text-xs text-gray-400 flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> Tracking session has expired.
+                      </p>
+                    );
+                  }
+                  if (earliestDateISO) {
+                    return (
+                      <div className="mt-2 space-y-1.5">
+                        <p className="text-xs text-blue-600 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" /> 📍 Tracking Available On: {fmtDate(earliestDateISO)}
+                        </p>
+                        <button
+                          disabled
+                          className="inline-flex items-center gap-1.5 bg-gray-200 text-gray-400 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-not-allowed"
+                        >
+                          <MapPin className="w-3 h-3" /> Track Transporter
+                        </button>
+                      </div>
                     );
                   }
                   return null;

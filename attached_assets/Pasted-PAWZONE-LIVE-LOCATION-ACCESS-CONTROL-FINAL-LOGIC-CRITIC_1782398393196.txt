@@ -1,0 +1,235 @@
+PAWZONE – LIVE LOCATION ACCESS CONTROL (FINAL LOGIC)
+
+CRITICAL REQUIREMENT:
+
+The transporter's live location must NOT be visible immediately after upload.
+
+It should become available ONLY when ALL required conditions are satisfied.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONDITION 1 – PAYMENT COMPLETED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Live Location must remain hidden until:
+
+✔ Buyer payment approved by admin
+✔ Order status = Payment Completed
+
+Before payment completion:
+
+Buyer:
+❌ Cannot view live location
+
+Seller:
+❌ Cannot view live location
+
+Show message:
+
+"Live tracking will be available after payment confirmation."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONDITION 2 – TRANSPORT DATE MATCH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Live location must ONLY be visible on the actual transport date.
+
+Example:
+
+Pickup Date:
+26/06/2026
+
+Drop Date:
+26/06/2026
+
+Current Date:
+26/06/2026
+
+Result:
+
+✔ Show live location
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current Date:
+25/06/2026
+
+Result:
+
+❌ Hide live location
+
+Message:
+
+"Tracking will be available on 26/06/2026."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current Date:
+27/06/2026
+
+Result:
+
+❌ Hide live location
+
+Message:
+
+"Tracking session has expired."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VISIBILITY FORMULA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Show Live Location ONLY IF:
+
+paymentStatus = COMPLETED
+
+AND
+
+today = pickupDate
+
+OR
+
+today = dropDate
+
+AND
+
+orderStatus ≠ DELIVERED
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONDITION 3 – DELIVERY COMPLETED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Once transporter uploads Delivery Video and order becomes:
+
+DELIVERED
+
+Immediately:
+
+✔ Disable live tracking
+✔ Remove tracking button
+✔ Close tracking session
+
+Buyer:
+
+"Delivery completed."
+
+Seller:
+
+"Delivery completed."
+
+Live location can no longer be viewed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRANSPORTER SIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Transporter can upload/update location link at any time.
+
+However visibility follows restrictions:
+
+✔ Stored in database
+
+But visible only when:
+
+• Payment completed
+• Valid pickup/drop date
+• Order not delivered
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BUYER ORDER DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before transport day:
+
+Show:
+
+📍 Tracking Available On:
+26/06/2026
+
+Button disabled.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+On transport day:
+
+Show:
+
+📍 Track Transporter
+
+Button enabled.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After delivery:
+
+Show:
+
+✅ Delivery Completed
+
+Tracking unavailable.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SELLER ORDER DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Apply exactly the same rules as buyer.
+
+No differences.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADMIN ACCESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Admin can always view:
+
+✔ Live location link
+✔ Tracking history
+✔ Assigned transporter
+
+for monitoring and disputes.
+
+Admin is not restricted by dates.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VIDEO RESTRICTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pickup Video Upload:
+
+Enabled ONLY on Pickup Date.
+
+Delivery Video Upload:
+
+Enabled ONLY on Drop Date.
+
+Any other date:
+
+❌ Upload disabled
+
+Display:
+
+"Video upload allowed only on assigned transport date."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Live Location must be visible ONLY when:
+
+✔ Payment is completed
+✔ Current date matches pickup/drop date
+✔ Order is not yet delivered
+
+Example:
+
+Pickup Date = 26/06/2026
+
+Visible:
+✔ 26/06/2026
+
+Hidden:
+❌ 25/06/2026
+❌ 27/06/2026
+
+After order status becomes DELIVERED:
+
+❌ Tracking automatically disabled and hidden from both buyer and seller.
