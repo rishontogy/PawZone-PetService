@@ -1,0 +1,177 @@
+PAWZONE – STRICT VIDEO UPLOAD DATE CONTROL
+
+CRITICAL REQUIREMENT:
+
+Sellers and Transporters must NOT be able to upload videos on any random day.
+
+Packing, Pickup and Delivery videos should only be uploadable on their assigned workflow dates.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SELLER PACKING VIDEO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Packing Video Upload should be enabled ONLY when:
+
+✔ Seller has accepted the order
+✔ Transporter is assigned
+✔ Current Date = Pickup Date
+
+Before Pickup Date:
+
+❌ Upload disabled
+
+Message:
+
+"Packing video can be uploaded only on the scheduled pickup date."
+
+After Pickup Date:
+
+❌ Upload disabled
+
+If not uploaded:
+
+Create Admin Alert:
+
+"Packing video missing for Order PZ-XXXX"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRANSPORTER PICKUP VIDEO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pickup Video Upload should be enabled ONLY when:
+
+✔ Current Date = Pickup Date
+
+Before Pickup Date:
+
+❌ Upload disabled
+
+After Pickup Date:
+
+❌ Upload disabled
+
+Only on Pickup Date:
+
+✔ Upload enabled
+
+After successful upload:
+
+✔ Order Status = Picked Up
+✔ Order Status = In Transit
+✔ Alert generated
+✔ Notification sent
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRANSPORTER DELIVERY VIDEO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Delivery Video Upload should be enabled ONLY when:
+
+✔ Current Date = Drop Date
+
+Before Drop Date:
+
+❌ Upload disabled
+
+After Drop Date:
+
+❌ Upload disabled
+
+Only on Drop Date:
+
+✔ Upload enabled
+
+After upload:
+
+✔ Order Status = Delivered
+✔ Buyer Delivery Confirmation Enabled
+✔ Live Location Disabled
+✔ Tracking Session Closed
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATE VALIDATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Example:
+
+Pickup Date:
+26/06/2026
+
+Drop Date:
+26/06/2026
+
+Current Date:
+25/06/2026
+
+Result:
+
+❌ Seller Packing Video Disabled
+❌ Pickup Video Disabled
+❌ Delivery Video Disabled
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current Date:
+26/06/2026
+
+Result:
+
+✔ Seller Packing Video Enabled
+✔ Pickup Video Enabled
+✔ Delivery Video Enabled (if drop date is same day)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current Date:
+27/06/2026
+
+Result:
+
+❌ All Upload Buttons Disabled
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADMIN OVERRIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Admin can:
+
+✔ Reopen upload window
+✔ Extend pickup date
+✔ Extend drop date
+✔ Allow re-upload during disputes
+
+Normal users cannot bypass date restrictions.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MOBILE/TABLET/DESKTOP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Show disabled button with message:
+
+"Available on Pickup Date: DD/MM/YYYY"
+
+or
+
+"Available on Drop Date: DD/MM/YYYY"
+
+instead of hiding the feature completely.
+
+This lets users know when uploads become available.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Seller Packing Video:
+✔ Only on Pickup Date
+
+Transporter Pickup Video:
+✔ Only on Pickup Date
+
+Transporter Delivery Video:
+✔ Only on Drop Date
+
+Before or after those dates:
+❌ Upload not allowed
+
+Admin retains override permissions for dispute handling.

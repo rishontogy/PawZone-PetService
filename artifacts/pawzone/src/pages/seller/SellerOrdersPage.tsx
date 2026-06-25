@@ -350,6 +350,7 @@ export function SellerOrdersPage() {
                       <PreparedVideoBlock
                         orderId={order.id}
                         existingUrl={order.preparedVideoUrl}
+                        pickupTime={order.pickupTime}
                         isActing={isActing}
                         onMarkReady={() => handleAction(order.id, "ready")}
                         onUploaded={() => refetch()}
@@ -384,15 +385,30 @@ export function SellerOrdersPage() {
   );
 }
 
+function toISTDateStr(d: Date): string {
+  return new Date(d.getTime() + 330 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+function packingDateStatus(pickupTime: string | null | undefined): "unknown" | "before" | "today" | "after" {
+  if (!pickupTime) return "unknown";
+  const today = toISTDateStr(new Date());
+  const target = toISTDateStr(new Date(pickupTime));
+  if (today === target) return "today";
+  if (today < target) return "before";
+  return "after";
+}
+
 function PreparedVideoBlock({
   orderId,
   existingUrl,
+  pickupTime,
   isActing,
   onMarkReady,
   onUploaded,
 }: {
   orderId: number;
   existingUrl?: string | null;
+  pickupTime?: string | null;
   isActing: boolean;
   onMarkReady: () => void;
   onUploaded: () => void;
@@ -401,6 +417,11 @@ function PreparedVideoBlock({
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [localUrl, setLocalUrl] = useState<string | null>(existingUrl ?? null);
+
+  const dateStatus = packingDateStatus(pickupTime);
+  const pickupLabel = pickupTime
+    ? new Date(pickupTime).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+    : null;
 
   const onPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -442,13 +463,60 @@ function PreparedVideoBlock({
     }
   };
 
+  if (dateStatus === "unknown") {
+    return (
+      <div className="mt-3 pt-3 border-t border-gray-100">
+        <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
+          <p className="text-sm font-semibold text-purple-800 mb-1 flex items-center gap-1.5">
+            <Clock className="w-4 h-4" /> Packing Video — Awaiting Pickup Date
+          </p>
+          <p className="text-xs text-purple-700">
+            Packing video can be uploaded only on the scheduled pickup date. Waiting for a transporter to be assigned.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (dateStatus === "before") {
+    return (
+      <div className="mt-3 pt-3 border-t border-gray-100">
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
+          <p className="text-sm font-semibold text-orange-800 mb-1 flex items-center gap-1.5">
+            <Clock className="w-4 h-4" /> Packing Video — Not Yet Available
+          </p>
+          <p className="text-xs text-orange-700">
+            Packing video can be uploaded only on the scheduled pickup date
+            {pickupLabel ? `: ${pickupLabel}` : ""}.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (dateStatus === "after" && !localUrl) {
+    return (
+      <div className="mt-3 pt-3 border-t border-gray-100">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+          <p className="text-sm font-semibold text-red-800 mb-1 flex items-center gap-1.5">
+            <AlertCircle className="w-4 h-4" /> Packing Video Upload Window Missed
+          </p>
+          <p className="text-xs text-red-700">
+            The scheduled pickup date{pickupLabel ? ` (${pickupLabel})` : ""} has passed without a packing video.
+            Please contact admin to extend the window.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
       <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
         <div className="flex items-start gap-2">
           <Video className="w-4 h-4 text-purple-700 mt-0.5" />
           <div className="flex-1">
-            <p className="text-sm font-semibold text-purple-900">Prepared Video Required</p>
+            <p className="text-sm font-semibold text-purple-900">Packing Video Required</p>
             <p className="text-xs text-purple-700">
               Upload a short video showing the pet ready for handover before marking ready for transport.
             </p>
@@ -477,7 +545,7 @@ function PreparedVideoBlock({
             data-testid={`button-upload-prepared-${orderId}`}
           >
             <Upload className="w-4 h-4 mr-1.5" />
-            {busy ? "Uploading…" : localUrl ? "Replace Video" : "Upload Prepared Video"}
+            {busy ? "Uploading…" : localUrl ? "Replace Video" : "Upload Packing Video"}
           </Button>
           <Button
             size="sm"
