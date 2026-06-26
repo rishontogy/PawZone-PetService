@@ -78,15 +78,15 @@ export function SellerPayoutPage() {
     <div className="min-h-screen bg-gray-50 pb-24 md:pb-8">
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
         <div className="max-w-3xl mx-auto">
-          <BackButton className="mb-4" />
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 <Wallet className="w-6 h-6" /> My Payout
               </h1>
-              <p className="text-teal-100 text-sm mt-1">Track your earnings and payment history</p>
+              <p className="text-teal-100 text-sm mt-0.5">Track your earnings and payment history</p>
             </div>
-            <button onClick={load} className="text-white/80 hover:text-white transition-colors">
+            <button onClick={load} className="text-white/80 hover:text-white transition-colors shrink-0">
               <RefreshCw className="w-5 h-5" />
             </button>
           </div>

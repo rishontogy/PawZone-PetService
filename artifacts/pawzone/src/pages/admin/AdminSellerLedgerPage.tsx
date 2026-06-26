@@ -49,9 +49,9 @@ export function AdminSellerLedgerPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-blue-700 to-blue-500 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto">
-          <BackButton className="mb-4" />
-          <div className="flex items-center gap-4 mb-2">
-            <div>
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 <Users className="w-6 h-6" />
                 Seller Ledger — {seller.name}

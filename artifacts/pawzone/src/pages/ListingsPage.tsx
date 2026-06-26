@@ -33,11 +33,11 @@ export function ListingsPage() {
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       {/* Filter bar */}
-      <div className="bg-muted/30 py-5 sm:py-8 px-4 border-b sticky top-0 z-20 bg-white shadow-sm">
+      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 py-4 sm:py-6 px-4 border-b sticky top-0 z-20 shadow-md">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-3 sm:mb-4">
             <BackButton />
-            <h1 className="text-lg sm:text-2xl font-bold">Browse Pets</h1>
+            <h1 className="text-lg sm:text-2xl font-bold text-white">Browse Pets</h1>
           </div>
           <div className="flex flex-col gap-2.5 sm:flex-row sm:gap-3">
             <div className="relative flex-1">

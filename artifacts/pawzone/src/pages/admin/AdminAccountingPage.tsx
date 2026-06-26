@@ -65,16 +65,16 @@ export function AdminAccountingPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
         <div className="max-w-6xl mx-auto">
-          <BackButton className="mb-4" />
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 <TrendingUp className="w-7 h-7" />
                 Accounting & Ledger
               </h1>
-              <p className="text-teal-100 mt-1 text-sm">Full financial overview of all transactions</p>
+              <p className="text-teal-100 mt-0.5 text-sm">Full financial overview of all transactions</p>
             </div>
-            <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-xl transition-colors border border-white/20">
+            <button className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-xl transition-colors border border-white/20 shrink-0">
               <Download className="w-4 h-4" /> Export
             </button>
           </div>

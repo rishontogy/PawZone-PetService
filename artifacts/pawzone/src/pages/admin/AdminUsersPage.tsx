@@ -70,9 +70,9 @@ export function AdminUsersPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
         <div className="max-w-6xl mx-auto">
-          <BackButton className="mb-4" />
-          <div className="flex items-center gap-4">
-            <div className="flex-1 flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <div className="flex-1 min-w-0 flex items-start justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                   <Users className="w-6 h-6" /> User Management
@@ -80,7 +80,7 @@ export function AdminUsersPage() {
                 <p className="text-gray-400 text-sm mt-0.5">Manage user accounts and approvals</p>
               </div>
               {pendingCount > 0 && (
-                <Badge className="bg-amber-400/20 text-amber-300 border border-amber-400/30 text-sm px-3 py-1.5">
+                <Badge className="bg-amber-400/20 text-amber-300 border border-amber-400/30 text-sm px-3 py-1.5 shrink-0">
                   {pendingCount} pending
                 </Badge>
               )}

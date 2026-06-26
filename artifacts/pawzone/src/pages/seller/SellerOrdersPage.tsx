@@ -64,11 +64,15 @@ export function SellerOrdersPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto">
-          <BackButton className="mb-4" />
-          <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-            <Package className="w-5 h-5 sm:w-6 sm:h-6" /> Seller Orders
-          </h1>
-          <p className="text-teal-100 text-sm mt-1">{orders.length} total orders</p>
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                <Package className="w-5 h-5 sm:w-6 sm:h-6" /> Seller Orders
+              </h1>
+              <p className="text-teal-100 text-sm mt-0.5">{orders.length} total orders</p>
+            </div>
+          </div>
         </div>
       </div>
 

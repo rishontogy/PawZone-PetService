@@ -70,16 +70,16 @@ export function SellerListingsPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
         <div className="max-w-5xl mx-auto">
-          <BackButton className="mb-4" />
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 <Package className="w-6 h-6" /> My Listings
               </h1>
-              <p className="text-teal-100 text-sm mt-1">{myListings.length} listing{myListings.length !== 1 ? "s" : ""} in your shop</p>
+              <p className="text-teal-100 text-sm mt-0.5">{myListings.length} listing{myListings.length !== 1 ? "s" : ""} in your shop</p>
             </div>
             <Link href="/seller/listings/new">
-              <Button className="gap-2 bg-white text-teal-700 hover:bg-teal-50 font-bold rounded-xl shadow-lg">
+              <Button className="gap-2 bg-white text-teal-700 hover:bg-teal-50 font-bold rounded-xl shadow-lg shrink-0">
                 <PlusCircle className="w-4 h-4" /> Add Listing
               </Button>
             </Link>

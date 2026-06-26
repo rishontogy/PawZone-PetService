@@ -44,16 +44,16 @@ export function BuyerOrdersPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-8">
         <div className="max-w-4xl mx-auto">
-          <BackButton className="mb-4" />
-          <div className="flex items-center justify-between gap-4">
-            <div>
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <div className="flex-1 min-w-0">
               <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" /> My Orders
               </h1>
-              <p className="text-teal-100 text-sm mt-1">{orders.length} total orders</p>
+              <p className="text-teal-100 text-sm mt-0.5">{orders.length} total orders</p>
             </div>
             <Link href="/listings">
-              <Button className="bg-white text-teal-700 hover:bg-teal-50 font-bold rounded-xl shadow-lg text-sm whitespace-nowrap">
+              <Button className="bg-white text-teal-700 hover:bg-teal-50 font-bold rounded-xl shadow-lg text-sm whitespace-nowrap shrink-0">
                 Browse More Pets
               </Button>
             </Link>

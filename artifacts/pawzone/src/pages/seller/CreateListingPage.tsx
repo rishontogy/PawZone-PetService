@@ -283,11 +283,15 @@ export function CreateListingPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-2xl mx-auto">
-        <BackButton className="mb-4" />
         <Card className="shadow-lg border-0 rounded-2xl overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-teal-600 to-emerald-500 text-white p-6">
-            <CardTitle className="text-xl">Create New Listing</CardTitle>
-            <p className="text-white/80 text-sm mt-1">Add your pet details below. Admin will review before publishing.</p>
+            <div className="flex items-center gap-3">
+              <BackButton />
+              <div>
+                <CardTitle className="text-xl">Create New Listing</CardTitle>
+                <p className="text-white/80 text-sm mt-0.5">Add your pet details below. Admin will review before publishing.</p>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">

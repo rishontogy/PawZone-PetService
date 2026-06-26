@@ -231,12 +231,12 @@ export function OrderDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 shadow-sm px-4 sm:px-6 py-4">
+      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-5">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <BackButton className="shrink-0" />
-          <div className="flex-1">
-            <h1 className="font-bold text-gray-900">Order #{o.orderNumber}</h1>
-            <p className="text-xs text-gray-400">
+          <BackButton />
+          <div className="flex-1 min-w-0">
+            <h1 className="font-bold text-white">Order #{o.orderNumber}</h1>
+            <p className="text-xs text-teal-100">
               {new Date(o.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
             </p>
           </div>

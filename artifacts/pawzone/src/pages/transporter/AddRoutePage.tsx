@@ -140,11 +140,11 @@ export function AddRoutePage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-lg mx-auto">
-        <BackButton className="mb-4" />
         <Card className="shadow-lg border-0 rounded-2xl overflow-hidden">
           <CardHeader className="bg-gradient-to-r from-teal-700 to-emerald-600 text-white p-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+              <BackButton />
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
                 <Truck className="w-6 h-6 text-white" />
               </div>
               <div>

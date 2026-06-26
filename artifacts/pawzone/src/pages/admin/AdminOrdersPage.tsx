@@ -84,9 +84,9 @@ export function AdminOrdersPage() {
     <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 sm:px-6 py-8">
         <div className="max-w-6xl mx-auto">
-          <BackButton className="mb-4" />
-          <div className="flex items-center gap-4">
-            <div>
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 <ShoppingBag className="w-6 h-6" /> All Orders
               </h1>

@@ -1,0 +1,174 @@
+PAWZONE – PREMIUM HEADER BACK BUTTON REDESIGN
+
+The current Back button does not match the premium UI of PawZone.
+
+Replace it with a modern icon-only button integrated into the existing page header.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NEW DESIGN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Remove:
+
+❌ Text "Back"
+
+Keep only:
+
+←
+
+using a premium arrow icon (Chevron Left / Arrow Left).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BUTTON SHAPE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Shape:
+
+Rounded Square
+
+NOT:
+
+❌ Pill
+❌ Circle
+❌ Rectangle
+
+Style:
+
+• 16px corner radius
+• Soft shadow
+• Glass effect
+• Premium Samsung One UI style
+
+Recommended Size:
+
+Mobile:
+44 × 44 px
+
+Tablet:
+48 × 48 px
+
+Desktop:
+50 × 50 px
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BUTTON POSITION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Place the button INSIDE the existing coloured page header/banner.
+
+Layout:
+
+┌────────────────────────────────────┐
+│ ⬅          My Orders               │
+│                                    │
+└────────────────────────────────────┘
+
+Requirements:
+
+✔ Left aligned
+✔ Vertically centered
+✔ Same padding on every page
+✔ No white header above it
+✔ No additional navigation bar
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BUTTON COLOUR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The button should inherit the page theme.
+
+Buyer Pages
+
+Use a lighter version of the buyer banner colour.
+
+Seller Pages
+
+Use the exact Seller Dashboard green theme.
+
+Transporter Pages
+
+Use the exact same Seller Dashboard green theme (already standardized).
+
+Admin Pages
+
+Use the Admin banner theme.
+
+The button should blend naturally with its page rather than appearing as a separate control.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BUTTON APPEARANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Background:
+
+A slightly lighter shade of the banner colour
+(or approximately 15–20% white overlay).
+
+Border:
+
+Very subtle translucent border.
+
+Shadow:
+
+Soft elevation.
+
+Icon:
+
+White
+
+Hover (Desktop):
+
+Slightly brighter.
+
+Pressed:
+
+Slightly darker with a subtle scale animation (≈95%).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAGE TITLE ALIGNMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After adding the icon button:
+
+Center the page title visually.
+
+Maintain equal spacing between:
+
+• Left button
+• Title
+• Right side
+
+Ensure long titles remain aligned and do not overlap the button.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ANIMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tap:
+
+• 150–200 ms smooth animation
+• Slight scale down
+• Soft ripple effect
+
+Page transition:
+
+Use smooth slide animation when navigating back.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONSISTENCY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use this exact design on every non-dashboard page in:
+
+✔ Buyer
+✔ Seller
+✔ Transporter
+✔ Admin
+
+The back button must have identical shape, size, spacing, animation, and behaviour across all modules. Only the colour should adapt to the corresponding page banner.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Replace every existing Back button with a premium rounded-square icon-only button positioned on the left side inside the existing coloured header banner. Remove all "Back" text and white navigation headers. The result should feel modern, elegant, and consistent with Samsung One UI while preserving PawZone's colour theme.

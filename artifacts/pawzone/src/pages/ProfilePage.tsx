@@ -40,13 +40,20 @@ export function ProfilePage() {
   const profileUser = me ?? user;
 
   return (
-    <div className="min-h-screen bg-background py-6 sm:py-8 px-4 pb-24 md:pb-8">
-      <div className="max-w-2xl mx-auto">
-        <BackButton className="mb-4 mt-2" />
-        <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          <User className="w-6 h-6" /> My Profile
-        </h1>
-
+    <div className="min-h-screen bg-gray-50 pb-24 md:pb-8">
+      <div className="bg-gradient-to-r from-teal-700 to-emerald-600 px-4 sm:px-6 py-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl font-bold text-white flex items-center gap-2">
+                <User className="w-5 h-5" /> My Profile
+              </h1>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6">
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
