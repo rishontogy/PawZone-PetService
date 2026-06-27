@@ -46,7 +46,7 @@ export function GlobalBackBar() {
   if (DASHBOARD_PATHS.has(location)) return null;
   if (isSelfHandled(location)) return null;
   return (
-    <div className="fixed z-40 pointer-events-none" style={{ top: "72px", left: "16px" }}>
+    <div className="fixed z-40 pointer-events-none" style={{ top: "calc(4rem + 0.5rem)", left: "1rem" }}>
       <div className="pointer-events-auto">
         <BackButton />
       </div>

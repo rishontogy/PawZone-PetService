@@ -202,6 +202,59 @@
   --chart-5: 280 60% 50%;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE SCALING SYSTEM
+   Mobile  (<640px):  13.5px base = ~16% smaller than desktop
+   Tablet  (640–1023px): 15px base = ~6% smaller than desktop
+   Desktop (≥1024px): 16px default — completely unchanged
+   All rem-based Tailwind classes (spacing, font, radius, etc.)
+   scale automatically. Desktop pixels are never touched.
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 639px) {
+  html {
+    font-size: 13.5px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+/* ── Mobile-specific compact overrides ── */
+@media (max-width: 639px) {
+  /* Hero banner: reduce py-14 (only applies below sm:py-20) */
+  section.hero-section {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  /* Dashboard gradient headers: tighten vertical padding */
+  .dashboard-header {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+
+  /* Stat number font inside cards — keep readable */
+  .stat-value {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+
+  /* Reduce bottom nav height if present */
+  .mobile-bottom-nav {
+    height: 3.5rem;
+  }
+
+  /* Badge sizing */
+  .badge-compact {
+    padding: 0.1rem 0.4rem;
+    font-size: 0.65rem;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -224,7 +277,7 @@
     touch-action: manipulation;
   }
 
-  /* Prevent input zoom on iOS */
+  /* Prevent input zoom on iOS — keep absolute 16px so iOS doesn't zoom */
   input[type="text"],
   input[type="email"],
   input[type="number"],

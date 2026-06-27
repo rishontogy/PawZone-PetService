@@ -24,11 +24,35 @@ export function BackButton({ className = "" }: { className?: string }) {
     }
   };
 
+  const isGreenRole =
+    user?.role === "buyer" ||
+    user?.role === "seller" ||
+    user?.role === "transporter";
+
+  if (isGreenRole) {
+    return (
+      <button
+        type="button"
+        onClick={goBack}
+        className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl shrink-0 transition-all duration-150 active:scale-95 hover:brightness-110 ${className}`}
+        style={{
+          background: "hsl(181, 60%, 28%)",
+          border: "1px solid rgba(255,255,255,0.22)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.18)",
+        }}
+        data-testid="back-button"
+        aria-label="Go back"
+      >
+        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
       onClick={goBack}
-      className={`w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl shrink-0 transition-all duration-150 active:scale-95 hover:brightness-110 ${className}`}
+      className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl shrink-0 transition-all duration-150 active:scale-95 hover:brightness-110 ${className}`}
       style={{
         background: "rgba(255,255,255,0.18)",
         border: "1px solid rgba(255,255,255,0.30)",
@@ -39,7 +63,7 @@ export function BackButton({ className = "" }: { className?: string }) {
       data-testid="back-button"
       aria-label="Go back"
     >
-      <ChevronLeft className="w-5 h-5 text-white" strokeWidth={2.5} />
+      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white" strokeWidth={2.5} />
     </button>
   );
 }

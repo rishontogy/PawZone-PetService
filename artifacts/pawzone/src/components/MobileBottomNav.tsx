@@ -70,7 +70,7 @@ export function MobileBottomNav() {
           return (
             <Link key={tab.href + tab.label} href={tab.href} className="flex-1">
               <div
-                className={`flex flex-col items-center justify-center pt-2 pb-2.5 px-1 relative transition-all min-h-[60px] ${
+                className={`flex flex-col items-center justify-center pt-1.5 pb-2 px-1 relative transition-all min-h-[3.5rem] ${
                   active ? "text-teal-600" : "text-gray-400 active:text-gray-600"
                 }`}
               >
@@ -81,9 +81,9 @@ export function MobileBottomNav() {
                   <div className="absolute inset-x-1 inset-y-0 bg-teal-50 rounded-xl -z-10" />
                 )}
                 <div className="relative">
-                  {tab.icon}
+                  <span className="[&>svg]:w-[1.2rem] [&>svg]:h-[1.2rem]">{tab.icon}</span>
                   {tab.badge != null && tab.badge > 0 && (
-                    <span className="absolute -top-1.5 -right-2 bg-teal-600 text-white text-[9px] min-w-[16px] h-4 rounded-full flex items-center justify-center font-bold leading-none px-0.5">
+                    <span className="absolute -top-1.5 -right-2 bg-teal-600 text-white text-[9px] min-w-[1rem] h-4 rounded-full flex items-center justify-center font-bold leading-none px-0.5">
                       {tab.badge > 9 ? "9+" : tab.badge}
                     </span>
                   )}
