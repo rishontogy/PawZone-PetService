@@ -20,6 +20,8 @@ const SELF_HANDLED_PATTERNS = [
   /^\/seller\/payout$/,
   /^\/transporter\/payout$/,
   /^\/transporter\/add-route$/,
+  /^\/transporter\/routes\/new$/,
+  /^\/transporter\/routes\/\d+\/edit$/,
   /^\/admin\/orders$/,
   /^\/admin\/users$/,
   /^\/admin\/listings$/,

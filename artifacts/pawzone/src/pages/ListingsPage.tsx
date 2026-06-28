@@ -41,17 +41,17 @@ export function ListingsPage() {
           </div>
           <div className="flex flex-col gap-2.5 sm:flex-row sm:gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/70" />
               <Input
                 placeholder="Search breed, type..."
                 value={q}
                 onChange={(e) => { setQ(e.target.value); setPage(1); }}
-                className="pl-9 h-11 rounded-xl"
+                className="pl-9 h-11 rounded-xl bg-white/15 border-white/30 text-white placeholder:text-white/70 focus-visible:ring-white/40 focus-visible:border-white/50"
               />
             </div>
             <div className="flex gap-2.5 sm:gap-3">
               <Select value={category} onValueChange={(v) => { setCategory(v === "all" ? "" : v); setPage(1); }}>
-                <SelectTrigger className="flex-1 sm:w-44 h-11 rounded-xl">
+                <SelectTrigger className="flex-1 sm:w-44 h-11 rounded-xl bg-white/15 border-white/30 text-white data-[placeholder]:text-white/70 [&>svg]:text-white/80 [&>svg]:opacity-100">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -62,7 +62,7 @@ export function ListingsPage() {
                 </SelectContent>
               </Select>
               <Select value={city} onValueChange={(v) => { setCity(v === "all" ? "" : v); setPage(1); }}>
-                <SelectTrigger className="flex-1 sm:w-52 h-11 rounded-xl">
+                <SelectTrigger className="flex-1 sm:w-52 h-11 rounded-xl bg-white/15 border-white/30 text-white data-[placeholder]:text-white/70 [&>svg]:text-white/80 [&>svg]:opacity-100">
                   <SelectValue placeholder="All Cities" />
                 </SelectTrigger>
                 <SelectContent>

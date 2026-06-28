@@ -1,0 +1,61 @@
+PAWZONE – GLOBAL UI FIXES (ALL DEVICES)
+
+Apply these fixes across the entire application (Desktop, Laptop, Tablet and Mobile).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. BUYER – BROWSE PETS PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The Search, Category and District/City filter fields have a text visibility issue.
+
+Current Problem:
+• Placeholder text is difficult to see.
+• Selected text is not clearly visible.
+• Some dropdown values blend into the background.
+
+Fix:
+
+✔ Make the placeholder text a clearly visible light grey/white (depending on the background).
+✔ Make the selected value text clearly readable.
+✔ Make dropdown icons visible.
+✔ Ensure sufficient contrast in all themes and on all screen sizes.
+✔ Apply this consistently to every filter field throughout the application.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. PAGE LOADING POSITION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This issue exists across the entire application, not only on mobile.
+
+Current Problem:
+
+When opening many pages, they load from the middle or lower part of the page instead of the top, forcing the user to scroll up to see the page header.
+
+Fix:
+
+✔ Every page should automatically reset its scroll position to the top whenever it is opened or navigated to.
+✔ The first visible element must always be the page header/banner.
+✔ Preserve the user's scroll position only when returning to a page via browser/app history, if applicable.
+✔ Audit all Buyer, Seller, Transporter and Admin pages to ensure this behavior is consistent.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. TRANSPORTER – ADD ROUTE PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current Problem:
+
+Two Back buttons are displayed.
+
+Fix:
+
+✔ Remove the duplicate Back button.
+✔ Keep only one Back button.
+✔ Position it inside the green header/banner.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL REQUIREMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+These fixes must be applied globally across the application (Desktop, Laptop, Tablet and Mobile).
+
+No business logic, workflows, database operations, or existing functionality should be changed. Only resolve the UI issues described above.
