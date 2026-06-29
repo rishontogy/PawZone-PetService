@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X, Mail, Phone, User, Lock, Eye, EyeOff, KeyRound, ShieldCheck, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { ModalLock } from "@/components/ModalLock";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -140,7 +141,8 @@ export function ForgotPasswordModal({ onClose }: ForgotPasswordModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <ModalLock />
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 

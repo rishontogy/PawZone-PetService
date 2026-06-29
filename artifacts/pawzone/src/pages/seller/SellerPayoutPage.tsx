@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatPrice } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { BackButton } from "@/components/BackButton";
+import { ModalLock } from "@/components/ModalLock";
 import {
   Wallet, CheckCircle, Clock, IndianRupee, TrendingUp,
   CreditCard, Edit2, Eye, Download, X, RefreshCw,
@@ -250,9 +251,10 @@ export function SellerPayoutPage() {
 
       {viewImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"
           onClick={() => setViewImage(null)}
         >
+          <ModalLock />
           <div className="relative max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setViewImage(null)}

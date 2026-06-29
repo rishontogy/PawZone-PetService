@@ -62,7 +62,7 @@ export function MobileBottomNav() {
   const tabs = tabsByRole[user.role] ?? [];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-100 shadow-2xl"
+    <div className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white border-t border-gray-100 shadow-2xl"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
       <div className="flex items-stretch">
         {tabs.map((tab) => {

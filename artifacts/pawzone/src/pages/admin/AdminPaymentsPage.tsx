@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAdminGetPaymentProofs, useAdminApprovePaymentProof, useAdminRejectPaymentProof } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
 import { BackButton } from "@/components/BackButton";
+import { ModalLock } from "@/components/ModalLock";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/api";
 import { CheckCircle, XCircle, Clock, CreditCard, ExternalLink, AlertCircle } from "lucide-react";
@@ -237,9 +238,10 @@ export function AdminPaymentsPage() {
       {/* Lightbox */}
       {viewImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"
           onClick={() => setViewImage(null)}
         >
+          <ModalLock />
           <img
             src={viewImage}
             alt="Payment screenshot enlarged"

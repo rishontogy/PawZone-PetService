@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { BackButton } from "@/components/BackButton";
+import { ModalLock } from "@/components/ModalLock";
 import { formatPrice } from "@/lib/api";
 import {
   Wallet, Users, IndianRupee, TrendingUp, CheckCircle, QrCode,
@@ -286,9 +287,10 @@ export function AdminPayoutsPage() {
 
       {/* Payout Modal */}
       {selectedUser && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 z-[60] bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <ModalLock />
           <div
-            className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]"
+            className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[80vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -469,9 +471,10 @@ export function AdminPayoutsPage() {
       {/* Image Lightbox */}
       {viewImage && (
         <div
-          className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[70] bg-black/80 flex items-center justify-center p-4"
           onClick={() => setViewImage(null)}
         >
+          <ModalLock />
           <div className="relative max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setViewImage(null)}

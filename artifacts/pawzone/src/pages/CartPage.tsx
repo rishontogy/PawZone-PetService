@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useGetCart, useRemoveFromCart, useUpdateCartItem, usePlaceOrder } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { ModalLock } from "@/components/ModalLock";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, platformFee } from "@/lib/api";
@@ -66,7 +67,8 @@ function AddDeliveryPointModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+      <ModalLock />
       <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-gray-900 flex items-center gap-2">
@@ -552,7 +554,8 @@ export function CartPage() {
               <p className="text-xs text-gray-400 text-center">⏰ Payment due within 3 hours of order placement</p>
 
               {confirmOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" data-testid="dialog-place-order-confirm">
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" data-testid="dialog-place-order-confirm">
+                  <ModalLock />
                   <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">

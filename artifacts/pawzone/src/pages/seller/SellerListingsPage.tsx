@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { useGetListings, useDeleteListing } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { BackButton } from "@/components/BackButton";
+import { ModalLock } from "@/components/ModalLock";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { formatPrice, getStatusColor } from "@/lib/api";
@@ -191,7 +192,8 @@ export function SellerListingsPage() {
       </div>
 
       {restockId !== null && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => !restocking && setRestockId(null)}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" onClick={() => !restocking && setRestockId(null)}>
+          <ModalLock />
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">

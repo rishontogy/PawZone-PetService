@@ -373,3 +373,8 @@
     inset: -1px;
   }
 }
+
+/* Hide mobile bottom nav whenever any modal/sheet is open */
+body.pawzone-modal-open .mobile-bottom-nav {
+  display: none !important;
+}

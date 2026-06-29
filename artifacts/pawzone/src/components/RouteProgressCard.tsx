@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { MapPin, Flag, X, Navigation } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { ModalLock } from "@/components/ModalLock";
 
 interface RouteInfo {
   pickupPoint: string;
@@ -191,15 +192,16 @@ function RouteModal({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center"
       onClick={onClose}
     >
+      <ModalLock />
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
       <div
-        className="relative bg-white w-full sm:max-w-md md:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[90vh] sm:max-h-[80vh] flex flex-col"
+        className="relative bg-white w-full sm:max-w-md md:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[85vh] sm:max-h-[80vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-gradient-to-r from-teal-700 to-emerald-600 rounded-t-3xl sm:rounded-t-3xl px-6 py-4 flex items-center justify-between">
+        <div className="flex-shrink-0 bg-gradient-to-r from-teal-700 to-emerald-600 rounded-t-3xl sm:rounded-t-3xl px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Navigation className="w-5 h-5 text-white" />
             <div>
@@ -211,13 +213,13 @@ function RouteModal({
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+            className="flex-shrink-0 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
           >
             <X className="w-4 h-4 text-white" />
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 px-6 py-5">
+        <div className="overflow-y-auto flex-1 px-6 py-5" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.25rem)" }}>
           <div className="relative">
             <div className="absolute left-5 top-6 bottom-6 w-0.5 bg-gradient-to-b from-green-600 via-teal-500 to-teal-800" />
 
