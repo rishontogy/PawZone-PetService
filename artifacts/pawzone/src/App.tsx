@@ -88,9 +88,14 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen">
       <Navbar />
       <GlobalBackBar />
-      <div className={user ? "pb-16 md:pb-0" : ""}>
-        {children}
-      </div>
+      {children}
+      {user && (
+        <div
+          className="md:hidden"
+          style={{ height: "max(5rem, calc(3.5rem + env(safe-area-inset-bottom, 0px)))" }}
+          aria-hidden="true"
+        />
+      )}
       <MobileBottomNav />
     </div>
   );
