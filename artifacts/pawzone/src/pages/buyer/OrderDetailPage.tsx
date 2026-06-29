@@ -11,6 +11,7 @@ import {
   Truck, Clock, MapPin, Phone, User, ShoppingBag, CreditCard,
   PackageCheck, PackageOpen, Video, XCircle
 } from "lucide-react";
+import { RouteProgressCard } from "@/components/RouteProgressCard";
 
 type Stage = {
   key: string;
@@ -667,19 +668,23 @@ export function OrderDetailPage() {
         {/* Delivery Route Info */}
         {(o.pickupPoint || o.deliveryPoint || o.deliveryAddress) && !selfPickup && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
               <MapPin className="w-4 h-4 text-teal-600" /> Delivery Route
             </h2>
             {o.pickupPoint && o.deliveryPoint ? (
-              <div className="flex items-center gap-3">
-                <div className="flex-1 bg-green-50 border border-green-100 rounded-xl p-3 text-center">
-                  <p className="text-xs text-green-600 font-semibold uppercase tracking-wide mb-1">Pickup Point</p>
+              <div className="space-y-3">
+                <div className="bg-green-50 border border-green-100 rounded-xl p-3">
+                  <p className="text-xs text-green-600 font-semibold uppercase tracking-wide mb-1">📍 Pickup Point</p>
                   <p className="font-bold text-green-800">{o.pickupPoint}</p>
                   <p className="text-xs text-green-600 mt-0.5">Seller → Transporter</p>
                 </div>
-                <div className="text-gray-300 font-bold text-xl">→</div>
-                <div className="flex-1 bg-teal-50 border border-teal-100 rounded-xl p-3 text-center">
-                  <p className="text-xs text-teal-600 font-semibold uppercase tracking-wide mb-1">Delivery Point</p>
+                <RouteProgressCard
+                  orderId={parseInt(id!)}
+                  pickupPoint={o.pickupPoint}
+                  deliveryPoint={o.deliveryPoint}
+                />
+                <div className="bg-teal-50 border border-teal-100 rounded-xl p-3">
+                  <p className="text-xs text-teal-600 font-semibold uppercase tracking-wide mb-1">🏁 Delivery Point</p>
                   <p className="font-bold text-teal-800">{o.deliveryPoint}</p>
                   <p className="text-xs text-teal-600 mt-0.5">Transporter → You</p>
                 </div>

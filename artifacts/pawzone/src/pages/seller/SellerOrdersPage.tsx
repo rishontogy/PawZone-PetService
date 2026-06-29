@@ -9,6 +9,7 @@ import {
   Package, Clock, User, CheckCircle, ChevronDown, ChevronUp,
   AlertCircle, X, Check, Video, Upload, Phone, Truck, IndianRupee, Shield, MapPin
 } from "lucide-react";
+import { RouteProgressCard } from "@/components/RouteProgressCard";
 
 export function SellerOrdersPage() {
   const { user } = useAuth();
@@ -321,6 +322,27 @@ export function SellerOrdersPage() {
                           <p className="text-xs text-gray-400 italic flex items-center gap-1">
                             <Truck className="w-3.5 h-3.5" /> No transporter assigned yet
                           </p>
+                        )}
+
+                        {/* Route Progress Card */}
+                        {order.pickupPoint && order.deliveryPoint && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="bg-green-50 border border-green-100 rounded-xl px-3 py-2 flex-1 mr-2">
+                                <p className="text-[10px] text-green-600 font-semibold uppercase tracking-wide">📍 Pickup</p>
+                                <p className="font-bold text-green-800 text-sm">{order.pickupPoint}</p>
+                              </div>
+                              <div className="bg-teal-50 border border-teal-100 rounded-xl px-3 py-2 flex-1 ml-2">
+                                <p className="text-[10px] text-teal-600 font-semibold uppercase tracking-wide">🏁 Drop</p>
+                                <p className="font-bold text-teal-800 text-sm">{order.deliveryPoint}</p>
+                              </div>
+                            </div>
+                            <RouteProgressCard
+                              orderId={order.id}
+                              pickupPoint={order.pickupPoint}
+                              deliveryPoint={order.deliveryPoint}
+                            />
+                          </div>
                         )}
                       </div>
                     )}

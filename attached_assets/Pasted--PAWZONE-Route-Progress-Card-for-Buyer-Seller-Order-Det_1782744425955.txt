@@ -1,0 +1,289 @@
+### PAWZONE – Route Progress Card for Buyer & Seller Order Details
+
+I want to improve the Buyer and Seller **Order Details** page by adding a visual **Route Progress Card** between the Pickup Point and Drop Point sections.
+
+Do **not** change any backend logic. This is only a UI enhancement using the existing transporter route data.
+
+---
+
+## Placement
+
+Currently the page shows:
+
+Pickup Point
+
+↓
+
+Drop Point
+
+Place the new **Route Progress Card** between these two sections.
+
+It should match the existing PawZone design (green theme, rounded corners, subtle shadow, premium look).
+
+---
+
+## Route Card Design
+
+The card should contain a simplified horizontal S-shaped road similar to the reference image.
+
+Use the PawZone green colour palette.
+
+Inside the road place numbered circular markers.
+
+Do NOT display town names on this small card.
+
+Only show numbered route markers.
+
+Example:
+
+If there are 5 intermediate stops:
+
+① ② ③ ④ ⑤
+
+If there are 10 intermediate stops:
+
+Only display
+
+② ④ ⑥ ⑧ ⑩
+
+This keeps the card compact.
+
+If there are 3 intermediate stops:
+
+① ② ③
+
+If there are no intermediate stops:
+
+Display a message:
+
+"Direct Route"
+
+instead of the road markers.
+
+---
+
+## Determining Stops
+
+Use the accepted transporter's saved route.
+
+Only calculate the section between:
+
+Pickup Point
+
+↓
+
+Drop Point
+
+Ignore all stops before Pickup.
+
+Ignore all stops after Drop.
+
+Example:
+
+Transporter Route:
+
+Kochi
+Tripunithura
+Thodupuzha
+Pala
+Ettumanoor
+Kottayam
+
+Pickup:
+
+Thodupuzha
+
+Drop:
+
+Ettumanoor
+
+The section becomes:
+
+Pickup
+↓
+
+Pala
+↓
+
+Drop
+
+Therefore the small card shows:
+
+①
+
+because there is only one stop between them.
+
+---
+
+Example 2
+
+Transporter Route:
+
+A
+B
+C
+D
+E
+F
+G
+H
+I
+J
+K
+
+Pickup:
+
+B
+
+Drop:
+
+K
+
+Intermediate stops:
+
+C
+D
+E
+F
+G
+H
+I
+J
+
+8 stops
+
+Small card shows only:
+
+② ④ ⑥ ⑧
+
+---
+
+## Click Behaviour
+
+The small Route Progress Card should be clickable.
+
+When clicked, open a centered popup (modal/bottom sheet depending on device).
+
+---
+
+## Expanded Route View
+
+Inside the popup show the complete route section vertically.
+
+Example:
+
+📍 Pickup
+
+Thodupuzha
+
+↓
+
+① Pala
+
+↓
+
+② Ettumanoor
+
+↓
+
+🏁 Drop
+
+Kottayam
+
+Every stop should contain:
+
+• Number badge
+
+• Stop name
+
+Use connectors between every stop.
+
+Use the existing PawZone colours.
+
+---
+
+## Popup Features
+
+Show:
+
+Pickup Location
+
+↓
+
+All intermediate stops
+
+↓
+
+Drop Location
+
+Use smooth animation.
+
+Popup should be responsive.
+
+Scrollable if many stops exist.
+
+Close button on top.
+
+---
+
+## Icons
+
+Pickup:
+
+Use current Pickup icon.
+
+Drop:
+
+Use current Delivery icon.
+
+Intermediate stops:
+
+Use numbered circular badges.
+
+---
+
+## Responsive Behaviour
+
+Desktop:
+
+Medium popup centered.
+
+Tablet:
+
+Large popup.
+
+Mobile:
+
+Bottom sheet with nearly full height.
+
+---
+
+## Data Source
+
+Do NOT create any new database.
+
+Use the already accepted transporter's stored route.
+
+Automatically determine:
+
+Pickup index
+
+Drop index
+
+Intermediate stops
+
+Number of stops
+
+Everything should update dynamically whenever the transporter route changes.
+
+---
+
+## Final Goal
+
+The Buyer and Seller should be able to visually understand the transport route between Pickup and Drop.
+
+The small card gives a quick overview.
+
+The popup provides the complete route with every intermediate stop and stop name in order.
+
+The design should feel premium, modern, and perfectly match the existing PawZone UI.

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { eq, and, desc, or } from "drizzle-orm";
-import { db, ordersTable, orderItemsTable, orderTimelineTable, listingsTable, usersTable, cartTable, notificationsTable, disputesTable, paymentProofsTable } from "@workspace/db";
+import { db, ordersTable, orderItemsTable, orderTimelineTable, listingsTable, usersTable, cartTable, notificationsTable, disputesTable, paymentProofsTable, transporterRoutesTable } from "@workspace/db";
 import {
   GetOrdersQueryParams,
   PlaceOrderBody,
@@ -926,6 +926,64 @@ router.post("/orders/:id/issue", authMiddleware, async (req, res): Promise<void>
   });
 
   res.status(201).json({ success: true, message: "Issue reported successfully" });
+});
+
+router.get("/orders/:id/route-info", authMiddleware, async (req, res): Promise<void> => {
+  const user = (req as any).user;
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid order id" }); return; }
+
+  const [order] = await db.select({
+    id: ordersTable.id,
+    buyerId: ordersTable.buyerId,
+    sellerId: ordersTable.sellerId,
+    transporterId: ordersTable.transporterId,
+    pickupPoint: ordersTable.pickupPoint,
+    deliveryPoint: ordersTable.deliveryPoint,
+  }).from(ordersTable).where(eq(ordersTable.id, id)).limit(1);
+
+  if (!order) { res.status(404).json({ error: "Order not found" }); return; }
+
+  const isParticipant =
+    order.buyerId === user.id ||
+    order.sellerId === user.id ||
+    order.transporterId === user.id;
+  if (!isParticipant && user.role !== "admin") {
+    res.status(403).json({ error: "Access Denied" });
+    return;
+  }
+
+  if (!order.transporterId || !order.pickupPoint || !order.deliveryPoint) {
+    res.json({ pickupPoint: order.pickupPoint ?? null, deliveryPoint: order.deliveryPoint ?? null, stops: [], direct: true });
+    return;
+  }
+
+  const routes = await db.select().from(transporterRoutesTable)
+    .where(eq(transporterRoutesTable.transporterId, order.transporterId));
+
+  const normalize = (s: string) => s.trim().toLowerCase();
+  const pickup = normalize(order.pickupPoint);
+  const delivery = normalize(order.deliveryPoint);
+
+  let intermediateStops: string[] = [];
+
+  for (const route of routes) {
+    const allStops = [route.startCity, ...(route.stops ?? []), route.endCity].filter((s): s is string => !!s);
+    const normStops = allStops.map(normalize);
+    const pickupIdx = normStops.indexOf(pickup);
+    const deliveryIdx = normStops.indexOf(delivery);
+    if (pickupIdx !== -1 && deliveryIdx !== -1 && pickupIdx < deliveryIdx) {
+      intermediateStops = allStops.slice(pickupIdx + 1, deliveryIdx);
+      break;
+    }
+  }
+
+  res.json({
+    pickupPoint: order.pickupPoint,
+    deliveryPoint: order.deliveryPoint,
+    stops: intermediateStops,
+    direct: intermediateStops.length === 0,
+  });
 });
 
 export default router;
