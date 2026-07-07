@@ -1,0 +1,327 @@
+PAWZONE - REDESIGN TRANSPORTER ADD ROUTE PAGE
+
+Completely redesign the "Add Route" page while keeping the existing backend route matching logic intact.
+
+The purpose is to let transporters build their daily route district-by-district instead of typing town names manually.
+
+Do NOT change any order assignment logic.
+Only change the UI and the route creation workflow.
+
+-------------------------------------------------
+STEP 1 - SELECT DISTRICTS
+-------------------------------------------------
+
+Show all 14 Kerala districts inside a large responsive card.
+
+Districts should appear as selectable chips/cards.
+
+Example
+
+□ Thiruvananthapuram
+□ Kollam
+□ Pathanamthitta
+□ Alappuzha
+□ Kottayam
+□ Idukki
+□ Ernakulam
+□ Thrissur
+□ Palakkad
+□ Malappuram
+□ Kozhikode
+□ Wayanad
+□ Kannur
+□ Kasaragod
+
+The transporter selects ONLY the districts he travels through TODAY.
+
+District selection is NOT alphabetical after selection.
+
+The order the transporter clicks is the travelling order.
+
+Example
+
+Click
+
+Ernakulam
+↓
+
+Idukki
+↓
+
+Kottayam
+↓
+
+Pathanamthitta
+
+Display
+
+① Ernakulam
+
+② Idukki
+
+③ Kottayam
+
+④ Pathanamthitta
+
+Each selected district should have
+
+↑ Move Up
+
+↓
+
+Move Down
+
+Delete
+
+so the travelling order can be changed easily.
+
+Do NOT automatically sort districts.
+
+-------------------------------------------------
+NEXT BUTTON
+-------------------------------------------------
+
+When the transporter presses NEXT
+
+Go to District 1.
+
+-------------------------------------------------
+STEP 2 - SELECT CITIES OF DISTRICT 1
+-------------------------------------------------
+
+Example
+
+District 1
+
+Ernakulam
+
+Load ONLY towns belonging to Ernakulam from the existing Kerala towns dataset.
+
+Example
+
+□ Aluva
+
+□ Angamaly
+
+□ Kalamassery
+
+□ Kakkanad
+
+□ Panampilly Nagar
+
+□ Kadavanthara
+
+□ Tripunithura
+
+□ Edappally
+
+□ Vyttila
+
+etc...
+
+Transporter selects ONLY the towns he actually passes.
+
+Again,
+
+selection order matters.
+
+Example
+
+① Aluva
+
+② Kalamassery
+
+③ Kakkanad
+
+④ Kadavanthara
+
+⑤ Tripunithura
+
+Do NOT sort alphabetically after selection.
+
+Allow
+
+Move Up
+
+Move Down
+
+Delete
+
+for towns.
+
+Buttons
+
+Back
+
+Next
+
+-------------------------------------------------
+STEP 3
+-------------------------------------------------
+
+Repeat for District 2.
+
+Example
+
+Idukki
+
+Only show Idukki towns.
+
+Example
+
+Thodupuzha
+
+Muttom
+
+Cheruthoni
+
+Kattappana
+
+etc...
+
+Again
+
+selection order is travelling order.
+
+Back
+
+Next
+
+-------------------------------------------------
+Repeat until all selected districts are completed.
+
+-------------------------------------------------
+FINAL PREVIEW PAGE
+-------------------------------------------------
+
+After the last district
+
+Show a complete preview.
+
+Example
+
+District 1
+
+Ernakulam
+
+① Aluva
+
+② Kalamassery
+
+③ Kakkanad
+
+④ Kadavanthara
+
+⑤ Tripunithura
+
+↓
+
+District 2
+
+Idukki
+
+⑥ Thodupuzha
+
+⑦ Moolamattom
+
+↓
+
+District 3
+
+Kottayam
+
+⑧ Pala
+
+⑨ Ettumanoor
+
+⑩ Kottayam
+
+↓
+
+District 4
+
+Pathanamthitta
+
+⑪ Thiruvalla
+
+⑫ Pathanamthitta
+
+-------------------------------------------------
+
+Buttons
+
+Edit Route
+
+Confirm Route
+
+-------------------------------------------------
+EDIT
+-------------------------------------------------
+
+Edit returns to District 1.
+
+Transporter can move forward/backward through every district and modify towns.
+
+-------------------------------------------------
+CONFIRM
+-------------------------------------------------
+
+On confirmation
+
+Save the route exactly in the travelling order selected.
+
+The backend should finally receive one ordered list exactly like:
+
+Aluva
+↓
+
+Kalamassery
+↓
+
+Kakkanad
+↓
+
+Kadavanthara
+↓
+
+Tripunithura
+↓
+
+Thodupuzha
+↓
+
+Moolamattom
+↓
+
+Pala
+↓
+
+Ettumanoor
+↓
+
+Kottayam
+↓
+
+Thiruvalla
+↓
+
+Pathanamthitta
+
+No backend logic should change.
+
+Only the route creation UI changes.
+
+-------------------------------------------------
+IMPORTANT
+-------------------------------------------------
+
+• Use the existing Kerala District → Town dataset already available in the project.
+• No manual typing of towns.
+• Only selectable towns.
+• Selection order determines travel order.
+• Route matching, transporter assignment, pickup/drop calculation, alerts, and delivery logic must continue working exactly as they do now.
+• Fully responsive for Desktop, Tablet, and Mobile.
+• Show a progress indicator such as "Step 2 of 5" throughout the wizard.
+• Add a modern progress bar at the top.
+• Auto-save progress while creating the route so accidental refreshes do not lose work.
+• The final saved route must remain compatible with the current transporter matching engine without requiring any backend changes.
