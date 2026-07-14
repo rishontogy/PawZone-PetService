@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PawPrint, AlertCircle, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { ForgotPasswordModal } from "@/components/ForgotPasswordModal";
+import { OtpVerificationModal } from "@/components/OtpVerificationModal";
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -15,11 +16,17 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [showForgot, setShowForgot] = useState(false);
+  const [otpModal, setOtpModal] = useState<{ userId: number; otp: string; role: "buyer" | "seller" | "transporter" } | null>(null);
 
   const loginMutation = useLogin({
     mutation: {
-      onSuccess: (data) => {
-        login(data.token, data.user as any);
+      onSuccess: (data: any) => {
+        if (data.requiresOtp) {
+          // Account approved but OTP not yet verified — show OTP modal
+          setOtpModal({ userId: data.userId, otp: data.otp, role: data.role });
+        } else {
+          login(data.token, data.user as any);
+        }
       },
       onError: (err: any) => {
         setError(err?.data?.error || "Invalid credentials. Please try again.");
@@ -134,6 +141,20 @@ export function LoginPage() {
 
       {/* Forgot Password Modal */}
       {showForgot && <ForgotPasswordModal onClose={() => setShowForgot(false)} />}
+
+      {/* OTP Verification Modal — shown when login returns requiresOtp: true */}
+      {otpModal && (
+        <OtpVerificationModal
+          userId={otpModal.userId}
+          otp={otpModal.otp}
+          role={otpModal.role}
+          mode="login"
+          onVerified={(token, user) => {
+            setOtpModal(null);
+            login(token, user);
+          }}
+        />
+      )}
     </>
   );
 }

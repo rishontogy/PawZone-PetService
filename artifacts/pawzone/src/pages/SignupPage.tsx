@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PawPrint, AlertCircle, CheckCircle, User, Mail, Phone, Lock, MapPin, Upload, Loader2, FileText, X, Eye, EyeOff, ScrollText } from "lucide-react";
 import { TermsModal } from "@/components/TermsModal";
+import { OtpVerificationModal } from "@/components/OtpVerificationModal";
 
 const KERALA_DISTRICTS: Record<string, string[]> = {
   "Thiruvananthapuram": ["Thiruvananthapuram", "Neyyattinkara", "Attingal", "Varkala", "Nedumangad", "Kazhakoottam", "Balaramapuram"],
@@ -170,6 +171,7 @@ export function SignupPage() {
   const [rcBookUrl, setRcBookUrl] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [otpModal, setOtpModal] = useState<{ userId: number; otp: string } | null>(null);
 
   const isKerala = form.state === "Kerala";
   const isIndia = form.country === "India";
@@ -205,7 +207,8 @@ export function SignupPage() {
     mutation: {
       onSuccess: (data: any) => {
         if (form.role === "buyer") {
-          login(data.token, data.user);
+          // Show OTP verification modal — no session until OTP is verified
+          setOtpModal({ userId: data.userId, otp: data.otp });
         } else {
           setSuccess(true);
         }
@@ -755,6 +758,19 @@ export function SignupPage() {
         <TermsModal
           role={form.role}
           onClose={() => setShowTermsModal(false)}
+        />
+      )}
+
+      {otpModal && (
+        <OtpVerificationModal
+          userId={otpModal.userId}
+          otp={otpModal.otp}
+          role="buyer"
+          mode="signup"
+          onVerified={(token, user) => {
+            setOtpModal(null);
+            login(token, user);
+          }}
         />
       )}
     </div>
