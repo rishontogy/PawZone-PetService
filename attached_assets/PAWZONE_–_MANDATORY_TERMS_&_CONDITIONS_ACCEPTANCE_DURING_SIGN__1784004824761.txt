@@ -1,0 +1,140 @@
+PAWZONE – MANDATORY TERMS & CONDITIONS ACCEPTANCE DURING SIGN UP
+
+Implement a mandatory Terms & Conditions acceptance flow for all three user types:
+• Buyer
+• Seller
+• Transporter
+
+Do NOT change any existing signup validations. Only add the Terms & Conditions flow.
+
+----------------------------------------------------
+1. Terms & Conditions Checkbox
+----------------------------------------------------
+
+At the bottom of every signup form, add:
+
+☐ I have read and agree to the Terms & Conditions.
+
+The checkbox must be DISABLED initially.
+
+Users cannot click it immediately.
+
+----------------------------------------------------
+2. View Terms Button
+----------------------------------------------------
+
+Above the checkbox show:
+
+View Terms & Conditions
+
+This should be a clickable button/link.
+
+When clicked:
+
+Open a full-screen modal (or separate page) displaying the correct Terms & Conditions document based on the selected account type.
+
+Buyer → Buyer Terms & Conditions
+
+Seller → Seller Terms & Conditions
+
+Transporter → Transporter Terms & Conditions
+
+Do NOT show the wrong document.
+
+----------------------------------------------------
+3. Enable Checkbox
+----------------------------------------------------
+
+The checkbox should become enabled ONLY AFTER the user has opened the Terms & Conditions page.
+
+Simply opening the document is sufficient.
+
+After the document has been opened:
+
+✔ Enable the checkbox.
+
+Before opening it:
+
+Checkbox remains disabled.
+
+----------------------------------------------------
+4. Signup Validation
+----------------------------------------------------
+
+The Sign Up button must not work unless:
+
+• All existing validations pass.
+• Terms document has been opened.
+• Checkbox is checked.
+
+Otherwise show:
+
+"Please read and accept the Terms & Conditions before creating your account."
+
+----------------------------------------------------
+5. Remember During Current Signup
+----------------------------------------------------
+
+If the user opens the Terms page once during the current signup process:
+
+Keep the checkbox enabled.
+
+If they close the Terms page:
+
+Do NOT disable it again.
+
+Only reset if the signup form itself is reset or the page is refreshed.
+
+----------------------------------------------------
+6. Terms Viewer
+----------------------------------------------------
+
+The Terms page should have:
+
+• Proper title.
+• Scrollable content.
+• Nice readable formatting.
+• Close button.
+• Back button.
+
+Do NOT automatically check the checkbox.
+
+The user must manually tick it.
+
+----------------------------------------------------
+7. Responsive
+----------------------------------------------------
+
+Must work perfectly on:
+
+• Desktop
+• Tablet
+• Mobile
+
+----------------------------------------------------
+8. Security
+----------------------------------------------------
+
+Never allow account creation if:
+
+✔ Terms were never opened.
+
+OR
+
+✔ Checkbox is not checked.
+
+Both conditions are mandatory.
+
+----------------------------------------------------
+9. Existing Functionality
+----------------------------------------------------
+
+Do NOT modify:
+
+• Login
+• Registration logic
+• Backend authentication
+• Approval workflow
+• Admin verification
+
+Only add the Terms & Conditions acceptance flow.

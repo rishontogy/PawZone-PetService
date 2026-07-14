@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PawPrint, AlertCircle, CheckCircle, User, Mail, Phone, Lock, MapPin, Upload, Loader2, FileText, X, Eye, EyeOff } from "lucide-react";
+import { PawPrint, AlertCircle, CheckCircle, User, Mail, Phone, Lock, MapPin, Upload, Loader2, FileText, X, Eye, EyeOff, ScrollText } from "lucide-react";
+import { TermsModal } from "@/components/TermsModal";
 
 const KERALA_DISTRICTS: Record<string, string[]> = {
   "Thiruvananthapuram": ["Thiruvananthapuram", "Neyyattinkara", "Attingal", "Varkala", "Nedumangad", "Kazhakoottam", "Balaramapuram"],
@@ -150,6 +151,11 @@ export function SignupPage() {
 
   const [showPassword, setShowPassword] = useState(false);
 
+  // Terms & Conditions
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [termsOpened, setTermsOpened] = useState(false);
+  const [termsChecked, setTermsChecked] = useState(false);
+
   // Field-level validation errors
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -251,6 +257,12 @@ export function SignupPage() {
       return;
     }
 
+    // Terms & Conditions gate
+    if (!termsOpened || !termsChecked) {
+      setError("Please read and accept the Terms & Conditions before creating your account.");
+      return;
+    }
+
     const city = form.city || dpTowns[0] || "";
     const payload: any = { ...form, city };
 
@@ -317,6 +329,8 @@ export function SignupPage() {
                         setForm({ ...form, role: r.value });
                         setDpDistrict("");
                         setDpTowns([]);
+                        setTermsOpened(false);
+                        setTermsChecked(false);
                       }}
                       className={`flex flex-col items-center gap-1 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
                         form.role === r.value
@@ -664,10 +678,60 @@ export function SignupPage() {
                 </div>
               )}
 
+              {/* Terms & Conditions */}
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <ScrollText className="w-4 h-4 text-teal-600 flex-shrink-0" />
+                  <span className="text-sm font-semibold text-gray-700">Terms & Conditions</span>
+                </div>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  {form.role === "buyer" && "Read the Buyer Terms & Conditions before creating your account."}
+                  {form.role === "seller" && "Read the Seller Terms & Conditions before creating your account."}
+                  {form.role === "transporter" && "Read the Transporter Terms & Conditions before creating your account."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowTermsModal(true);
+                    setTermsOpened(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 h-10 rounded-xl border-2 border-teal-500 text-teal-700 font-semibold text-sm hover:bg-teal-50 transition-colors"
+                >
+                  <FileText className="w-4 h-4" />
+                  View Terms & Conditions
+                  {termsOpened && <CheckCircle className="w-4 h-4 text-green-600" />}
+                </button>
+                <label className={`flex items-start gap-3 cursor-pointer select-none ${!termsOpened ? "opacity-50 cursor-not-allowed" : ""}`}>
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 mt-0.5 accent-teal-600 flex-shrink-0"
+                    checked={termsChecked}
+                    disabled={!termsOpened}
+                    onChange={(e) => setTermsChecked(e.target.checked)}
+                  />
+                  <span className="text-sm text-gray-700 leading-snug">
+                    I have read and agree to the{" "}
+                    <span className="font-semibold text-teal-700">
+                      {form.role === "buyer" && "Buyer "}
+                      {form.role === "seller" && "Seller "}
+                      {form.role === "transporter" && "Transporter "}
+                      Terms & Conditions
+                    </span>
+                    .
+                  </span>
+                </label>
+                {!termsOpened && (
+                  <p className="text-xs text-amber-600 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                    Open the Terms & Conditions document above to enable this checkbox.
+                  </p>
+                )}
+              </div>
+
               <Button
                 type="submit"
                 className="w-full h-12 rounded-xl text-base font-bold"
-                disabled={signupMutation.isPending || (!isIndia || !isKerala)}
+                disabled={signupMutation.isPending || (!isIndia || !isKerala) || !termsOpened || !termsChecked}
               >
                 {signupMutation.isPending ? "Creating account..." : "Create Account"}
               </Button>
@@ -686,6 +750,13 @@ export function SignupPage() {
           </CardContent>
         </Card>
       </div>
+
+      {showTermsModal && (
+        <TermsModal
+          role={form.role}
+          onClose={() => setShowTermsModal(false)}
+        />
+      )}
     </div>
   );
 }
