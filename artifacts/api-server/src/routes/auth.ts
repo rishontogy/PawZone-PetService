@@ -18,6 +18,37 @@ import { logger } from "../lib/logger";
 
 const router = Router();
 
+// ─── OTP Generator ──────────────────────────────────────────────────────────
+
+function generateOTP(): string {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const digits = "0123456789";
+  const all = letters + digits;
+  // Guarantee at least 1 letter and 1 digit
+  let otp = [
+    letters[Math.floor(Math.random() * letters.length)],
+    digits[Math.floor(Math.random() * digits.length)],
+  ];
+  for (let i = 0; i < 4; i++) {
+    otp.push(all[Math.floor(Math.random() * all.length)]);
+  }
+  // Fisher-Yates shuffle
+  for (let i = otp.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [otp[i], otp[j]] = [otp[j], otp[i]];
+  }
+  return otp.join("");
+}
+
+// ─── Format user (strip sensitive fields) ───────────────────────────────────
+
+function formatUser(user: any) {
+  const { passwordHash, otp, ...rest } = user;
+  return rest;
+}
+
+// ─── Login ──────────────────────────────────────────────────────────────────
+
 router.post("/auth/login", async (req, res): Promise<void> => {
   const parsed = LoginBody.safeParse(req.body);
   if (!parsed.success) {
@@ -57,9 +88,23 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     return;
   }
 
+  // OTP check — only for users who have an OTP assigned (new accounts)
+  // Legacy accounts (otp = null) skip this check for backward compatibility
+  if (user.otp !== null && !user.otpVerified) {
+    res.json({
+      requiresOtp: true,
+      userId: user.id,
+      otp: user.otp,   // included only for testing mode (no email yet)
+      role: user.role,
+    });
+    return;
+  }
+
   const token = await createSession(user.id);
   res.json({ user: formatUser(user), token });
 });
+
+// ─── Signup ──────────────────────────────────────────────────────────────────
 
 router.post("/auth/signup", async (req, res): Promise<void> => {
   const parsed = SignupBody.safeParse(req.body);
@@ -89,6 +134,7 @@ router.post("/auth/signup", async (req, res): Promise<void> => {
 
   const status = role === "buyer" ? "approved" : "pending";
   const sellerId = role === "seller" ? "SEL" + Math.random().toString(36).slice(2, 7).toUpperCase() : null;
+  const otp = generateOTP();
 
   const [user] = await db.insert(usersTable).values({
     role,
@@ -109,11 +155,64 @@ router.post("/auth/signup", async (req, res): Promise<void> => {
     deliveryPoints: deliveryPoints?.length ? deliveryPoints : null,
     governmentIdUrl,
     rcBookUrl,
+    otp,
+    otpVerified: false,
   }).returning();
 
-  const token = await createSession(user.id);
-  res.status(201).json({ user: formatUser(user), token });
+  if (role === "buyer") {
+    // Buyer: return userId + OTP for immediate verification in the UI
+    // No session created yet — session is created after OTP verification
+    res.status(201).json({ userId: user.id, otp });
+  } else {
+    // Seller/Transporter: pending admin approval; OTP verified on first login after approval
+    res.status(201).json({ userId: user.id, pendingApproval: true });
+  }
 });
+
+// ─── OTP Verification ────────────────────────────────────────────────────────
+
+router.post("/auth/verify-otp", async (req, res): Promise<void> => {
+  const { userId, otp } = req.body ?? {};
+  if (!userId || !otp) {
+    res.status(400).json({ error: "User ID and OTP are required." });
+    return;
+  }
+
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, Number(userId)));
+  if (!user) {
+    res.status(404).json({ error: "User not found." });
+    return;
+  }
+
+  if (user.otpVerified) {
+    // Already verified — create session and return
+    const token = await createSession(user.id);
+    res.json({ token, user: formatUser(user) });
+    return;
+  }
+
+  if (!user.otp) {
+    res.status(400).json({ error: "No OTP assigned to this account." });
+    return;
+  }
+
+  // Case-insensitive comparison
+  if (user.otp.toUpperCase() !== String(otp).toUpperCase()) {
+    res.status(400).json({ error: "Incorrect OTP. Please try again." });
+    return;
+  }
+
+  const [updated] = await db
+    .update(usersTable)
+    .set({ otpVerified: true, otpVerifiedAt: new Date() })
+    .where(eq(usersTable.id, user.id))
+    .returning();
+
+  const token = await createSession(user.id);
+  res.json({ token, user: formatUser(updated) });
+});
+
+// ─── Logout ───────────────────────────────────────────────────────────────────
 
 router.post("/auth/logout", authMiddleware, async (req, res): Promise<void> => {
   const authHeader = req.headers.authorization!;
@@ -122,10 +221,14 @@ router.post("/auth/logout", authMiddleware, async (req, res): Promise<void> => {
   res.json({ success: true, message: "Logged out" });
 });
 
+// ─── Me ───────────────────────────────────────────────────────────────────────
+
 router.get("/auth/me", authMiddleware, async (req, res): Promise<void> => {
   const user = (req as any).user;
   res.json(formatUser(user));
 });
+
+// ─── Waitlist ─────────────────────────────────────────────────────────────────
 
 router.post("/auth/waitlist", async (req, res): Promise<void> => {
   const parsed = AddToWaitlistBody.safeParse(req.body);
@@ -264,10 +367,5 @@ router.post("/auth/verify-reset-code", async (req, res): Promise<void> => {
 
   res.json({ success: true, message: "Password reset successfully." });
 });
-
-function formatUser(user: any) {
-  const { passwordHash, ...rest } = user;
-  return rest;
-}
 
 export default router;

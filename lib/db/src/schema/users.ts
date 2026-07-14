@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, numeric, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, numeric, real, boolean } from "drizzle-orm/pg-core";
 // Note: numeric imported but unused — kept for backward compatibility
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
@@ -26,6 +26,9 @@ export const usersTable = pgTable("users", {
   governmentIdUrl: text("government_id_url"),
   rcBookUrl: text("rc_book_url"),
   liveLocationUrl: text("live_location_url"),
+  otp: text("otp"),
+  otpVerified: boolean("otp_verified").notNull().default(false),
+  otpVerifiedAt: timestamp("otp_verified_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

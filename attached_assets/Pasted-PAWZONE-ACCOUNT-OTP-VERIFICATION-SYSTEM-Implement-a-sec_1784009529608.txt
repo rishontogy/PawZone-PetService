@@ -1,0 +1,253 @@
+PAWZONE – ACCOUNT OTP VERIFICATION SYSTEM
+
+Implement a secure OTP verification system for Buyer, Seller, and Transporter accounts.
+
+IMPORTANT:
+Do NOT change any existing signup, approval, or login workflow except where mentioned below.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OTP GENERATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Whenever ANY new user registers (Buyer, Seller, or Transporter):
+
+Automatically generate a unique 6-character OTP.
+
+Rules:
+
+• Length: Exactly 6 characters
+• Uppercase letters only (A-Z)
+• Numbers (0-9)
+• Combination of both letters and numbers
+• Example:
+  A4K8P2
+  8BZ4Q1
+  H9X2LM
+
+Store this OTP securely in the database.
+
+DO NOT display this OTP anywhere inside the application.
+
+It is for verification purposes only.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BUYER WORKFLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current Flow:
+
+Buyer fills signup form
+↓
+
+Clicks Sign Up
+
+NEW FLOW:
+
+1. Save buyer details in the database.
+2. Generate and store the OTP.
+3. Open an OTP Verification popup.
+
+Popup Title:
+
+Verify Your Email
+
+Message:
+
+"Please verify your email for the OTP."
+
+Show:
+
+• 6-character OTP input
+• Verify button
+• Re-enter/Clear button
+
+If entered OTP matches the stored OTP:
+
+✔ Mark buyer as verified.
+✔ Activate the account.
+✔ Display:
+  "Email verified successfully."
+
+Then continue with the existing signup success flow.
+
+If OTP is incorrect:
+
+Show:
+
+"Incorrect OTP. Please try again."
+
+Allow unlimited attempts.
+
+NO expiry time.
+
+NO countdown timer.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SELLER WORKFLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Current workflow remains unchanged.
+
+Seller:
+
+Registers
+↓
+
+Admin reviews documents
+↓
+
+Admin approves
+
+ONLY AFTER APPROVAL:
+
+When the seller attempts to log in for the first time:
+
+Display OTP Verification popup.
+
+Message:
+
+"Enter the received OTP."
+
+Show:
+
+• 6-character OTP input
+• Verify button
+• Re-enter button
+
+If OTP matches:
+
+✔ Seller account becomes verified.
+✔ Seller can access the dashboard.
+
+If incorrect:
+
+Show:
+
+"Incorrect OTP. Please try again."
+
+Unlimited attempts.
+
+No expiry.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRANSPORTER WORKFLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Exactly the same workflow as Seller.
+
+Register
+↓
+
+Admin Approval
+↓
+
+OTP Verification
+↓
+
+Dashboard Access
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATABASE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Store for every user:
+
+• OTP
+• OTP Verified (true/false)
+• Verification Date
+
+Buyer:
+
+verified = true only after OTP verification.
+
+Seller:
+
+verified = true only after Admin Approval AND OTP verification.
+
+Transporter:
+
+verified = true only after Admin Approval AND OTP verification.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LOGIN RESTRICTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Buyer
+
+Cannot log in until OTP verification is completed.
+
+Seller
+
+Cannot log in until:
+
+• Admin Approved
+AND
+• OTP Verified
+
+Transporter
+
+Cannot log in until:
+
+• Admin Approved
+AND
+• OTP Verified
+
+Display appropriate messages if verification is pending.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+UI REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OTP popup should:
+
+• Match PawZone theme.
+• Be centered.
+• Responsive.
+• Mobile friendly.
+• Tablet friendly.
+• Desktop friendly.
+
+OTP boxes:
+
+□ □ □ □ □ □
+
+Automatically move cursor to next box.
+
+Allow paste of all 6 characters.
+
+Characters must automatically convert to uppercase.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECURITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• OTP must never be displayed in any dashboard.
+• OTP must never appear in Admin pages.
+• OTP must never appear in API responses unless required internally.
+• OTP comparisons must be case-insensitive by converting input to uppercase before validation.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FUTURE EMAIL INTEGRATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Design the system so that the OTP can later be sent through an email service.
+
+For now:
+
+Generate and store the OTP only.
+
+The email sending function can be connected later without changing the verification workflow.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMPORTANT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Do NOT modify:
+
+• Existing buyer workflow
+• Existing seller approval workflow
+• Existing transporter approval workflow
+• Existing admin approval logic
+• Existing database relationships
+
+Only add the OTP generation, storage, verification, and account activation logic described above.

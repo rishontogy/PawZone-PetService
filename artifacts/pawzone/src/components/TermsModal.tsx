@@ -7,54 +7,73 @@ type Role = "buyer" | "seller" | "transporter";
 
 const TERMS: Record<Role, { title: string; sections: { heading: string; body: string[] }[] }> = {
   buyer: {
-    title: "Buyer Terms & Conditions",
+    title: "PawZone Buyer Terms and Conditions",
     sections: [
       {
-        heading: "1. Acceptance of Terms",
-        body: [
+        heading: "",
+      body: [
           "By creating a Buyer account on PawZone, you confirm that you have read, understood, and agree to be bound by these Terms & Conditions. If you do not agree, you must not register or use the platform.",
           "These terms apply exclusively to buyers (individuals or organisations purchasing pets) on the PawZone marketplace.",
         ],
       },
       {
-        heading: "2. Eligibility",
+        heading: "1. Eligibility",
         body: [
-          "You must be at least 18 years of age to create an account and purchase pets on PawZone.",
-          "You must be a resident of Kerala, India, as PawZone currently operates only within Kerala.",
-          "You must provide accurate, current, and complete information during registration and keep it updated.",
+          "1.1 The Buyer must be at least 18 years of age to register and purchase animals through PawZone.",
+          "1.2 The Buyer shall provide accurate, complete, and truthful information during registration.",
+          "1.3 The Buyer shall verify their mobile number through OTP before accessing Buyer services.",
+          "1.4 The Buyer shall maintain the confidentiality of their account credentials.",
+          "1.5 The Buyer shall be solely responsible for all activities performed using their account.",
+          "1.6 Creating multiple Buyer accounts for fraudulent purposes is strictly prohibited.",
+          "1.7 PawZone reserves the right to suspend, restrict, or terminate any Buyer account found providing false information.",
         ],
       },
       {
-        heading: "3. Pet Purchases",
+        heading: "2. Geographic Availability",
         body: [
-          "All purchases are subject to the availability and discretion of the seller. PawZone acts solely as a marketplace facilitator and is not the seller of any pet.",
-          "Buyers must inspect the pet's PetCode and health details on the listing before placing an order.",
-          "Once an order is placed and payment is confirmed, it is binding. Cancellations are at the seller's discretion.",
-          "Pet prices displayed on listings include the platform facilitation fee (₹20 for orders above ₹100; ₹5 for orders ₹100 or below).",
+          "2.1 PawZone services are initially available only within the State of Kerala, India.",
+          "2.2 Buyers attempting to access services from outside the supported region may be placed on a waiting list until services become available in their area.",
+          "2.3 PawZone does not guarantee availability of listings in every district or city",
         ],
       },
       {
-        heading: "4. Payment",
+        heading: "3. Animal Welfare Responsibility",
         body: [
-          "All payments are processed via UPI. Payment must be completed within 3 hours of order placement, failing which the order may be automatically cancelled.",
-          "Orders placed after 9:00 PM will be processed on the next business day.",
-          "Payment screenshots uploaded as proof are reviewed by PawZone admin. Fraudulent submissions will result in immediate account termination and legal action.",
+          "3.1 The Buyer acknowledges that purchasing an animal is a long-term responsibility.",
+
+          "3.2 The Buyer agrees to provide proper food, shelter, medical care, exercise, and affection to every animal purchased.",
+
+          "3.3 The Buyer shall not purchase an animal with the intention of abandonment, neglect, abuse, or illegal breeding.",
+
+          "3.4 Any evidence of animal cruelty may result in immediate suspension of the Buyer's account and may be reported to the appropriate authorities.",
+
+          "3.5 PawZone reserves the right to deny service to any Buyer suspected of endangering animal welfare.",
         ],
       },
       {
-        heading: "5. Delivery",
+        heading: "4. Browsing Listings",
         body: [
-          "Delivery is carried out by PawZone-registered transporters through their scheduled routes. Delivery availability depends on the transporter's route covering both the seller's pickup town and your registered delivery town.",
-          "You are responsible for selecting valid delivery towns during signup or in your account settings.",
-          "You must be present to receive the pet at the agreed delivery point. Failure to receive may result in the order being returned.",
+          "4.1 Buyers are responsible for carefully reviewing all listing details before placing an order.",
+
+          "4.2 Buyers should verify the pet's age, breed, gender, health condition, vaccination status, and seller information before purchasing.",
+
+          "4.3 Buyers acknowledge that images and videos are provided by Sellers and may vary slightly from the actual appearance due to lighting, growth, or natural changes.",
+
+          "4.4 Buyers should contact the Seller through PawZone whenever clarification is required before ordering.",
         ],
       },
       {
-        heading: "6. Animal Welfare",
+        heading: "5. Placing an Order",
         body: [
-          "By purchasing from PawZone, you commit to providing proper care, nutrition, shelter, and veterinary attention to the pet.",
-          "Any form of animal cruelty is strictly prohibited and will result in account termination and may be reported to relevant authorities.",
-          "Purchased pets must not be resold without proper legal authorisation.",
+          "5.1 An order shall be considered a purchase request until confirmed according to PawZone procedures.",
+
+          "5.2 Upon placing an order, the requested pet may be temporarily reserved for a limited period as defined by PawZone's inventory management policy.",
+
+          "5.3 Orders placed after the platform's designated late-night cut-off time may remain pending until business hours for Seller confirmation.",
+
+          "5.4 Buyers shall ensure that all delivery information is accurate before confirming an order.",
+
+          "5.5 Orders cannot be transferred to another person without prior approval from PawZone.",
         ],
       },
       {
